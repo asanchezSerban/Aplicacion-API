@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  body {
+    font-family: Calibri, sans-serif;
+    font-size: 11pt;
+    color: #1F2937;
+    margin: 2.5cm 3cm;
+    line-height: 1.6;
+  }
+  h1 {
+    font-size: 24pt;
+    font-weight: bold;
+    color: #1E3A5F;
+    border-bottom: 3px solid #1E3A5F;
+    padding-bottom: 8px;
+    margin-top: 0;
+  }
+  h2 {
+    font-size: 15pt;
+    font-weight: bold;
+    color: #1E3A5F;
+    border-bottom: 1.5px solid #3B82F6;
+    padding-bottom: 4px;
+    margin-top: 32px;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #1E40AF;
+    margin-top: 20px;
+    margin-bottom: 4px;
+  }
+  p { margin: 6px 0 10px 0; }
+  code {
+    font-family: Consolas, monospace;
+    font-size: 10.5pt;
+    background: #F3F4F6;
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: #DC2626;
+  }
+  pre {
+    font-family: Consolas, monospace;
+    font-size: 10pt;
+    background: #1E293B;
+    color: #E2E8F0;
+    padding: 14px 18px;
+    border-radius: 6px;
+    border-left: 4px solid #3B82F6;
+    white-space: pre-wrap;
+    margin: 10px 0 14px 0;
+    line-height: 1.6;
+  }
+  .resultado {
+    font-family: Consolas, monospace;
+    font-size: 10pt;
+    background: #F0FDF4;
+    color: #166534;
+    padding: 14px 18px;
+    border-radius: 6px;
+    border-left: 4px solid #22C55E;
+    white-space: pre-wrap;
+    margin: 0 0 18px 0;
+    line-height: 1.6;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px 0;
+    font-size: 10.5pt;
+  }
+  th {
+    background: #1E3A5F;
+    color: white;
+    font-weight: bold;
+    padding: 9px 14px;
+    text-align: left;
+    border: 1px solid #1E3A5F;
+  }
+  td {
+    padding: 8px 14px;
+    border: 1px solid #D1D5DB;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #F8FAFC; }
+  .callout {
+    border-left: 4px solid #3B82F6;
+    background: #EFF6FF;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout-warn {
+    border-left: 4px solid #F59E0B;
+    background: #FFFBEB;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout-green {
+    border-left: 4px solid #10B981;
+    background: #ECFDF5;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout-purple {
+    border-left: 4px solid #8B5CF6;
+    background: #F5F3FF;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .etiqueta {
+    display: inline-block;
+    background: #1E3A5F;
+    color: white;
+    font-family: Consolas, monospace;
+    font-size: 13pt;
+    font-weight: bold;
+    padding: 4px 14px;
+    border-radius: 4px;
+    margin-right: 8px;
+  }
+  .nivel {
+    display: inline-block;
+    background: #DBEAFE;
+    color: #1D4ED8;
+    font-size: 9.5pt;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  hr { border: none; border-top: 1px solid #E5E7EB; margin: 24px 0; }
+  ul { margin: 6px 0 10px 0; padding-left: 22px; }
+  li { margin-bottom: 5px; }
+  .portada { text-align: center; padding: 50px 0 40px 0; }
+  .portada h1 { border: none; font-size: 30pt; margin-bottom: 8px; }
+  .portada .sub { font-size: 14pt; color: #6B7280; margin-bottom: 10px; }
+  .portada .meta { font-size: 11pt; color: #374151; line-height: 2.2; margin-top: 30px; }
+  .fila-simbolo { background: #1E293B; color: #93C5FD; font-family: Consolas; font-size: 11pt; font-weight: bold; padding: 4px 10px; border-radius: 4px; display: inline-block; }
+  .bloque-dos {
+    display: table;
+    width: 100%;
+    margin: 10px 0 18px 0;
+  }
+  .col-izq, .col-der {
+    display: table-cell;
+    width: 50%;
+    vertical-align: top;
+    padding: 0 8px 0 0;
+  }
+  .col-der { padding: 0 0 0 8px; }
+  .label-col {
+    font-size: 9pt;
+    font-weight: bold;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="portada">
+  <h1>Guía de Markdown</h1>
+  <div class="sub">Todos los delimitadores y cómo usarlos en CLAUDE.md</div>
+  <div class="meta">
+    Formato: Markdown (CommonMark + GitHub Flavored)<br>
+    Aplicación: Ficheros CLAUDE.md, documentación, prompts<br>
+    Fecha: Marzo 2026
+  </div>
+</div>
+
+<hr>
+
+<h2>Índice</h2>
+<ol style="line-height:2.2">
+  <li>¿Qué es Markdown y por qué lo usa Claude?</li>
+  <li>Encabezados — <code>#</code> <code>##</code> <code>###</code></li>
+  <li>Separadores — <code>---</code></li>
+  <li>Texto en negrita, cursiva y tachado</li>
+  <li>Código — comillas invertidas</li>
+  <li>Listas — con guiones y con números</li>
+  <li>Tablas</li>
+  <li>Citas — <code>&gt;</code></li>
+  <li>Enlaces e imágenes</li>
+  <li>Saltos de línea y párrafos</li>
+  <li>Resumen visual: todos los símbolos de un vistazo</li>
+  <li>Buenas prácticas para CLAUDE.md</li>
+</ol>
+
+<hr>
+
+<!-- 1. QUÉ ES MARKDOWN -->
+<h2>1. ¿Qué es Markdown y por qué lo usa Claude?</h2>
+
+<p>Markdown es un lenguaje de marcado ligero que usa símbolos de texto plano para dar formato. En vez de usar botones como en Word, escribes símbolos directamente en el texto y el lector los interpreta como formato visual.</p>
+
+<p>Por ejemplo, rodear una palabra con dos asteriscos (<code>**palabra**</code>) la convierte en <strong>negrita</strong>. Escribir <code>#</code> antes de una línea la convierte en un título grande.</p>
+
+<div class="callout">
+  <strong>¿Por qué lo usa Claude?</strong><br>
+  Claude lee el fichero <code>CLAUDE.md</code> como sus instrucciones de proyecto. El formato Markdown le ayuda a entender la <strong>jerarquía</strong> de las instrucciones: qué es un título principal, qué es una subsección, qué es un elemento de lista, qué es código. Un CLAUDE.md bien estructurado con Markdown hace que Claude entienda mejor el proyecto y siga las instrucciones de forma más precisa.
+</div>
+
+<!-- 2. ENCABEZADOS -->
+<h2>2. Encabezados — <code>#</code> <code>##</code> <code>###</code></h2>
+
+<p>Los encabezados se crean poniendo uno o más símbolos <code>#</code> al inicio de la línea, seguidos de un espacio. Cuantos más <code>#</code>, menor es el nivel del encabezado (más pequeño).</p>
+
+<table>
+  <tr>
+    <th>Lo que escribes</th>
+    <th>Nivel</th>
+    <th>Para qué se usa</th>
+  </tr>
+  <tr>
+    <td><code># Título</code></td>
+    <td><span class="nivel">H1 — Título principal</span></td>
+    <td>El nombre del documento o sección más importante. Solo uno por documento.</td>
+  </tr>
+  <tr>
+    <td><code>## Sección</code></td>
+    <td><span class="nivel">H2 — Sección</span></td>
+    <td>Grandes bloques temáticos. En CLAUDE.md: ROL, STACK, BASE DE DATOS...</td>
+  </tr>
+  <tr>
+    <td><code>### Subsección</code></td>
+    <td><span class="nivel">H3 — Subsección</span></td>
+    <td>Partes dentro de una sección. En CLAUDE.md: Backend, Frontend, dentro de Stack.</td>
+  </tr>
+  <tr>
+    <td><code>#### Apartado</code></td>
+    <td><span class="nivel">H4 — Apartado</span></td>
+    <td>Detalle fino dentro de una subsección. Se usa poco.</td>
+  </tr>
+</table>
+
+<p><strong>Ejemplo real del CLAUDE.md:</strong></p>
+
+<div class="bloque-dos">
+  <div class="col-izq">
+    <div class="label-col">Lo que escribes en el .md</div>
+    <pre>## STACK TECNOLÓGICO
+
+### Backend
+- Runtime: .NET 10
+- Framework: ASP.NET Core
+
+### Frontend
+- Framework: Angular 21</pre>
+  </div>
+  <div class="col-der">
+    <div class="label-col">Cómo lo interpreta Claude</div>
+    <div class="resultado">STACK TECNOLÓGICO  ← sección principal
+│
+├── Backend          ← subsección
+│     .NET 10
+│     ASP.NET Core
+│
+└── Frontend         ← subsección
+      Angular 21</div>
+  </div>
+</div>
+
+<div class="callout-warn">
+  <strong>Regla importante:</strong> Siempre deja un espacio entre el <code>#</code> y el texto. <code>#Título</code> no funciona. Debe ser <code># Título</code>.
+</div>
+
+<!-- 3. SEPARADORES -->
+<h2>3. Separadores — <code>---</code></h2>
+
+<p>Tres guiones seguidos en una línea sola crean una línea horizontal divisoria. Se usa para separar secciones visualmente.</p>
+
+<div class="bloque-dos">
+  <div class="col-izq">
+    <div class="label-col">Lo que escribes</div>
+    <pre>## Sección A
+Contenido de A.
+
+---
+
+## Sección B
+Contenido de B.</pre>
+  </div>
+  <div class="col-der">
+    <div class="label-col">Resultado visual</div>
+    <div class="resultado">Sección A
+Contenido de A.
+
+─────────────────────
+
+Sección B
+Contenido de B.</div>
+  </div>
+</div>
+
+<p>También puedes usar <code>***</code> o <code>___</code> (tres asteriscos o tres guiones bajos), los tres producen el mismo resultado.</p>
+
+<div class="callout-green">
+  <strong>Cuándo usarlo en CLAUDE.md:</strong> Para separar grandes bloques de instrucciones que son conceptualmente independientes entre sí. Por ejemplo, separar la sección de backend de la de frontend, o separar la especificación de la base de datos de los endpoints.
+</div>
+
+<!-- 4. NEGRITA, CURSIVA, TACHADO -->
+<h2>4. Texto en negrita, cursiva y tachado</h2>
+
+<table>
+  <tr>
+    <th>Lo que escribes</th>
+    <th>Resultado</th>
+    <th>Símbolo usado</th>
+    <th>Para qué sirve</th>
+  </tr>
+  <tr>
+    <td><code>**texto**</code></td>
+    <td><strong>texto</strong></td>
+    <td>Dos asteriscos por cada lado</td>
+    <td>Énfasis fuerte, palabras clave, términos importantes</td>
+  </tr>
+  <tr>
+    <td><code>__texto__</code></td>
+    <td><strong>texto</strong></td>
+    <td>Dos guiones bajos por cada lado</td>
+    <td>Igual que ** (son equivalentes)</td>
+  </tr>
+  <tr>
+    <td><code>*texto*</code></td>
+    <td><em>texto</em></td>
+    <td>Un asterisco por cada lado</td>
+    <td>Énfasis suave, términos técnicos, aclaraciones</td>
+  </tr>
+  <tr>
+    <td><code>_texto_</code></td>
+    <td><em>texto</em></td>
+    <td>Un guion bajo por cada lado</td>
+    <td>Igual que * (son equivalentes)</td>
+  </tr>
+  <tr>
+    <td><code>***texto***</code></td>
+    <td><strong><em>texto</em></strong></td>
+    <td>Tres asteriscos por cada lado</td>
+    <td>Negrita y cursiva a la vez. Para avisos críticos.</td>
+  </tr>
+  <tr>
+    <td><code>~~texto~~</code></td>
+    <td><s>texto</s></td>
+    <td>Dos virgulillas por cada lado</td>
+    <td>Texto tachado. Para indicar algo obsoleto o eliminado.</td>
+  </tr>
+</table>
+
+<p><strong>Ejemplo práctico:</strong></p>
+<pre>
+Lo que **no debes hacer** es saltarte el contrato de la API.
+Los *enums* se serializan como strings, ***nunca*** como números.
+~~Usar NgModules~~ → usar Standalone Components.</pre>
+
+<!-- 5. CÓDIGO -->
+<h2>5. Código — comillas invertidas</h2>
+
+<p>El símbolo de la comilla invertida es la tecla que en un teclado español está a la izquierda del 1: <code>`</code> (también llamado backtick o acento grave).</p>
+
+<h3>Código en línea — una comilla invertida</h3>
+<p>Rodea texto con una sola comilla invertida para mostrar código dentro de una frase normal:</p>
+
+<div class="bloque-dos">
+  <div class="col-izq">
+    <div class="label-col">Lo que escribes</div>
+    <pre>Usa `dotnet run` para arrancar.
+El endpoint es `GET /api/clients`.</pre>
+  </div>
+  <div class="col-der">
+    <div class="label-col">Resultado</div>
+    <div class="resultado">Usa <code style="background:#2D3748;color:#F6AD55;padding:1px 5px">dotnet run</code> para arrancar.
+El endpoint es <code style="background:#2D3748;color:#F6AD55;padding:1px 5px">GET /api/clients</code>.</div>
+  </div>
+</div>
+
+<h3>Bloque de código — tres comillas invertidas</h3>
+<p>Rodea varias líneas con tres comillas invertidas (<code>```</code>) al inicio y al final para crear un bloque de código. Opcionalmente puedes indicar el lenguaje justo después de las primeras tres comillas para que se coloree la sintaxis:</p>
+
+<div class="bloque-dos">
+  <div class="col-izq">
+    <div class="label-col">Lo que escribes</div>
+    <pre>```csharp
+public class Client
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}
+```</pre>
+  </div>
+  <div class="col-der">
+    <div class="label-col">Resultado (bloque resaltado)</div>
+    <div class="resultado">public class Client
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+}</div>
+  </div>
+</div>
+
+<p>Lenguajes que puedes indicar: <code>csharp</code>, <code>javascript</code>, <code>typescript</code>, <code>sql</code>, <code>json</code>, <code>bash</code>, <code>html</code>, <code>css</code>, <code>python</code>, entre muchos otros.</p>
+
+<div class="callout-purple">
+  <strong>Muy importante para CLAUDE.md:</strong> Cuando le das a Claude fragmentos de código, DTOs, modelos o configuraciones dentro del CLAUDE.md, envuélvelos siempre en bloques de código con el lenguaje indicado. Claude reconoce mejor qué es código y qué son instrucciones en texto.
+</div>
+
+<!-- 6. LISTAS -->
+<h2>6. Listas — con guiones y con números</h2>
+
+<h3>Lista sin orden (viñetas)</h3>
+<p>Usa un guion <code>-</code>, un asterisco <code>*</code> o un símbolo <code>+</code> seguido de un espacio. Los tres son equivalentes, pero el guion es el más común.</p>
+
+<div class="bloque-dos">
+  <div class="col-izq">
+    <div class="label-col">Lo que escribes</div>
+    <pre>- PostgreSQL 15+
+- .NET 10
+- Angular 21
+- Node.js 22</pre>
+  </div>
+  <div class="col-der">
+    <div class="label-col">Resultado</div>
+    <div class="resultado">• PostgreSQL 15+
+• .NET 10
+• Angular 21
+• Node.js 22</div>
+  </div>
+</div>
+
+<h3>Lista ordenada (numerada)</h3>
+<p>Escribe el número, un punto y un espacio. Puedes usar siempre <code>1.</code> — Markdown numera automáticamente.</p>
+
+<div class="bloque-dos">
+  <div class="col-izq">
+    <div class="label-col">Lo que escribes</div>
+    <pre>1. Arrancar PostgreSQL
+2. Ejecutar dotnet run
+3. Ejecutar npm start
+4. Abrir el navegador</pre>
+  </div>
+  <div class="col-der">
+    <div class="label-col">Resultado</div>
+    <div class="resultado">1. Arrancar PostgreSQL
+2. Ejecutar dotnet run
+3. Ejecutar npm start
+4. Abrir el navegador</div>
+  </div>
+</div>
+
+<h3>Lista anidada (sublistas)</h3>
+<p>Indenta con 2 o 4 espacios para crear un subnivel:</p>
+
+<div class="bloque-dos">
+  <div class="col-izq">
+    <div class="label-col">Lo que escribes</div>
+    <pre>- Backend
+  - Controllers
+  - Services
+  - Models
+- Frontend
+  - Components
+  - Services</pre>
+  </div>
+  <div class="col-der">
+    <div class="label-col">Resultado</div>
+    <div class="resultado">• Backend
+    • Controllers
+    • Services
+    • Models
+• Frontend
+    • Components
+    • Services</div>
+  </div>
+</div>
+
+<!-- 7. TABLAS -->
+<h2>7. Tablas</h2>
+
+<p>Las tablas se crean con barras verticales <code>|</code> y guiones <code>-</code>. La segunda fila (la de guiones) es obligatoria — separa los encabezados del contenido.</p>
+
+<div class="bloque-dos">
+  <div class="col-izq">
+    <div class="label-col">Lo que escribes</div>
+    <pre>| Verbo  | Endpoint         | Código |
+|--------|------------------|--------|
+| GET    | /api/clients     | 200    |
+| POST   | /api/clients     | 201    |
+| PUT    | /api/clients/:id | 200    |
+| DELETE | /api/clients/:id | 204    |</pre>
+  </div>
+  <div class="col-der">
+    <div class="label-col">Resultado visual</div>
+    <table style="margin:0; font-size:10pt;">
+      <tr><th>Verbo</th><th>Endpoint</th><th>Código</th></tr>
+      <tr><td>GET</td><td>/api/clients</td><td>200</td></tr>
+      <tr><td>POST</td><td>/api/clients</td><td>201</td></tr>
+      <tr><td>PUT</td><td>/api/clients/:id</td><td>200</td></tr>
+      <tr><td>DELETE</td><td>/api/clients/:id</td><td>204</td></tr>
+    </table>
+  </div>
+</div>
+
+<p>Puedes alinear el contenido de las columnas añadiendo dos puntos en la fila de guiones:</p>
+<pre>
+| Izquierda | Centro  | Derecha |
+|:----------|:-------:|--------:|
+| texto     | texto   | texto   |</pre>
+
+<ul>
+  <li><code>:---</code> → alineado a la izquierda (por defecto)</li>
+  <li><code>:---:</code> → centrado</li>
+  <li><code>---:</code> → alineado a la derecha</li>
+</ul>
+
+<!-- 8. CITAS -->
+<h2>8. Citas — <code>&gt;</code></h2>
+
+<p>El símbolo <code>&gt;</code> al inicio de una línea crea un bloque de cita (blockquote). Se usa para resaltar notas importantes, advertencias o información que debe destacar sobre el resto.</p>
+
+<div class="bloque-dos">
+  <div class="col-izq">
+    <div class="label-col">Lo que escribes</div>
+    <pre>> IMPORTANTE: Los enums se
+> serializan como strings,
+> nunca como números enteros.</pre>
+  </div>
+  <div class="col-der">
+    <div class="label-col">Resultado</div>
+    <div class="resultado" style="border-left:4px solid #93C5FD; background:#1E3A5F; padding-left:16px;">▎ IMPORTANTE: Los enums se
+▎ serializan como strings,
+▎ nunca como números enteros.</div>
+  </div>
+</div>
+
+<p>Puedes anidar citas con <code>&gt;&gt;</code>:</p>
+<pre>
+> Nota principal
+>> Detalle dentro de la nota</pre>
+
+<div class="callout-green">
+  <strong>Uso recomendado en CLAUDE.md:</strong> Las citas son ideales para marcar las instrucciones <em>no negociables</em> o las advertencias críticas que Claude no debe ignorar. Por ejemplo:<br><br>
+  <code>&gt; NOTA IMPORTANTE: No usar NgModules. Todos los componentes son standalone.</code>
+</div>
+
+<!-- 9. ENLACES E IMÁGENES -->
+<h2>9. Enlaces e imágenes</h2>
+
+<h3>Enlace</h3>
+<pre>
+[texto visible](https://url-del-enlace.com)</pre>
+<p>Ejemplo: <code>[Documentación de k6](https://k6.io/docs)</code> → se ve como un enlace clicable con el texto "Documentación de k6".</p>
+
+<h3>Imagen</h3>
+<pre>
+![texto alternativo](ruta/a/imagen.png)</pre>
+<p>Igual que un enlace pero con <code>!</code> delante. El texto alternativo se muestra si la imagen no carga.</p>
+
+<h3>Enlace de referencia (para no repetir URLs)</h3>
+<pre>
+Visita [nuestra API][api-ref] para más detalles.
+
+[api-ref]: https://localhost:5000/swagger</pre>
+<p>Define el enlace una vez al final del documento y reutilízalo con <code>[nombre][referencia]</code>.</p>
+
+<!-- 10. PÁRRAFOS Y SALTOS -->
+<h2>10. Saltos de línea y párrafos</h2>
+
+<table>
+  <tr>
+    <th>Lo que escribes</th>
+    <th>Resultado</th>
+  </tr>
+  <tr>
+    <td>Una línea en blanco entre dos bloques de texto</td>
+    <td>Crea un nuevo párrafo con separación visual</td>
+  </tr>
+  <tr>
+    <td>Dos espacios al final de una línea + Enter</td>
+    <td>Salto de línea sin crear un párrafo nuevo</td>
+  </tr>
+  <tr>
+    <td>Un Enter simple (sin línea en blanco)</td>
+    <td>En la mayoría de Markdown, se trata como el mismo párrafo</td>
+  </tr>
+  <tr>
+    <td><code>&lt;br&gt;</code></td>
+    <td>Salto de línea forzado (HTML dentro de Markdown)</td>
+  </tr>
+</table>
+
+<div class="callout-warn">
+  <strong>Error frecuente:</strong> Si escribes dos líneas seguidas sin línea en blanco entre ellas, Markdown las une en un mismo párrafo. Para separar visualmente dos párrafos, siempre deja una línea en blanco entre ellos.
+</div>
+
+<!-- 11. RESUMEN VISUAL -->
+<h2>11. Resumen visual: todos los símbolos de un vistazo</h2>
+
+<table>
+  <tr>
+    <th>Símbolo</th>
+    <th>Nombre</th>
+    <th>Resultado</th>
+    <th>Ejemplo de uso</th>
+  </tr>
+  <tr>
+    <td><code>#</code></td>
+    <td>Almohadilla (1 nivel)</td>
+    <td>Título H1 — el más grande</td>
+    <td><code># ClientManager</code></td>
+  </tr>
+  <tr>
+    <td><code>##</code></td>
+    <td>Doble almohadilla</td>
+    <td>Sección H2</td>
+    <td><code>## STACK TECNOLÓGICO</code></td>
+  </tr>
+  <tr>
+    <td><code>###</code></td>
+    <td>Triple almohadilla</td>
+    <td>Subsección H3</td>
+    <td><code>### Backend</code></td>
+  </tr>
+  <tr>
+    <td><code>####</code></td>
+    <td>Cuádruple almohadilla</td>
+    <td>Apartado H4 — el más pequeño útil</td>
+    <td><code>#### Modelo Client</code></td>
+  </tr>
+  <tr>
+    <td><code>---</code></td>
+    <td>Tres guiones</td>
+    <td>Línea separadora horizontal</td>
+    <td>Entre grandes bloques de texto</td>
+  </tr>
+  <tr>
+    <td><code>**texto**</code></td>
+    <td>Doble asterisco</td>
+    <td><strong>Negrita</strong></td>
+    <td><code>**no negociable**</code></td>
+  </tr>
+  <tr>
+    <td><code>*texto*</code></td>
+    <td>Asterisco simple</td>
+    <td><em>Cursiva</em></td>
+    <td><code>*enum ClientStatus*</code></td>
+  </tr>
+  <tr>
+    <td><code>~~texto~~</code></td>
+    <td>Doble virgulilla</td>
+    <td><s>Tachado</s></td>
+    <td><code>~~NgModules~~</code></td>
+  </tr>
+  <tr>
+    <td><code>`texto`</code></td>
+    <td>Comilla invertida simple</td>
+    <td>Código en línea</td>
+    <td><code>`dotnet run`</code></td>
+  </tr>
+  <tr>
+    <td><code>```...```</code></td>
+    <td>Triple comilla invertida</td>
+    <td>Bloque de código</td>
+    <td>Fragmentos de código fuente</td>
+  </tr>
+  <tr>
+    <td><code>- </code></td>
+    <td>Guion + espacio</td>
+    <td>Elemento de lista (viñeta)</td>
+    <td><code>- PostgreSQL 15+</code></td>
+  </tr>
+  <tr>
+    <td><code>1. </code></td>
+    <td>Número + punto + espacio</td>
+    <td>Elemento de lista numerada</td>
+    <td><code>1. Arrancar la BD</code></td>
+  </tr>
+  <tr>
+    <td><code>| | |</code></td>
+    <td>Barras verticales</td>
+    <td>Tabla</td>
+    <td>Tablas de datos o comparativas</td>
+  </tr>
+  <tr>
+    <td><code>&gt; </code></td>
+    <td>Mayor que + espacio</td>
+    <td>Bloque de cita / nota destacada</td>
+    <td><code>&gt; IMPORTANTE: ...</code></td>
+  </tr>
+  <tr>
+    <td><code>[txt](url)</code></td>
+    <td>Corchetes + paréntesis</td>
+    <td>Enlace clicable</td>
+    <td><code>[Swagger](http://localhost:5001)</code></td>
+  </tr>
+  <tr>
+    <td><code>![alt](img)</code></td>
+    <td>! + corchetes + paréntesis</td>
+    <td>Imagen</td>
+    <td><code>![Logo](logo.png)</code></td>
+  </tr>
+</table>
+
+<!-- 12. BUENAS PRÁCTICAS PARA CLAUDE.MD -->
+<h2>12. Buenas prácticas para CLAUDE.md</h2>
+
+<p>Un CLAUDE.md bien estructurado le da a Claude más contexto y hace que sus respuestas sean más precisas. Estas son las recomendaciones específicas para este fichero:</p>
+
+<h3>Usa encabezados para separar secciones grandes</h3>
+<p>Claude procesa el CLAUDE.md como instrucciones jerárquicas. Los encabezados le indican qué pertenece a qué sección:</p>
+<pre>
+## ROL Y OBJETIVO
+## STACK TECNOLÓGICO
+## BASE DE DATOS
+## BACKEND
+## FRONTEND</pre>
+
+<h3>Usa código para todo lo que sea código</h3>
+<p>Cuando pongas nombres de clases, rutas, comandos, fragmentos de código o configuraciones, usa siempre las comillas invertidas o los bloques de código. Así Claude distingue claramente las instrucciones del código que debe generar:</p>
+<pre>
+## Bueno ✓
+El modelo se llama `Client` y tiene el campo `Status` de tipo `ClientStatus`.
+La ruta es `GET /api/clients/{id}`.
+
+## Malo ✗
+El modelo se llama Client y tiene el campo Status de tipo ClientStatus.</pre>
+
+<h3>Usa listas para enumeraciones</h3>
+<p>En vez de escribir varias cosas en el mismo párrafo, ponlas en lista. Claude las procesa mejor y es menos probable que olvide algún elemento:</p>
+<pre>
+## Bueno ✓
+Formatos permitidos para el logo:
+- .jpg
+- .jpeg
+- .png
+- .gif
+- .webp
+
+## Malo ✗
+Los formatos permitidos para el logo son jpg, jpeg, png, gif y webp.</pre>
+
+<h3>Marca lo no negociable con negrita o citas</h3>
+<p>Usa <code>**texto**</code> para instrucciones críticas que Claude no debe ignorar, y <code>&gt;</code> para advertencias destacadas:</p>
+<pre>
+**Los enums se serializan como strings en JSON, nunca como enteros.**
+
+> IMPORTANTE: No usar NgModules. Todos los componentes son standalone
+> con imports explícitos.</pre>
+
+<h3>Usa tablas para el contrato de la API</h3>
+<p>Las tablas son la forma más clara de documentar endpoints, campos de BD o DTOs:</p>
+<pre>
+| Verbo  | Ruta                    | Body      | Respuesta |
+|--------|-------------------------|-----------|-----------|
+| GET    | /api/clients            | —         | 200       |
+| POST   | /api/clients            | FormData  | 201       |
+| PATCH  | /api/clients/{id}/status| JSON      | 200       |</pre>
+
+<h3>Usa separadores <code>---</code> entre secciones independientes</h3>
+<p>Ayudan a Claude a entender los límites entre bloques de instrucciones completamente distintos:</p>
+<pre>
+## BACKEND — DETALLE COMPLETO
+... instrucciones de backend ...
+
+---
+
+## FRONTEND — DETALLE COMPLETO
+... instrucciones de frontend ...</pre>
+
+<hr>
+
+<div class="callout-purple">
+  <strong>Resumen final</strong><br><br>
+  Los tres símbolos más importantes para un CLAUDE.md son:<br><br>
+  <strong><code>#</code> / <code>##</code> / <code>###</code></strong> — para crear jerarquía y que Claude sepa de qué trata cada sección.<br>
+  <strong><code>```</code></strong> — para envolver todo el código y que Claude lo distinga de las instrucciones.<br>
+  <strong><code>-</code></strong> — para listar elementos de forma que Claude los procese uno a uno sin perderse ninguno.<br><br>
+  Con solo estos tres bien aplicados, la calidad de las respuestas de Claude mejora notablemente.
+</div>
+
+<hr>
+
+<p style="text-align:center; color:#6B7280; font-size:10pt; margin-top:30px;">
+  Guía de Markdown para CLAUDE.md · Marzo 2026
+</p>
+
+</body>
+</html>

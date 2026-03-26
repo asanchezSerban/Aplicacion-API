@@ -1,0 +1,52 @@
+<div class="detail-container">
+  @if (isLoading) {
+    <div class="spinner-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+
+  @if (client) {
+    <mat-card>
+      <mat-card-content>
+        <div class="detail-header">
+          @if (client.logoUrl) {
+            <img [src]="client.logoUrl" alt="Logo de {{ client.name }}" class="client-logo">
+          }
+          <div class="header-info">
+            <h1>{{ client.name }}</h1>
+            <span class="status-chip" [ngClass]="getStatusClass(client.status)">
+              {{ client.statusName }}
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Descripción</h3>
+          <p>{{ client.description }}</p>
+        </div>
+
+        <div class="detail-dates">
+          <div class="date-item">
+            <span class="date-label">Creado</span>
+            <span>{{ client.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="date-item">
+            <span class="date-label">Actualizado</span>
+            <span>{{ client.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <button mat-button (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon>
+            Volver
+          </button>
+          <button mat-raised-button color="primary" (click)="editClient()">
+            <mat-icon>edit</mat-icon>
+            Editar
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

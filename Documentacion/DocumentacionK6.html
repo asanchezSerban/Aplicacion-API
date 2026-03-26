@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="Generator" content="Microsoft Word">
+<style>
+  body {
+    font-family: Calibri, sans-serif;
+    font-size: 11pt;
+    color: #1F2937;
+    margin: 2.5cm 3cm;
+    line-height: 1.6;
+  }
+  h1 {
+    font-size: 22pt;
+    font-weight: bold;
+    color: #1E3A5F;
+    border-bottom: 3px solid #1E3A5F;
+    padding-bottom: 8px;
+    margin-top: 0;
+  }
+  h2 {
+    font-size: 15pt;
+    font-weight: bold;
+    color: #1E3A5F;
+    border-bottom: 1.5px solid #3B82F6;
+    padding-bottom: 4px;
+    margin-top: 28px;
+  }
+  h3 {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #1E40AF;
+    margin-top: 18px;
+    margin-bottom: 4px;
+  }
+  h4 {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #374151;
+    margin-top: 12px;
+    margin-bottom: 2px;
+  }
+  p { margin: 6px 0 10px 0; }
+  code {
+    font-family: Consolas, monospace;
+    font-size: 10pt;
+    background: #F3F4F6;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #DC2626;
+  }
+  pre {
+    font-family: Consolas, monospace;
+    font-size: 9.5pt;
+    background: #1E293B;
+    color: #E2E8F0;
+    padding: 14px 18px;
+    border-radius: 6px;
+    border-left: 4px solid #3B82F6;
+    white-space: pre-wrap;
+    margin: 10px 0 14px 0;
+    line-height: 1.5;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 18px 0;
+    font-size: 10.5pt;
+  }
+  th {
+    background: #1E3A5F;
+    color: white;
+    font-weight: bold;
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid #1E3A5F;
+  }
+  td {
+    padding: 7px 12px;
+    border: 1px solid #D1D5DB;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #F8FAFC; }
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 10px;
+    font-size: 9.5pt;
+    font-weight: bold;
+  }
+  .badge-blue  { background: #DBEAFE; color: #1D4ED8; }
+  .badge-green { background: #DCFCE7; color: #15803D; }
+  .badge-red   { background: #FEE2E2; color: #B91C1C; }
+  .badge-yellow{ background: #FEF9C3; color: #92400E; }
+  .badge-purple{ background: #EDE9FE; color: #6D28D9; }
+  .callout {
+    border-left: 4px solid #3B82F6;
+    background: #EFF6FF;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout-warn {
+    border-left: 4px solid #F59E0B;
+    background: #FFFBEB;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout-green {
+    border-left: 4px solid #10B981;
+    background: #ECFDF5;
+    padding: 10px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .portada {
+    text-align: center;
+    padding: 60px 0 40px 0;
+  }
+  .portada h1 {
+    font-size: 28pt;
+    border: none;
+    color: #1E3A5F;
+    margin-bottom: 10px;
+  }
+  .portada .subtitulo {
+    font-size: 14pt;
+    color: #6B7280;
+    margin-bottom: 40px;
+  }
+  .portada .meta {
+    font-size: 11pt;
+    color: #374151;
+    line-height: 2;
+  }
+  .timeline {
+    border-left: 3px solid #3B82F6;
+    padding-left: 20px;
+    margin: 16px 0;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .timeline-item::before {
+    content: "●";
+    position: absolute;
+    left: -27px;
+    color: #3B82F6;
+    font-size: 14pt;
+    line-height: 1;
+  }
+  .tiempo {
+    font-weight: bold;
+    color: #1E40AF;
+    font-family: Consolas, monospace;
+    font-size: 10.5pt;
+  }
+  ul { margin: 6px 0; padding-left: 22px; }
+  li { margin-bottom: 4px; }
+  .separador { border: none; border-top: 1px solid #E5E7EB; margin: 24px 0; }
+  .check-ok   { color: #15803D; font-weight: bold; }
+  .check-fail { color: #B91C1C; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="portada">
+  <h1>Test de Estrés k6</h1>
+  <div class="subtitulo">ClientManager API — Documentación completa</div>
+  <div class="meta">
+    Archivo: <code>stress-test-completo.js</code><br>
+    Herramienta: k6 (Grafana Labs)<br>
+    Duración total: ~5 minutos<br>
+    Fecha: Marzo 2026
+  </div>
+</div>
+
+<hr class="separador">
+
+<!-- ÍNDICE -->
+<h2>Índice</h2>
+<ol style="line-height:2.2">
+  <li>¿Qué es k6 y para qué sirve?</li>
+  <li>Objetivo del test</li>
+  <li>Arquitectura del test — visión general</li>
+  <li>Línea de tiempo: cómo transcurre el test</li>
+  <li>Los tres escenarios en detalle</li>
+  <li>Las operaciones atómicas — qué hace cada función</li>
+  <li>Métricas personalizadas</li>
+  <li>Umbrales (Thresholds) — cuándo el test pasa o falla</li>
+  <li>Setup y Teardown</li>
+  <li>Cómo ejecutar el test</li>
+  <li>Interpretación de resultados</li>
+</ol>
+
+<hr class="separador">
+
+<!-- 1. QUÉ ES K6 -->
+<h2>1. ¿Qué es k6 y para qué sirve?</h2>
+
+<p><strong>k6</strong> es una herramienta de pruebas de carga y rendimiento de código abierto desarrollada por Grafana Labs. A diferencia de herramientas como JMeter, k6 usa <strong>JavaScript</strong> para escribir los scripts y está optimizado para entornos de desarrollo modernos.</p>
+
+<p>Los tests de k6 simulan múltiples usuarios reales (<strong>VUs — Virtual Users</strong>) accediendo a una API simultáneamente, permitiendo medir:</p>
+<ul>
+  <li>Cuánto tiempo tardan las respuestas bajo carga</li>
+  <li>Cuántos errores se producen</li>
+  <li>Cuál es el punto de saturación del sistema</li>
+  <li>Si el comportamiento funcional es correcto bajo presión</li>
+</ul>
+
+<div class="callout">
+  <strong>¿Qué es un VU (Virtual User)?</strong><br>
+  Un VU es un hilo de ejecución independiente que ejecuta el código del test en bucle. Con 100 VUs, es como si 100 personas estuviesen usando la aplicación al mismo tiempo, cada una haciendo peticiones sin esperar a las demás.
+</div>
+
+<!-- 2. OBJETIVO -->
+<h2>2. Objetivo del test</h2>
+
+<p>Este test está diseñado para ser <strong>difícil de pasar</strong>. Sus objetivos son:</p>
+
+<table>
+  <tr>
+    <th>Objetivo</th>
+    <th>Qué se mide</th>
+  </tr>
+  <tr>
+    <td><strong>Rendimiento bajo carga real</strong></td>
+    <td>Tiempos de respuesta con 80-120 usuarios simultáneos haciendo CRUD completo</td>
+  </tr>
+  <tr>
+    <td><strong>Resistencia a un spike</strong></td>
+    <td>La API aguanta 250 usuarios de golpe solo leyendo durante 50 segundos</td>
+  </tr>
+  <tr>
+    <td><strong>Escrituras intensas con ficheros</strong></td>
+    <td>40 usuarios haciendo create+upload+update+delete sin pausa durante 90 segundos</td>
+  </tr>
+  <tr>
+    <td><strong>Corrección funcional bajo presión</strong></td>
+    <td>Todos los endpoints siguen respondiendo con los datos correctos bajo carga extrema</td>
+  </tr>
+  <tr>
+    <td><strong>Validaciones del backend</strong></td>
+    <td>El servidor sigue rechazando datos inválidos con 400 incluso bajo estrés</td>
+  </tr>
+</table>
+
+<!-- 3. ARQUITECTURA -->
+<h2>3. Arquitectura del test — visión general</h2>
+
+<p>El test está estructurado en <strong>tres capas</strong>:</p>
+
+<h3>Capa 1 — Configuración (<code>options</code>)</h3>
+<p>Define los escenarios, cuántos VUs tiene cada uno, cuánto duran y qué función ejecutan.</p>
+
+<h3>Capa 2 — Operaciones atómicas</h3>
+<p>Funciones individuales que hacen una sola cosa: <code>listar()</code>, <code>crearCliente()</code>, <code>actualizarCliente()</code>, etc. Cada una manda una petición HTTP, mide el tiempo y verifica que la respuesta sea correcta.</p>
+
+<h3>Capa 3 — Escenarios exportados</h3>
+<p>Las funciones que k6 ejecuta en cada VU: combinan las operaciones atómicas con pausas y probabilidades para simular comportamientos realistas.</p>
+
+<pre>
+┌─────────────────────────────────────────────────────────────────┐
+│                    stress-test-completo.js                      │
+│                                                                 │
+│  ESCENARIO 1: cicloMixto()    → 120 VUs  durante 4m 30s        │
+│    listar → crear → leer → update → estado → [borrar]          │
+│                                                                 │
+│  ESCENARIO 2: soloLectura()   → 250 VUs  durante 50s (min 2)   │
+│    listar → listar → listar → ...                              │
+│                                                                 │
+│  ESCENARIO 3: cicloEscritura() → 40 VUs  durante 90s (min 3:15)│
+│    crear+logo → update → status → borrar → repetir            │
+└─────────────────────────────────────────────────────────────────┘</pre>
+
+<!-- 4. LÍNEA DE TIEMPO -->
+<h2>4. Línea de tiempo: cómo transcurre el test</h2>
+
+<div class="timeline">
+
+  <div class="timeline-item">
+    <span class="tiempo">00:00 – 00:30</span> — <strong>Calentamiento</strong><br>
+    El escenario <em>carga_mixta</em> arranca y sube progresivamente de 0 a 30 VUs. El sistema se calienta, se establecen conexiones con PostgreSQL.
+  </div>
+
+  <div class="timeline-item">
+    <span class="tiempo">00:30 – 01:30</span> — <strong>Carga media</strong><br>
+    Los VUs suben de 30 a 80 y se mantienen durante 60 segundos. Tráfico mixto real: listados, creaciones, ediciones, cambios de estado y borrados.
+  </div>
+
+  <div class="timeline-item">
+    <span class="tiempo">01:30 – 02:00</span> — <strong>Carga alta</strong><br>
+    Los VUs de carga mixta escalan hasta 120. La API está bajo presión sostenida.
+  </div>
+
+  <div class="timeline-item">
+    <span class="tiempo">02:00 – 02:50</span> — <strong>⚡ SPIKE: 250 VUs de golpe</strong><br>
+    El escenario <em>spike_lectura</em> arranca. En solo 10 segundos aparecen 250 VUs adicionales solo haciendo peticiones de listado. El sistema pasa de ~120 VUs a más de 350 VUs simultáneos. Este es el momento más crítico del test.
+  </div>
+
+  <div class="timeline-item">
+    <span class="tiempo">02:50 – 03:00</span> — <strong>Bajada del spike</strong><br>
+    Los 250 VUs de lectura se van apagando en 10 segundos. El sistema recupera algo de respiro.
+  </div>
+
+  <div class="timeline-item">
+    <span class="tiempo">03:00 – 03:15</span> — <strong>Carga sostenida alta</strong><br>
+    Solo queda el escenario mixto con 120 VUs. Continúa el CRUD completo.
+  </div>
+
+  <div class="timeline-item">
+    <span class="tiempo">03:15 – 04:45</span> — <strong>🔥 Escrituras intensas + carga mixta</strong><br>
+    El escenario <em>escrituras_duras</em> arranca con 40 VUs constantes haciendo ciclos de create-con-logo → update → cambio de estado → delete sin apenas pausa. Esto estresa simultáneamente el sistema de ficheros (guardar/borrar PNGs) y PostgreSQL (INSERT/UPDATE/DELETE rápidos).
+  </div>
+
+  <div class="timeline-item">
+    <span class="tiempo">04:30 – 04:45</span> — <strong>Ramp-down</strong><br>
+    El escenario mixto apaga sus VUs gradualmente. Las escrituras duras terminan a los 4:45.
+  </div>
+
+  <div class="timeline-item">
+    <span class="tiempo">04:45</span> — <strong>Fin del test</strong><br>
+    k6 muestra el resumen final con todas las métricas y si los umbrales se han cumplido.
+  </div>
+
+</div>
+
+<pre>
+Minutos:  0    1    2    3    4    5
+          │    │    │    │    │    │
+Mixta:    ░▒▒▓▓▓▓▓▓▓▓▓▓████████░░
+Spike:              ▓▓▓▓▓▓░
+Escrituras:               ████████░
+
+░ = ramp-up/down  ▒ = carga media  ▓ = carga alta  █ = máxima presión</pre>
+
+<!-- 5. ESCENARIOS -->
+<h2>5. Los tres escenarios en detalle</h2>
+
+<h3>Escenario 1 — <code>carga_mixta</code></h3>
+<span class="badge badge-blue">ramping-vus</span> &nbsp;
+<span class="badge badge-green">120 VUs máx.</span> &nbsp;
+<span class="badge badge-yellow">4m 30s</span>
+
+<p>Simula el uso real de la aplicación: un usuario que entra, lista clientes, crea uno, lo edita y lo borra. Las etapas de la rampa son:</p>
+
+<table>
+  <tr><th>Etapa</th><th>Duración</th><th>VUs objetivo</th><th>Propósito</th></tr>
+  <tr><td>Calentamiento</td><td>30s</td><td>30</td><td>Conexiones iniciales, cachés de BD</td></tr>
+  <tr><td>Carga media</td><td>60s</td><td>80</td><td>Tráfico normal de producción</td></tr>
+  <tr><td>Sostenida</td><td>60s</td><td>80</td><td>Estabilidad bajo carga media</td></tr>
+  <tr><td>Presión alta</td><td>30s</td><td>120</td><td>Subida a carga pico</td></tr>
+  <tr><td>Sostenida alta</td><td>60s</td><td>120</td><td>Aguante bajo carga máxima</td></tr>
+  <tr><td>Ramp-down</td><td>30s</td><td>0</td><td>Apagado ordenado</td></tr>
+</table>
+
+<p>Cada VU ejecuta <code>cicloMixto()</code> que incluye:</p>
+<ul>
+  <li>Siempre: listar clientes con parámetros variados</li>
+  <li>15% de probabilidad: probar validaciones (datos inválidos → 400)</li>
+  <li>10% de probabilidad: buscar un ID inexistente (→ 404)</li>
+  <li>30% de probabilidad: crear con logo (imagen real adjunta)</li>
+  <li>70% de probabilidad: crear sin logo</li>
+  <li>Siempre: leer, actualizar y cambiar estado del cliente recién creado</li>
+  <li>70% de probabilidad: borrar el cliente; 30% lo deja para que haya datos reales en los listados</li>
+</ul>
+
+<h3>Escenario 2 — <code>spike_lectura</code></h3>
+<span class="badge badge-red">spike</span> &nbsp;
+<span class="badge badge-red">250 VUs máx.</span> &nbsp;
+<span class="badge badge-yellow">50s (desde min 2)</span>
+
+<p>El escenario más agresivo. Simula un pico de tráfico repentino: 250 usuarios accediendo a los listados al mismo tiempo, como si se publicase un enlace viral o se lanzase una campaña de marketing.</p>
+
+<p>Cada VU solo ejecuta <code>soloLectura()</code>: llama a <code>listar()</code> con una variante aleatoria de filtros, espera 50ms y repite. Las variantes de URL usadas son:</p>
+<pre>
+GET /api/clients?page=1&amp;pageSize=10
+GET /api/clients?page=2&amp;pageSize=5
+GET /api/clients?page=1&amp;pageSize=25
+GET /api/clients?page=1&amp;pageSize=10&amp;status=Active
+GET /api/clients?page=1&amp;pageSize=10&amp;status=Prospect
+GET /api/clients?page=1&amp;pageSize=10&amp;status=Inactive
+GET /api/clients?page=1&amp;pageSize=10&amp;name=Corp
+GET /api/clients?page=1&amp;pageSize=10&amp;name=Tech
+GET /api/clients?page=1&amp;pageSize=10&amp;name=Startup&amp;status=Prospect
+GET /api/clients?page=3&amp;pageSize=10</pre>
+
+<div class="callout-warn">
+  <strong>¿Por qué este escenario es tan duro?</strong><br>
+  Cada petición de listado hace <strong>dos queries</strong> a PostgreSQL: un <code>COUNT(*)</code> para calcular el total de páginas, y un <code>SELECT … ORDER BY … SKIP … TAKE</code> para traer los datos. Con 250 VUs simultáneos sin apenas pausa, PostgreSQL recibe ~500 queries concurrentes. Si la tabla tiene muchos registros acumulados de tests anteriores, las queries tardan más y el problema se amplifica.
+</div>
+
+<h3>Escenario 3 — <code>escrituras_duras</code></h3>
+<span class="badge badge-purple">constant-vus</span> &nbsp;
+<span class="badge badge-purple">40 VUs fijos</span> &nbsp;
+<span class="badge badge-yellow">90s (desde min 3:15)</span>
+
+<p>40 VUs ejecutando el ciclo más pesado posible sin pausa: crear un cliente con logo real → actualizarlo con otro logo → cambiar su estado → borrarlo. Todo seguido, sin descanso.</p>
+
+<p>Esto estresa tres sistemas a la vez:</p>
+<ul>
+  <li><strong>Sistema de ficheros:</strong> cada ciclo escribe un PNG en <code>wwwroot/uploads/</code> y lo borra al final</li>
+  <li><strong>PostgreSQL:</strong> INSERT → UPDATE → UPDATE → DELETE en bucle rápido</li>
+  <li><strong>Parser multipart del servidor:</strong> dos peticiones con fichero adjunto por ciclo</li>
+</ul>
+
+<!-- 6. OPERACIONES ATÓMICAS -->
+<h2>6. Las operaciones atómicas — qué hace cada función</h2>
+
+<h3><code>listar()</code></h3>
+<p>Hace un <code>GET /api/clients</code> con parámetros de paginación y filtros aleatorios. Verifica que la respuesta tenga status 200, sea JSON válido, contenga el campo <code>data</code> (array), <code>totalItems</code>, <code>totalPages</code> y que el número de elementos no supere el <code>pageSize</code>. Registra el tiempo en la métrica <code>dur_listado_ms</code>.</p>
+
+<h3><code>crearCliente()</code></h3>
+<p>Hace un <code>POST /api/clients</code> como <code>multipart/form-data</code> con nombre, descripción y estado aleatorios, <strong>sin logo</strong>. Para forzar el content-type correcto (el endpoint solo acepta multipart, no JSON), incluye un archivo vacío de 0 bytes que el servidor descarta porque comprueba <code>logo.Length > 0</code>. Verifica status 201, que el cuerpo tenga <code>id</code> numérico, <code>name</code> y <code>logoUrl</code>, y que la cabecera <code>Location</code> esté presente. Registra en <code>dur_creacion_ms</code>.</p>
+
+<h3><code>crearClienteConLogo()</code></h3>
+<p>Igual que el anterior pero incluye una imagen PNG real (1×1 píxel, ~68 bytes codificados en base64). Verifica adicionalmente que <code>logoUrl</code> no sea null y contenga <code>/uploads/</code> en la URL. Registra en <code>dur_upload_ms</code>.</p>
+
+<h3><code>obtenerPorId(id)</code></h3>
+<p>Hace un <code>GET /api/clients/{id}</code>. Verifica status 200, que el <code>id</code> en la respuesta coincida con el solicitado, y que <code>name</code> y <code>statusName</code> sean strings.</p>
+
+<h3><code>obtenerIdInexistente()</code></h3>
+<p>Genera un ID aleatorio entre 9.000.000 y 9.999.999 (prácticamente imposible que exista) y hace un <code>GET</code>. Verifica que la respuesta sea exactamente 404 y que el cuerpo tenga el campo <code>error</code>. <strong>Importante:</strong> este 404 <em>no se cuenta</em> como error en <code>tasa_errores</code> porque es un comportamiento esperado y correcto.</p>
+
+<h3><code>actualizarCliente(id, estado)</code></h3>
+<p>Hace un <code>PUT /api/clients/{id}</code> como multipart con nuevos datos y un logo nuevo. Verifica status 200, que el <code>id</code> no haya cambiado, que <code>updatedAt</code> esté presente y que <code>logoUrl</code> no sea null (el logo se sustituyó). El logo anterior se borra del disco, el nuevo se guarda.</p>
+
+<h3><code>cambiarEstado(id, estadoActual)</code></h3>
+<p>Hace un <code>PATCH /api/clients/{id}/status</code> con JSON (<code>{ "status": "Inactive" }</code> por ejemplo). Elige siempre un estado diferente al actual. Verifica status 200 y que tanto <code>status</code> como <code>statusName</code> en la respuesta sean el nuevo estado. La operación más ligera del test, con el umbral más estricto (p95 &lt; 400ms).</p>
+
+<h3><code>eliminarCliente(id)</code></h3>
+<p>Hace un <code>DELETE /api/clients/{id}</code>. Verifica status 204 y que el cuerpo sea vacío. Incrementa el contador <code>total_borrados</code>.</p>
+
+<h3><code>probarValidaciones()</code></h3>
+<p>Envía datos inválidos al servidor para verificar que las validaciones siguen funcionando bajo estrés:</p>
+<ul>
+  <li>Nombre de 1 carácter (mínimo son 2) → debe devolver 400</li>
+  <li>Descripción de 5 caracteres (mínimo son 10) → debe devolver 400</li>
+</ul>
+<p>Ambas peticiones se envían como multipart (obligatorio) con un archivo vacío. No se cuentan en <code>tasa_errores</code> porque el 400 es la respuesta correcta esperada.</p>
+
+<!-- 7. MÉTRICAS -->
+<h2>7. Métricas personalizadas</h2>
+
+<p>Además de las métricas que k6 recoge automáticamente, el test define las suyas propias para medir cada operación por separado:</p>
+
+<table>
+  <tr>
+    <th>Métrica</th>
+    <th>Tipo</th>
+    <th>Qué mide</th>
+  </tr>
+  <tr>
+    <td><code>dur_listado_ms</code></td>
+    <td>Trend</td>
+    <td>Tiempo de respuesta de GET /api/clients (con filtros y paginación)</td>
+  </tr>
+  <tr>
+    <td><code>dur_creacion_ms</code></td>
+    <td>Trend</td>
+    <td>Tiempo de respuesta de POST /api/clients sin logo</td>
+  </tr>
+  <tr>
+    <td><code>dur_upload_ms</code></td>
+    <td>Trend</td>
+    <td>Tiempo de respuesta de POST/PUT con logo real adjunto</td>
+  </tr>
+  <tr>
+    <td><code>dur_update_ms</code></td>
+    <td>Trend</td>
+    <td>Tiempo de respuesta de PUT /api/clients/{id}</td>
+  </tr>
+  <tr>
+    <td><code>dur_status_ms</code></td>
+    <td>Trend</td>
+    <td>Tiempo de respuesta de PATCH /api/clients/{id}/status</td>
+  </tr>
+  <tr>
+    <td><code>dur_delete_ms</code></td>
+    <td>Trend</td>
+    <td>Tiempo de respuesta de DELETE /api/clients/{id}</td>
+  </tr>
+  <tr>
+    <td><code>tasa_errores</code></td>
+    <td>Rate</td>
+    <td>Porcentaje de peticiones que fallan inesperadamente (excluye 404 intencionados)</td>
+  </tr>
+  <tr>
+    <td><code>total_creados</code></td>
+    <td>Counter</td>
+    <td>Número total de clientes creados con éxito durante todo el test</td>
+  </tr>
+  <tr>
+    <td><code>total_borrados</code></td>
+    <td>Counter</td>
+    <td>Número total de clientes eliminados con éxito durante todo el test</td>
+  </tr>
+</table>
+
+<p>Los tipos <strong>Trend</strong> calculan automáticamente avg, min, max, p(90), p(95) y p(99). El tipo <strong>Rate</strong> calcula porcentajes. El tipo <strong>Counter</strong> acumula un total.</p>
+
+<div class="callout">
+  <strong>¿Qué es el p(95)?</strong><br>
+  El percentil 95 significa que el 95% de las peticiones fueron más rápidas que ese valor. Un p(95) de 400ms indica que solo el 5% de las peticiones tardaron más de 400ms. Es más representativo que el promedio porque no se ve afectado por valores extremos puntuales.
+</div>
+
+<!-- 8. UMBRALES -->
+<h2>8. Umbrales (Thresholds) — cuándo el test pasa o falla</h2>
+
+<p>Los umbrales son los criterios de aceptación. Si alguno se incumple, el test termina con error (código de salida no cero) y la línea aparece en rojo con ✗.</p>
+
+<table>
+  <tr>
+    <th>Umbral</th>
+    <th>Condición</th>
+    <th>Qué significa si falla</th>
+  </tr>
+  <tr>
+    <td><code>http_req_duration p(95) &lt; 800ms</code></td>
+    <td>El 95% de TODAS las peticiones responden en menos de 800ms</td>
+    <td>La API es demasiado lenta bajo la carga combinada de los tres escenarios</td>
+  </tr>
+  <tr>
+    <td><code>http_req_duration p(99) &lt; 1200ms</code></td>
+    <td>El 99% de las peticiones responden en menos de 1.2 segundos</td>
+    <td>Hay demasiadas peticiones muy lentas, incluso en el 1% más lento</td>
+  </tr>
+  <tr>
+    <td><code>dur_listado_ms p(95) &lt; 1200ms</code></td>
+    <td>El 95% de los listados responden en menos de 1.2 segundos</td>
+    <td>El endpoint de listado se satura bajo el spike de 250 VUs (COUNT + ORDER BY concurrentes)</td>
+  </tr>
+  <tr>
+    <td><code>dur_creacion_ms p(95) &lt; 800ms</code></td>
+    <td>El 95% de las creaciones responden en menos de 800ms</td>
+    <td>La inserción en BD está lenta o el parsing multipart tarda demasiado</td>
+  </tr>
+  <tr>
+    <td><code>dur_upload_ms p(95) &lt; 1500ms</code></td>
+    <td>El 95% de las subidas con logo responden en menos de 1.5 segundos</td>
+    <td>El sistema de ficheros está saturado o el servidor tarda en procesar el multipart</td>
+  </tr>
+  <tr>
+    <td><code>dur_update_ms p(95) &lt; 600ms</code></td>
+    <td>El 95% de los updates en menos de 600ms</td>
+    <td>Las actualizaciones con logo son lentas bajo carga</td>
+  </tr>
+  <tr>
+    <td><code>dur_status_ms p(95) &lt; 400ms</code></td>
+    <td>El 95% de los cambios de estado en menos de 400ms</td>
+    <td>Incluso la operación más simple (PATCH de un campo) es lenta — problema grave de concurrencia</td>
+  </tr>
+  <tr>
+    <td><code>dur_delete_ms p(95) &lt; 400ms</code></td>
+    <td>El 95% de los borrados en menos de 400ms</td>
+    <td>Los deletes con borrado de fichero físico son lentos</td>
+  </tr>
+  <tr>
+    <td><code>tasa_errores &lt; 1%</code></td>
+    <td>Menos del 1% de peticiones fallan con error inesperado</td>
+    <td>La API devuelve 415, 500 u otros errores que no deberían ocurrir</td>
+  </tr>
+  <tr>
+    <td><code>checks &gt; 97%</code></td>
+    <td>Al menos el 97% de todas las verificaciones pasan</td>
+    <td>Las respuestas no tienen la estructura correcta o los datos son incorrectos</td>
+  </tr>
+  <tr>
+    <td><code>total_creados &gt; 50</code></td>
+    <td>Se crearon más de 50 clientes durante todo el test</td>
+    <td>El test no generó suficiente carga real de escritura</td>
+  </tr>
+</table>
+
+<!-- 9. SETUP Y TEARDOWN -->
+<h2>9. Setup y Teardown</h2>
+
+<h3><code>setup()</code></h3>
+<p>Se ejecuta <strong>una única vez</strong> antes de que arranquen los escenarios. Hace una petición de prueba a <code>GET /api/clients?page=1&pageSize=1</code> para verificar que la API está disponible. Si no responde con 200, muestra un aviso en consola. También imprime el banner de inicio con la URL y la duración estimada.</p>
+
+<h3><code>teardown()</code></h3>
+<p>Se ejecuta <strong>una única vez</strong> al finalizar todos los escenarios. Solo imprime un mensaje de finalización indicando que hay que revisar los umbrales en el resumen de k6.</p>
+
+<!-- 10. CÓMO EJECUTAR -->
+<h2>10. Cómo ejecutar el test</h2>
+
+<h4>Requisitos previos</h4>
+<ul>
+  <li>k6 instalado (<code>winget install k6</code> o descarga desde <a href="https://k6.io">k6.io</a>)</li>
+  <li>La API corriendo en <code>http://localhost:5000</code> (<code>dotnet run</code>)</li>
+  <li>PostgreSQL corriendo con la base de datos <code>clientmanager</code></li>
+  <li>La tabla <code>Clients</code> con pocos registros para que los listados sean rápidos</li>
+</ul>
+
+<h4>Comando de ejecución</h4>
+<pre>
+# Desde la carpeta del test:
+cd AplicacionAPI/ClientManager/ClientManager.API/k6-tests
+k6 run stress-test-completo.js</pre>
+
+<h4>Limpiar la base de datos antes de ejecutar</h4>
+<p>Es importante ejecutar esto en PostgreSQL antes de cada test para evitar la acumulación de registros de ejecuciones anteriores (que degradan el rendimiento del listado):</p>
+<pre>
+-- Borra todos los clientes generados por tests, conserva los originales (IDs 1, 2 y 3)
+DELETE FROM "Clients" WHERE "Id" NOT IN (1, 2, 3);</pre>
+
+<!-- 11. INTERPRETACIÓN -->
+<h2>11. Interpretación de resultados</h2>
+
+<h3>Ejemplo de resultado exitoso</h3>
+<pre>
+█ THRESHOLDS
+    checks              ✓ 'rate&gt;0.97'     rate=100.00%
+    dur_creacion_ms     ✓ 'p(95)&lt;800'     p(95)=398ms
+    dur_listado_ms      ✓ 'p(95)&lt;1200'   p(95)=787ms
+    tasa_errores        ✓ 'rate&lt;0.01'     rate=0.00%
+    http_req_duration   ✓ 'p(95)&lt;800'    p(95)=573ms</pre>
+
+<h3>Qué mirar primero en los resultados</h3>
+
+<table>
+  <tr>
+    <th>Lo que ves</th>
+    <th>Lo que significa</th>
+  </tr>
+  <tr>
+    <td><span class="check-ok">✓ checks rate=100%</span></td>
+    <td>La API se comporta funcionalmente correcta bajo toda la carga</td>
+  </tr>
+  <tr>
+    <td><span class="check-ok">✓ tasa_errores rate=0.00%</span></td>
+    <td>Cero errores inesperados — la API aguanta sin lanzar 500 ni 415</td>
+  </tr>
+  <tr>
+    <td><span class="check-fail">✗ dur_listado_ms p(95)&gt;1200ms</span></td>
+    <td>El listado se satura bajo el spike. Causas: tabla con muchos registros acumulados, connection pool lleno, o máquina sin recursos</td>
+  </tr>
+  <tr>
+    <td><code>http_req_failed: 4.4%</code></td>
+    <td>Normal y esperado: son los 404 de <code>obtenerIdInexistente()</code> que k6 cuenta como "fallidos" pero que el test no considera errores</td>
+  </tr>
+  <tr>
+    <td><code>total_creados: 17000+</code></td>
+    <td>El test generó carga real de escritura — más de 17.000 clientes insertados en ~5 minutos</td>
+  </tr>
+  <tr>
+    <td><code>http_reqs: ~350/s</code></td>
+    <td>Throughput total del sistema: ~350 peticiones HTTP procesadas por segundo</td>
+  </tr>
+</table>
+
+<div class="callout-green">
+  <strong>Resultado ideal</strong><br>
+  Todos los thresholds en verde (✓), <code>checks rate=100%</code>, <code>tasa_errores rate=0.00%</code>, y <code>total_creados &gt; 15000</code>. Eso indica que la API maneja correctamente más de 350 peticiones/segundo durante 5 minutos continuos con carga mixta, spike de lectura y escrituras intensas simultáneamente.
+</div>
+
+<hr class="separador">
+
+<p style="text-align:center; color:#6B7280; font-size:10pt; margin-top:30px;">
+  ClientManager API — Documentación del Test de Estrés k6 · Generado el 24/03/2026
+</p>
+
+</body>
+</html>

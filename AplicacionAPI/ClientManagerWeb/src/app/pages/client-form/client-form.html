@@ -1,0 +1,77 @@
+<div class="form-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ isEditMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (isLoading && isEditMode) {
+        <div class="spinner-container">
+          <mat-spinner diameter="48"></mat-spinner>
+        </div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="name" placeholder="Nombre del cliente">
+            @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+              <mat-error>El nombre es obligatorio</mat-error>
+            }
+            @if (form.get('name')?.hasError('minlength')) {
+              <mat-error>Mínimo 2 caracteres</mat-error>
+            }
+            @if (form.get('name')?.hasError('maxlength')) {
+              <mat-error>Máximo 200 caracteres</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput formControlName="description" rows="4" placeholder="Descripción del cliente"></textarea>
+            @if (form.get('description')?.hasError('required') && form.get('description')?.touched) {
+              <mat-error>La descripción es obligatoria</mat-error>
+            }
+            @if (form.get('description')?.hasError('minlength')) {
+              <mat-error>Mínimo 10 caracteres</mat-error>
+            }
+            @if (form.get('description')?.hasError('maxlength')) {
+              <mat-error>Máximo 2000 caracteres</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="status">
+              @for (status of statuses; track status) {
+                <mat-option [value]="status">{{ status }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <div class="file-upload">
+            <label>Logo</label>
+            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onFileSelected($event)">
+            @if (currentLogoUrl && !selectedFile) {
+              <div class="logo-preview">
+                <img [src]="currentLogoUrl" alt="Logo actual" class="preview-img">
+                <span>Logo actual</span>
+              </div>
+            }
+          </div>
+
+          <div class="form-actions">
+            <button mat-button type="button" (click)="cancel()">Cancelar</button>
+            <button mat-raised-button color="primary" type="submit"
+                    [disabled]="form.invalid || isLoading">
+              @if (isLoading) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                {{ isEditMode ? 'Actualizar' : 'Crear' }}
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,130 @@
+<div class="client-list-container">
+  <div class="header">
+    <h1>Clientes</h1>
+    <button mat-raised-button color="primary" (click)="newClient()">
+      <mat-icon>add</mat-icon>
+      Nuevo Cliente
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Buscar por nombre</mat-label>
+      <input matInput [(ngModel)]="nameFilter" (keyup.enter)="onFilterChange()" placeholder="Nombre...">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Estado</mat-label>
+      <mat-select [(ngModel)]="statusFilter" (selectionChange)="onFilterChange()">
+        <mat-option value="">Todos</mat-option>
+        @for (status of statuses; track status) {
+          <mat-option [value]="status">{{ status }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-button (click)="clearFilters()" class="clear-btn">
+      <mat-icon>clear</mat-icon>
+      Limpiar
+    </button>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="spinner-container">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+
+  <!-- Table -->
+  @if (!isLoading) {
+    @if (clients.length === 0) {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">people_outline</mat-icon>
+        <p>No se encontraron clientes</p>
+      </div>
+    } @else {
+      <div class="table-container">
+        <table mat-table [dataSource]="clients">
+          <!-- Logo -->
+          <ng-container matColumnDef="logo">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let client" class="logo-cell">
+              @if (client.logoUrl) {
+                <img [src]="client.logoUrl" [alt]="client.name" class="logo-thumb">
+              } @else {
+                <div class="logo-placeholder">
+                  <mat-icon>business</mat-icon>
+                </div>
+              }
+            </td>
+          </ng-container>
+
+          <!-- Name -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let client">{{ client.name }}</td>
+          </ng-container>
+
+          <!-- Description -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Descripción</th>
+            <td mat-cell *matCellDef="let client">{{ truncate(client.description) }}</td>
+          </ng-container>
+
+          <!-- Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let client">
+              <span class="status-chip" [ngClass]="getStatusClass(client.status)">
+                {{ client.statusName }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Acciones</th>
+            <td mat-cell *matCellDef="let client">
+              <div class="actions">
+                <button mat-icon-button matTooltip="Ver detalle" (click)="viewClient(client.id)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Editar" (click)="editClient(client.id)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Cambiar estado" [matMenuTriggerFor]="statusMenu">
+                  <mat-icon>swap_horiz</mat-icon>
+                </button>
+                <mat-menu #statusMenu="matMenu">
+                  @for (s of statuses; track s) {
+                    <button mat-menu-item [disabled]="s === client.status" (click)="changeStatus(client, s)">
+                      {{ s }}
+                    </button>
+                  }
+                </mat-menu>
+                <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="deleteClient(client)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <mat-paginator
+        [length]="totalItems"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        [pageIndex]="currentPage - 1"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    }
+  }
+</div>

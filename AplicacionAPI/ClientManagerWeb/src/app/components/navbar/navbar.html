@@ -1,0 +1,20 @@
+<mat-toolbar color="primary">
+  <button mat-button (click)="navigateToClients()">
+    <mat-icon>business</mat-icon>
+    <span class="app-title">ClientManager</span>
+  </button>
+
+  <span class="spacer"></span>
+
+  <button mat-button (click)="navigateToClients()">
+    <mat-icon>people</mat-icon>
+    Clientes
+  </button>
+
+  <mat-slide-toggle
+    [checked]="isDarkMode"
+    (change)="toggleDarkMode()"
+    class="dark-toggle">
+    <mat-icon>{{ isDarkMode ? 'dark_mode' : 'light_mode' }}</mat-icon>
+  </mat-slide-toggle>
+</mat-toolbar>
