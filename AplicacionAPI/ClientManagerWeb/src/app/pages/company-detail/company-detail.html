@@ -5,30 +5,34 @@
     </div>
   }
 
-  @if (client) {
+  @if (company) {
     <mat-card>
       <mat-card-content>
         <div class="detail-header">
-          <mat-icon class="client-avatar">person</mat-icon>
+          @if (company.logoUrl) {
+            <img [src]="company.logoUrl" alt="Logo de {{ company.name }}" class="company-logo">
+          }
           <div class="header-info">
-            <h1>{{ client.name }}</h1>
-            <span class="client-email">{{ client.email }}</span>
+            <h1>{{ company.name }}</h1>
+            <span class="status-chip" [ngClass]="getStatusClass(company.status)">
+              {{ company.statusName }}
+            </span>
           </div>
         </div>
 
         <div class="detail-section">
-          <h3>Empresa</h3>
-          <p>{{ client.companyName }}</p>
+          <h3>Descripción</h3>
+          <p>{{ company.description }}</p>
         </div>
 
         <div class="detail-dates">
           <div class="date-item">
             <span class="date-label">Creado</span>
-            <span>{{ client.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span>{{ company.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
           <div class="date-item">
             <span class="date-label">Actualizado</span>
-            <span>{{ client.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span>{{ company.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
         </div>
 
@@ -37,7 +41,7 @@
             <mat-icon>arrow_back</mat-icon>
             Volver
           </button>
-          <button mat-raised-button color="primary" (click)="editClient()">
+          <button mat-raised-button color="primary" (click)="editCompany()">
             <mat-icon>edit</mat-icon>
             Editar
           </button>

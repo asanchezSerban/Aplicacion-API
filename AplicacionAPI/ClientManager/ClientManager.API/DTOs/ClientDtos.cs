@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using ClientManager.API.Models;
 
 namespace ClientManager.API.DTOs;
 
@@ -10,10 +9,12 @@ public class CreateClientDto
     public string Name { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(2000, MinimumLength = 10)]
-    public string Description { get; set; } = string.Empty;
+    [EmailAddress]
+    [StringLength(200)]
+    public string Email { get; set; } = string.Empty;
 
-    public ClientStatus? Status { get; set; } = ClientStatus.Prospect;
+    [Required]
+    public int CompanyId { get; set; }
 }
 
 public class UpdateClientDto
@@ -23,36 +24,21 @@ public class UpdateClientDto
     public string Name { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(2000, MinimumLength = 10)]
-    public string Description { get; set; } = string.Empty;
+    [EmailAddress]
+    [StringLength(200)]
+    public string Email { get; set; } = string.Empty;
 
     [Required]
-    public ClientStatus Status { get; set; }
-}
-
-public class UpdateStatusDto
-{
-    [Required]
-    public ClientStatus Status { get; set; }
+    public int CompanyId { get; set; }
 }
 
 public class ClientResponseDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string? LogoUrl { get; set; }
-    public ClientStatus Status { get; set; }
-    public string StatusName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public int CompanyId { get; set; }
+    public string CompanyName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-}
-
-public class PagedResponseDto<T>
-{
-    public IEnumerable<T> Data { get; set; } = [];
-    public int TotalItems { get; set; }
-    public int TotalPages { get; set; }
-    public int CurrentPage { get; set; }
-    public int PageSize { get; set; }
 }

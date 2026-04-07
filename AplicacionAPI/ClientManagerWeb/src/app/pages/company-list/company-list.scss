@@ -1,4 +1,4 @@
-.client-list-container {
+.company-list-container {
   max-width: 1200px;
   margin: 24px auto;
   padding: 0 24px;
@@ -64,6 +64,65 @@
 
   table {
     width: 100%;
+  }
+}
+
+.status-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-active {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-inactive {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-prospect {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.status-churned {
+  background-color: #fbe9e7;
+  color: #d84315;
+}
+
+.logo-cell {
+  width: 48px;
+  padding-right: 8px;
+}
+
+.logo-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid var(--mat-sys-outline-variant);
+  display: block;
+}
+
+.logo-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  background-color: var(--mat-sys-surface-variant);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
   }
 }
 

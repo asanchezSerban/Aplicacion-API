@@ -1,0 +1,224 @@
+using ClientManager.API.Data;
+using ClientManager.API.DTOs;
+using ClientManager.API.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+
+namespace ClientManager.API.Services;
+
+public class CompanyService : ICompanyService
+{
+    private static readonly HashSet<string> AllowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+    private static readonly HashSet<string> AllowedMimeTypes = [
+        "image/jpeg", "image/png", "image/gif", "image/webp"
+    ];
+    private const long MaxLogoSize = 5 * 1024 * 1024; // 5 MB
+
+    private readonly ApplicationDbContext _db;
+    private readonly IWebHostEnvironment _env;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IMemoryCache _cache;
+    private readonly ILogger<CompanyService> _logger;
+
+    public CompanyService(
+        ApplicationDbContext db,
+        IWebHostEnvironment env,
+        IHttpContextAccessor httpContextAccessor,
+        IMemoryCache cache,
+        ILogger<CompanyService> logger)
+    {
+        _db = db;
+        _env = env;
+        _httpContextAccessor = httpContextAccessor;
+        _cache = cache;
+        _logger = logger;
+    }
+
+    public async Task<PagedResponseDto<CompanyResponseDto>> GetAllAsync(int page, int pageSize, string? name, string? status)
+    {
+        var query = _db.Companies.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            query = query.Where(c => c.Name.ToLower().Contains(name.ToLower()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<CompanyStatus>(status, ignoreCase: true, out var parsedStatus))
+        {
+            query = query.Where(c => c.Status == parsedStatus);
+        }
+
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        var companies = await query
+            .OrderByDescending(c => c.UpdatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResponseDto<CompanyResponseDto>
+        {
+            Data = companies.Select(MapToDto),
+            TotalItems = totalItems,
+            TotalPages = totalPages,
+            CurrentPage = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<CompanyResponseDto> GetByIdAsync(int id)
+    {
+        var company = await _db.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id)
+            ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
+
+        return MapToDto(company);
+    }
+
+    public async Task<CompanyResponseDto> CreateAsync(CreateCompanyDto dto, IFormFile? logo)
+    {
+        var company = new Company
+        {
+            Name = SanitizeInput(dto.Name),
+            Description = SanitizeInput(dto.Description),
+            Status = dto.Status ?? CompanyStatus.Prospect,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        if (logo is not null && logo.Length > 0)
+        {
+            company.LogoFileName = await SaveLogoAsync(logo);
+        }
+
+        _db.Companies.Add(company);
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Empresa creada con ID {CompanyId}", company.Id);
+
+        return MapToDto(company);
+    }
+
+    public async Task<CompanyResponseDto> UpdateAsync(int id, UpdateCompanyDto dto, IFormFile? logo)
+    {
+        var company = await _db.Companies.FindAsync(id)
+            ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
+
+        company.Name = SanitizeInput(dto.Name);
+        company.Description = SanitizeInput(dto.Description);
+        company.Status = dto.Status;
+        company.UpdatedAt = DateTime.UtcNow;
+
+        if (logo is not null && logo.Length > 0)
+        {
+            DeleteLogoFile(company.LogoFileName);
+            company.LogoFileName = await SaveLogoAsync(logo);
+        }
+
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Empresa {CompanyId} actualizada", company.Id);
+
+        return MapToDto(company);
+    }
+
+    public async Task<CompanyResponseDto> UpdateStatusAsync(int id, UpdateCompanyStatusDto dto)
+    {
+        var company = await _db.Companies.FindAsync(id)
+            ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
+
+        company.Status = dto.Status;
+        company.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Estado de la empresa {CompanyId} cambiado a {Status}", company.Id, dto.Status);
+
+        return MapToDto(company);
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var company = await _db.Companies.FindAsync(id)
+            ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
+
+        DeleteLogoFile(company.LogoFileName);
+
+        _db.Companies.Remove(company);
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Empresa {CompanyId} eliminada", company.Id);
+    }
+
+    private CompanyResponseDto MapToDto(Company company)
+    {
+        return new CompanyResponseDto
+        {
+            Id = company.Id,
+            Name = company.Name,
+            Description = company.Description,
+            LogoUrl = BuildLogoUrl(company.LogoFileName),
+            Status = company.Status,
+            StatusName = company.Status.ToString(),
+            CreatedAt = company.CreatedAt,
+            UpdatedAt = company.UpdatedAt
+        };
+    }
+
+    private string? BuildLogoUrl(string? logoFileName)
+    {
+        if (string.IsNullOrEmpty(logoFileName)) return null;
+
+        var request = _httpContextAccessor.HttpContext?.Request;
+        if (request is null) return null;
+
+        return $"{request.Scheme}://{request.Host}/uploads/{logoFileName}";
+    }
+
+    private async Task<string> SaveLogoAsync(IFormFile file)
+    {
+        if (file.Length > MaxLogoSize)
+        {
+            throw new ArgumentException("El archivo de logo no puede superar los 5 MB.");
+        }
+
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension))
+        {
+            throw new ArgumentException($"Formato de archivo no permitido. Formatos válidos: {string.Join(", ", AllowedExtensions)}");
+        }
+
+        if (!AllowedMimeTypes.Contains(file.ContentType.ToLowerInvariant()))
+        {
+            throw new ArgumentException("El tipo MIME del archivo no es válido para una imagen.");
+        }
+
+        var uploadsPath = Path.Combine(_env.WebRootPath, "uploads");
+        Directory.CreateDirectory(uploadsPath);
+
+        var fileName = $"{Guid.NewGuid()}{extension}";
+        var filePath = Path.Combine(uploadsPath, fileName);
+
+        await using var stream = new FileStream(filePath, FileMode.Create);
+        await file.CopyToAsync(stream);
+
+        return fileName;
+    }
+
+    private void DeleteLogoFile(string? logoFileName)
+    {
+        if (string.IsNullOrEmpty(logoFileName)) return;
+
+        var filePath = Path.Combine(_env.WebRootPath, "uploads", logoFileName);
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+            _logger.LogInformation("Archivo de logo eliminado: {FileName}", logoFileName);
+        }
+    }
+
+    private static string SanitizeInput(string input)
+    {
+        return System.Net.WebUtility.HtmlEncode(input.Trim());
+    }
+}

@@ -16,11 +16,11 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Estado</mat-label>
-      <mat-select [(ngModel)]="statusFilter" (selectionChange)="onFilterChange()">
-        <mat-option value="">Todos</mat-option>
-        @for (status of statuses; track status) {
-          <mat-option [value]="status">{{ status }}</mat-option>
+      <mat-label>Empresa</mat-label>
+      <mat-select [(ngModel)]="companyFilter" (selectionChange)="onFilterChange()">
+        <mat-option [value]="null">Todas</mat-option>
+        @for (company of companies; track company.id) {
+          <mat-option [value]="company.id">{{ company.name }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
@@ -42,25 +42,12 @@
   @if (!isLoading) {
     @if (clients.length === 0) {
       <div class="empty-state">
-        <mat-icon class="empty-icon">people_outline</mat-icon>
+        <mat-icon class="empty-icon">person_outline</mat-icon>
         <p>No se encontraron clientes</p>
       </div>
     } @else {
       <div class="table-container">
         <table mat-table [dataSource]="clients">
-          <!-- Logo -->
-          <ng-container matColumnDef="logo">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let client" class="logo-cell">
-              @if (client.logoUrl) {
-                <img [src]="client.logoUrl" [alt]="client.name" class="logo-thumb">
-              } @else {
-                <div class="logo-placeholder">
-                  <mat-icon>business</mat-icon>
-                </div>
-              }
-            </td>
-          </ng-container>
 
           <!-- Name -->
           <ng-container matColumnDef="name">
@@ -68,20 +55,16 @@
             <td mat-cell *matCellDef="let client">{{ client.name }}</td>
           </ng-container>
 
-          <!-- Description -->
-          <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef>Descripción</th>
-            <td mat-cell *matCellDef="let client">{{ truncate(client.description) }}</td>
+          <!-- Email -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef>Email</th>
+            <td mat-cell *matCellDef="let client">{{ client.email }}</td>
           </ng-container>
 
-          <!-- Status -->
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>Estado</th>
-            <td mat-cell *matCellDef="let client">
-              <span class="status-chip" [ngClass]="getStatusClass(client.status)">
-                {{ client.statusName }}
-              </span>
-            </td>
+          <!-- Company -->
+          <ng-container matColumnDef="company">
+            <th mat-header-cell *matHeaderCellDef>Empresa</th>
+            <td mat-cell *matCellDef="let client">{{ client.companyName }}</td>
           </ng-container>
 
           <!-- Actions -->
@@ -95,16 +78,6 @@
                 <button mat-icon-button matTooltip="Editar" (click)="editClient(client.id)">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button matTooltip="Cambiar estado" [matMenuTriggerFor]="statusMenu">
-                  <mat-icon>swap_horiz</mat-icon>
-                </button>
-                <mat-menu #statusMenu="matMenu">
-                  @for (s of statuses; track s) {
-                    <button mat-menu-item [disabled]="s === client.status" (click)="changeStatus(client, s)">
-                      {{ s }}
-                    </button>
-                  }
-                </mat-menu>
                 <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="deleteClient(client)">
                   <mat-icon>delete</mat-icon>
                 </button>

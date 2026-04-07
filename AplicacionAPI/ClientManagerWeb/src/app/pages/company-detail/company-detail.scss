@@ -16,25 +16,49 @@
   gap: 24px;
   margin-bottom: 32px;
 
-  .client-avatar {
-    font-size: 64px;
-    width: 64px;
-    height: 64px;
-    color: var(--mat-sys-primary);
+  .company-logo {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid var(--mat-sys-outline-variant);
   }
 
   .header-info {
     h1 {
-      margin: 0 0 4px;
+      margin: 0 0 8px;
       font-size: 1.8rem;
       font-weight: 500;
     }
-
-    .client-email {
-      color: var(--mat-sys-on-surface-variant);
-      font-size: 1rem;
-    }
   }
+}
+
+.status-chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-active {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-inactive {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-prospect {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.status-churned {
+  background-color: #fbe9e7;
+  color: #d84315;
 }
 
 .detail-section {
@@ -49,7 +73,6 @@
   p {
     margin: 0;
     line-height: 1.6;
-    font-size: 1rem;
   }
 }
 

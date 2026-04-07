@@ -11,23 +11,14 @@ public class Client
     public string Name { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(2000)]
-    public string Description { get; set; } = string.Empty;
+    [MaxLength(200)]
+    public string Email { get; set; } = string.Empty;
 
-    [MaxLength(500)]
-    public string? LogoFileName { get; set; }
+    public int CompanyId { get; set; }
 
-    public ClientStatus Status { get; set; }
+    public Company Company { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
-}
-
-public enum ClientStatus
-{
-    Active,
-    Inactive,
-    Prospect,
-    Churned
 }

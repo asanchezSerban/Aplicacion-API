@@ -18,6 +18,10 @@ export class NavbarComponent {
 
   constructor(private router: Router) {}
 
+  navigateToCompanies(): void {
+    this.router.navigate([ROUTES.COMPANIES]);
+  }
+
   navigateToClients(): void {
     this.router.navigate([ROUTES.CLIENTS]);
   }

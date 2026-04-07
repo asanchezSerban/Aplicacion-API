@@ -1,12 +1,11 @@
 import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { Client } from '../../models/client.model';
 import { ClientService } from '../../services/client';
 import { ROUTES } from '../../app.routes.constants';
@@ -15,9 +14,9 @@ import { ROUTES } from '../../app.routes.constants';
   selector: 'app-client-detail',
   standalone: true,
   imports: [
-    DatePipe, NgClass,
+    DatePipe,
     MatButton, MatIcon, MatProgressSpinner,
-    MatCardModule, MatChipsModule
+    MatCardModule
   ],
   templateUrl: './client-detail.html',
   styleUrl: './client-detail.scss'
@@ -50,16 +49,6 @@ export class ClientDetailComponent implements OnInit {
           }
         });
     }
-  }
-
-  getStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      Active: 'status-active',
-      Inactive: 'status-inactive',
-      Prospect: 'status-prospect',
-      Churned: 'status-churned'
-    };
-    return map[status] || '';
   }
 
   editClient(): void {

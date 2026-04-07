@@ -1,4 +1,5 @@
 import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -9,35 +10,33 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltip } from '@angular/material/tooltip';
-import { Client } from '../../models/client.model';
-import { Company } from '../../models/company.model';
-import { PagedResponse } from '../../models/company.model';
-import { ClientService } from '../../services/client';
+import { Company, CompanyStatus, PagedResponse } from '../../models/company.model';
 import { CompanyService } from '../../services/company.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { ROUTES } from '../../app.routes.constants';
 
 @Component({
-  selector: 'app-client-list',
+  selector: 'app-company-list',
   standalone: true,
   imports: [
-    FormsModule,
+    NgClass, FormsModule,
     MatTableModule, MatPaginatorModule, MatProgressSpinner,
     MatButton, MatIconButton, MatIcon,
-    MatSelectModule, MatInputModule,
-    MatFormFieldModule, MatTooltip
+    MatMenuModule, MatSelectModule, MatInputModule,
+    MatFormFieldModule, MatChipsModule, MatTooltip
   ],
-  templateUrl: './client-list.html',
-  styleUrl: './client-list.scss'
+  templateUrl: './company-list.html',
+  styleUrl: './company-list.scss'
 })
-export class ClientListComponent implements OnInit {
+export class CompanyListComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
-  clients: Client[] = [];
   companies: Company[] = [];
   totalItems = 0;
   totalPages = 0;
@@ -46,12 +45,12 @@ export class ClientListComponent implements OnInit {
   pageSizeOptions = [5, 10, 25];
   isLoading = false;
   nameFilter = '';
-  companyFilter: number | null = null;
+  statusFilter = '';
 
-  displayedColumns = ['name', 'email', 'company', 'actions'];
+  displayedColumns = ['logo', 'name', 'description', 'status', 'actions'];
+  statuses = Object.values(CompanyStatus);
 
   constructor(
-    private clientService: ClientService,
     private companyService: CompanyService,
     private router: Router,
     private snackBar: MatSnackBar,
@@ -60,29 +59,22 @@ export class ClientListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCompanies();
-    this.loadClients();
   }
 
   loadCompanies(): void {
-    this.companyService.getAll(1, 100)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (r) => this.companies = r.data });
-  }
-
-  loadClients(): void {
     this.isLoading = true;
-    this.clientService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.companyFilter || undefined)
+    this.companyService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.statusFilter || undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (response: PagedResponse<Client>) => {
-          this.clients = response.data;
+        next: (response: PagedResponse<Company>) => {
+          this.companies = response.data;
           this.totalItems = response.totalItems;
           this.totalPages = response.totalPages;
           this.currentPage = response.currentPage;
           this.isLoading = false;
         },
         error: () => {
-          this.showSnackBar('Error al cargar los clientes', true);
+          this.showSnackBar('Error al cargar las empresas', true);
           this.isLoading = false;
         }
       });
@@ -91,39 +83,51 @@ export class ClientListComponent implements OnInit {
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex + 1;
     this.pageSize = event.pageSize;
-    this.loadClients();
+    this.loadCompanies();
   }
 
   onFilterChange(): void {
     this.currentPage = 1;
-    this.loadClients();
+    this.loadCompanies();
   }
 
   clearFilters(): void {
     this.nameFilter = '';
-    this.companyFilter = null;
+    this.statusFilter = '';
     this.currentPage = 1;
-    this.loadClients();
+    this.loadCompanies();
   }
 
-  viewClient(id: number): void {
-    this.router.navigate([ROUTES.clientDetail(id)]);
+  viewCompany(id: number): void {
+    this.router.navigate([ROUTES.companyDetail(id)]);
   }
 
-  editClient(id: number): void {
-    this.router.navigate([ROUTES.clientEdit(id)]);
+  editCompany(id: number): void {
+    this.router.navigate([ROUTES.companyEdit(id)]);
   }
 
-  newClient(): void {
-    this.router.navigate([ROUTES.CLIENT_NEW]);
+  newCompany(): void {
+    this.router.navigate([ROUTES.COMPANY_NEW]);
   }
 
-  deleteClient(client: Client): void {
+  changeStatus(company: Company, newStatus: CompanyStatus): void {
+    this.companyService.updateStatus(company.id, { status: newStatus })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showSnackBar('Estado actualizado correctamente');
+          this.loadCompanies();
+        },
+        error: () => this.showSnackBar('Error al cambiar el estado', true)
+      });
+  }
+
+  deleteCompany(company: Company): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        title: 'Eliminar cliente',
-        message: `¿Estás seguro de que deseas eliminar a "${client.name}"?`
+        title: 'Eliminar empresa',
+        message: `¿Estás seguro de que deseas eliminar "${company.name}"?`
       }
     });
 
@@ -131,17 +135,31 @@ export class ClientListComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(confirmed => {
         if (confirmed) {
-          this.clientService.delete(client.id)
+          this.companyService.delete(company.id)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
               next: () => {
-                this.showSnackBar('Cliente eliminado correctamente');
-                this.loadClients();
+                this.showSnackBar('Empresa eliminada correctamente');
+                this.loadCompanies();
               },
-              error: () => this.showSnackBar('Error al eliminar el cliente', true)
+              error: () => this.showSnackBar('Error al eliminar la empresa', true)
             });
         }
       });
+  }
+
+  getStatusClass(status: CompanyStatus): string {
+    const map: Record<string, string> = {
+      Active: 'status-active',
+      Inactive: 'status-inactive',
+      Prospect: 'status-prospect',
+      Churned: 'status-churned'
+    };
+    return map[status] || '';
+  }
+
+  truncate(text: string, length: number = 80): string {
+    return text.length > length ? text.substring(0, length) + '...' : text;
   }
 
   private showSnackBar(message: string, isError = false): void {

@@ -1,7 +1,7 @@
 <div class="form-container">
   <mat-card>
     <mat-card-header>
-      <mat-card-title>{{ isEditMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</mat-card-title>
+      <mat-card-title>{{ isEditMode ? 'Editar Empresa' : 'Nueva Empresa' }}</mat-card-title>
     </mat-card-header>
 
     <mat-card-content>
@@ -13,7 +13,7 @@
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nombre</mat-label>
-            <input matInput formControlName="name" placeholder="Nombre del cliente">
+            <input matInput formControlName="name" placeholder="Nombre de la empresa">
             @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
               <mat-error>El nombre es obligatorio</mat-error>
             }
@@ -26,27 +26,38 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email" placeholder="email@ejemplo.com" type="email">
-            @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
-              <mat-error>El email es obligatorio</mat-error>
+            <mat-label>Descripción</mat-label>
+            <textarea matInput formControlName="description" rows="4" placeholder="Descripción de la empresa"></textarea>
+            @if (form.get('description')?.hasError('required') && form.get('description')?.touched) {
+              <mat-error>La descripción es obligatoria</mat-error>
             }
-            @if (form.get('email')?.hasError('email')) {
-              <mat-error>Introduce un email válido</mat-error>
+            @if (form.get('description')?.hasError('minlength')) {
+              <mat-error>Mínimo 10 caracteres</mat-error>
+            }
+            @if (form.get('description')?.hasError('maxlength')) {
+              <mat-error>Máximo 2000 caracteres</mat-error>
             }
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Empresa</mat-label>
-            <mat-select formControlName="companyId">
-              @for (company of companies; track company.id) {
-                <mat-option [value]="company.id">{{ company.name }}</mat-option>
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="status">
+              @for (status of statuses; track status) {
+                <mat-option [value]="status">{{ status }}</mat-option>
               }
             </mat-select>
-            @if (form.get('companyId')?.hasError('required') && form.get('companyId')?.touched) {
-              <mat-error>Selecciona una empresa</mat-error>
-            }
           </mat-form-field>
+
+          <div class="file-upload">
+            <label>Logo</label>
+            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onFileSelected($event)">
+            @if (currentLogoUrl && !selectedFile) {
+              <div class="logo-preview">
+                <img [src]="currentLogoUrl" alt="Logo actual" class="preview-img">
+                <span>Logo actual</span>
+              </div>
+            }
+          </div>
 
           <div class="form-actions">
             <button mat-button type="button" (click)="cancel()">Cancelar</button>

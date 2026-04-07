@@ -13,41 +13,6 @@ mat-card-header {
   margin-bottom: 8px;
 }
 
-.file-upload {
-  margin: 16px 0 24px;
-
-  label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: var(--mat-sys-on-surface-variant);
-  }
-
-  input[type="file"] {
-    margin-bottom: 12px;
-  }
-
-  .logo-preview {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 8px;
-
-    .preview-img {
-      width: 64px;
-      height: 64px;
-      object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid var(--mat-sys-outline-variant);
-    }
-
-    span {
-      color: var(--mat-sys-on-surface-variant);
-      font-size: 0.9rem;
-    }
-  }
-}
-
 .form-actions {
   display: flex;
   justify-content: flex-end;

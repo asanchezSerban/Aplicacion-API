@@ -15,6 +15,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
 
 // Services
+builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IClientService, ClientService>();
 
 // Controllers with enum-as-string serialization
@@ -107,39 +108,54 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-    // Check if the schema already exists before attempting migration (avoids noisy failed-command logs)
+    // Check if __EFMigrationsHistory exists to decide migration strategy
     var conn = dbContext.Database.GetDbConnection();
     await conn.OpenAsync();
     await using var cmd = conn.CreateCommand();
-    cmd.CommandText = "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Clients')";
-    var clientsTableExists = (bool)(await cmd.ExecuteScalarAsync())!;
+    cmd.CommandText = "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = '__EFMigrationsHistory')";
+    var migrationsTableExists = (bool)(await cmd.ExecuteScalarAsync())!;
     await conn.CloseAsync();
 
-    if (clientsTableExists)
+    if (migrationsTableExists)
     {
-        // Tables exist but migrations history may be missing — register silently
-        logger.LogInformation("Schema already exists, registering migration history if needed.");
-        await dbContext.Database.ExecuteSqlRawAsync("""
-            CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
-                "MigrationId" character varying(150) NOT NULL,
-                "ProductVersion" character varying(32) NOT NULL,
-                CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
-            );
-            """);
-        foreach (var migrationId in dbContext.Database.GetMigrations())
-        {
-#pragma warning disable EF1002 // Migration IDs are internal EF values, not user input
-            await dbContext.Database.ExecuteSqlRawAsync($"""
-                INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
-                VALUES ('{migrationId}', '9.0.1')
-                ON CONFLICT DO NOTHING;
-                """);
-#pragma warning restore EF1002
-        }
+        // Migrations history exists — apply any pending migrations normally
+        logger.LogInformation("Applying pending migrations...");
+        await dbContext.Database.MigrateAsync();
     }
     else
     {
-        await dbContext.Database.MigrateAsync();
+        // Fresh database or legacy schema without migrations history
+        // Check if the old Clients table exists (pre-Phase1 schema)
+        await conn.OpenAsync();
+        await using var cmd2 = conn.CreateCommand();
+        cmd2.CommandText = "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Clients') AND NOT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Companies')";
+        var hasLegacySchema = (bool)(await cmd2.ExecuteScalarAsync())!;
+        await conn.CloseAsync();
+
+        if (hasLegacySchema)
+        {
+            logger.LogInformation("Legacy schema detected (Clients table without migrations). Registering migration history...");
+            await dbContext.Database.ExecuteSqlRawAsync("""
+                CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+                    "MigrationId" character varying(150) NOT NULL,
+                    "ProductVersion" character varying(32) NOT NULL,
+                    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+                );
+                """);
+            // Register only the initial migration as applied (we'll apply Phase1 next)
+            await dbContext.Database.ExecuteSqlRawAsync($"""
+                INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
+                VALUES ('20260324085131_InitialCreate', '9.0.1')
+                ON CONFLICT DO NOTHING;
+                """);
+            // Now apply the remaining migrations (Phase1 rename)
+            await dbContext.Database.MigrateAsync();
+        }
+        else
+        {
+            // Completely fresh database
+            await dbContext.Database.MigrateAsync();
+        }
     }
 }
 
