@@ -34,6 +34,15 @@ namespace ClientManager.API.Migrations
                 name: "Clients",
                 newName: "Companies");
 
+            // ── Rename the primary key constraint (keeps old name after table rename) ──
+            migrationBuilder.Sql("""
+                DO $$ BEGIN
+                    IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'PK_Clients' AND conrelid = 'public."Companies"'::regclass) THEN
+                        ALTER TABLE "Companies" RENAME CONSTRAINT "PK_Clients" TO "PK_Companies";
+                    END IF;
+                END $$;
+                """);
+
             // ── Recreate indexes on Companies with correct names ──
             migrationBuilder.Sql("""
                 DO $$ BEGIN
@@ -114,6 +123,15 @@ namespace ClientManager.API.Migrations
             migrationBuilder.RenameTable(
                 name: "Companies",
                 newName: "Clients");
+
+            // Rename primary key back
+            migrationBuilder.Sql("""
+                DO $$ BEGIN
+                    IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'PK_Companies' AND conrelid = 'public."Clients"'::regclass) THEN
+                        ALTER TABLE "Clients" RENAME CONSTRAINT "PK_Companies" TO "PK_Clients";
+                    END IF;
+                END $$;
+                """);
 
             // Recreate original indexes on Clients
             migrationBuilder.Sql("""
