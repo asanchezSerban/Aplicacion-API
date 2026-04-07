@@ -12,25 +12,42 @@ namespace ClientManager.API.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // ── Rename existing Clients table to Companies (preserves all data) ──
-            migrationBuilder.RenameIndex(
-                name: "IX_Clients_Status",
-                newName: "IX_Companies_Status",
-                table: "Clients");
+            // ── Drop old indexes on Clients (if they exist) before renaming the table ──
+            // Using conditional SQL because the indexes may or may not exist depending
+            // on how the database was originally created.
+            migrationBuilder.Sql("""
+                DO $$ BEGIN
+                    IF EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Clients_Status') THEN
+                        DROP INDEX "IX_Clients_Status";
+                    END IF;
+                    IF EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Clients_UpdatedAt') THEN
+                        DROP INDEX "IX_Clients_UpdatedAt";
+                    END IF;
+                    IF EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Clients_Name') THEN
+                        DROP INDEX "IX_Clients_Name";
+                    END IF;
+                END $$;
+                """);
 
-            migrationBuilder.RenameIndex(
-                name: "IX_Clients_UpdatedAt",
-                newName: "IX_Companies_UpdatedAt",
-                table: "Clients");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_Clients_Name",
-                newName: "IX_Companies_Name",
-                table: "Clients");
-
+            // ── Rename the table (preserves all data and the primary key) ──
             migrationBuilder.RenameTable(
                 name: "Clients",
                 newName: "Companies");
+
+            // ── Recreate indexes on Companies with correct names ──
+            migrationBuilder.Sql("""
+                DO $$ BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Companies_Status') THEN
+                        CREATE INDEX "IX_Companies_Status" ON "Companies" ("Status");
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Companies_UpdatedAt') THEN
+                        CREATE INDEX "IX_Companies_UpdatedAt" ON "Companies" ("UpdatedAt");
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Companies_Name') THEN
+                        CREATE INDEX "IX_Companies_Name" ON "Companies" ("Name");
+                    END IF;
+                END $$;
+                """);
 
             // ── Create the new Clients table (persons assigned to a company) ──
             migrationBuilder.CreateTable(
@@ -79,24 +96,39 @@ namespace ClientManager.API.Migrations
             migrationBuilder.DropTable(
                 name: "Clients");
 
+            // Drop Companies indexes before renaming back
+            migrationBuilder.Sql("""
+                DO $$ BEGIN
+                    IF EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Companies_Status') THEN
+                        DROP INDEX "IX_Companies_Status";
+                    END IF;
+                    IF EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Companies_UpdatedAt') THEN
+                        DROP INDEX "IX_Companies_UpdatedAt";
+                    END IF;
+                    IF EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Companies_Name') THEN
+                        DROP INDEX "IX_Companies_Name";
+                    END IF;
+                END $$;
+                """);
+
             migrationBuilder.RenameTable(
                 name: "Companies",
                 newName: "Clients");
 
-            migrationBuilder.RenameIndex(
-                name: "IX_Companies_Status",
-                newName: "IX_Clients_Status",
-                table: "Clients");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_Companies_UpdatedAt",
-                newName: "IX_Clients_UpdatedAt",
-                table: "Clients");
-
-            migrationBuilder.RenameIndex(
-                name: "IX_Companies_Name",
-                newName: "IX_Clients_Name",
-                table: "Clients");
+            // Recreate original indexes on Clients
+            migrationBuilder.Sql("""
+                DO $$ BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Clients_Status') THEN
+                        CREATE INDEX "IX_Clients_Status" ON "Clients" ("Status");
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Clients_UpdatedAt') THEN
+                        CREATE INDEX "IX_Clients_UpdatedAt" ON "Clients" ("UpdatedAt");
+                    END IF;
+                    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'IX_Clients_Name') THEN
+                        CREATE INDEX "IX_Clients_Name" ON "Clients" ("Name");
+                    END IF;
+                END $$;
+                """);
         }
     }
 }
