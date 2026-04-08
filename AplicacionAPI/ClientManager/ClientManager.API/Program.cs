@@ -1,31 +1,84 @@
+using System.Text;
 using System.Text.Json.Serialization;
 using ClientManager.API;
 using ClientManager.API.Data;
+using ClientManager.API.Models;
 using ClientManager.API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Database
+// ── Database ──────────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Caching & HTTP
+// ── Identity ──────────────────────────────────────────────────────────────────
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit           = true;
+    options.Password.RequireLowercase       = true;
+    options.Password.RequireUppercase       = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength         = 8;
+
+    options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers      = true;
+
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+
+// ── JWT Authentication ────────────────────────────────────────────────────────
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
+    ?? throw new InvalidOperationException("Jwt:SecretKey es obligatorio. Configúralo en User Secrets.");
+var jwtIssuer   = builder.Configuration["Jwt:Issuer"]   ?? "ClientManagerAPI";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "ClientManagerApp";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer           = true,
+        ValidateAudience         = true,
+        ValidateLifetime         = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer              = jwtIssuer,
+        ValidAudience            = jwtAudience,
+        IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+        ClockSkew                = TimeSpan.Zero
+    };
+});
+
+builder.Services.AddAuthorization();
+
+// ── Caching & HTTP ────────────────────────────────────────────────────────────
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
 
-// Services
+// ── Application Services ──────────────────────────────────────────────────────
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
-// Controllers with enum-as-string serialization
+// ── Controllers ───────────────────────────────────────────────────────────────
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-// Swagger
+// ── Swagger con soporte Bearer token ─────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -35,12 +88,31 @@ builder.Services.AddSwaggerGen(options =>
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
-    {
         options.IncludeXmlComments(xmlPath);
-    }
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name         = "Authorization",
+        Type         = SecuritySchemeType.Http,
+        Scheme       = "bearer",
+        BearerFormat = "JWT",
+        In           = ParameterLocation.Header,
+        Description  = "Introduce tu JWT. Ejemplo: eyJhbGci..."
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
-// CORS
+// ── CORS ──────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
@@ -51,15 +123,15 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Kestrel limits for file uploads
+// ── Kestrel ───────────────────────────────────────────────────────────────────
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10 MB
+    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;
 });
 
 var app = builder.Build();
 
-// Global exception handler
+// ── Global exception handler ──────────────────────────────────────────────────
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
@@ -68,31 +140,26 @@ app.UseExceptionHandler(errorApp =>
 
         var (statusCode, message) = exception switch
         {
-            ArgumentException ex => (StatusCodes.Status400BadRequest, ex.Message),
-            KeyNotFoundException ex => (StatusCodes.Status404NotFound, ex.Message),
-            _ => (StatusCodes.Status500InternalServerError, "Ha ocurrido un error interno en el servidor.")
+            ArgumentException ex          => (StatusCodes.Status400BadRequest,    ex.Message),
+            KeyNotFoundException ex        => (StatusCodes.Status404NotFound,      ex.Message),
+            UnauthorizedAccessException ex => (StatusCodes.Status401Unauthorized,  ex.Message),
+            _                              => (StatusCodes.Status500InternalServerError,
+                                               "Ha ocurrido un error interno en el servidor.")
         };
 
-        context.Response.StatusCode = statusCode;
+        context.Response.StatusCode  = statusCode;
         context.Response.ContentType = "application/json";
-
-        await context.Response.WriteAsJsonAsync(new
-        {
-            status = statusCode,
-            error = message
-        });
+        await context.Response.WriteAsJsonAsync(new { status = statusCode, error = message });
     });
 });
 
-// Static files (serves wwwroot/uploads/)
 app.UseStaticFiles();
-
 app.UseHttpsRedirection();
 app.UseCors("AllowAngular");
+app.UseAuthentication();   // debe ir antes de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
 
-// Swagger UI
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -102,13 +169,12 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Auto-migrate on startup
+// ── Auto-migrate + Seed ───────────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var logger    = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
-    // Check if __EFMigrationsHistory exists to decide migration strategy
     var conn = dbContext.Database.GetDbConnection();
     await conn.OpenAsync();
     await using var cmd = conn.CreateCommand();
@@ -118,14 +184,11 @@ using (var scope = app.Services.CreateScope())
 
     if (migrationsTableExists)
     {
-        // Migrations history exists — apply any pending migrations normally
         logger.LogInformation("Applying pending migrations...");
         await dbContext.Database.MigrateAsync();
     }
     else
     {
-        // Fresh database or legacy schema without migrations history
-        // Check if the old Clients table exists (pre-Phase1 schema)
         await conn.OpenAsync();
         await using var cmd2 = conn.CreateCommand();
         cmd2.CommandText = "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Clients') AND NOT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'Companies')";
@@ -134,7 +197,7 @@ using (var scope = app.Services.CreateScope())
 
         if (hasLegacySchema)
         {
-            logger.LogInformation("Legacy schema detected (Clients table without migrations). Registering migration history...");
+            logger.LogInformation("Legacy schema detectado. Registrando historial de migraciones...");
             await dbContext.Database.ExecuteSqlRawAsync("""
                 CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
                     "MigrationId" character varying(150) NOT NULL,
@@ -142,20 +205,63 @@ using (var scope = app.Services.CreateScope())
                     CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
                 );
                 """);
-            // Register only the initial migration as applied (we'll apply Phase1 next)
-            await dbContext.Database.ExecuteSqlRawAsync($"""
+            await dbContext.Database.ExecuteSqlRawAsync("""
                 INSERT INTO "__EFMigrationsHistory" ("MigrationId", "ProductVersion")
                 VALUES ('20260324085131_InitialCreate', '9.0.1')
                 ON CONFLICT DO NOTHING;
                 """);
-            // Now apply the remaining migrations (Phase1 rename)
             await dbContext.Database.MigrateAsync();
         }
         else
         {
-            // Completely fresh database
             await dbContext.Database.MigrateAsync();
         }
+    }
+
+    // ── Seed roles y SuperAdmin ───────────────────────────────────────────────
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var config      = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+
+    foreach (var roleName in new[] { "SuperAdmin", "Cliente" })
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            await roleManager.CreateAsync(new IdentityRole(roleName));
+            logger.LogInformation("Rol creado: {Role}", roleName);
+        }
+    }
+
+    var adminEmail    = config["SuperAdmin:Email"]    ?? "admin@clientmanager.local";
+    var adminPassword = config["SuperAdmin:Password"]
+        ?? throw new InvalidOperationException("SuperAdmin:Password es obligatorio. Configúralo en User Secrets.");
+
+    if (await userManager.FindByEmailAsync(adminEmail) is null)
+    {
+        var adminUser = new ApplicationUser
+        {
+            UserName       = adminEmail,
+            Email          = adminEmail,
+            EmailConfirmed = true,
+            CreatedAt      = DateTime.UtcNow
+        };
+
+        var result = await userManager.CreateAsync(adminUser, adminPassword);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "SuperAdmin");
+            logger.LogInformation("SuperAdmin creado: {Email}", adminEmail);
+        }
+        else
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            logger.LogError("Error al crear SuperAdmin: {Errors}", errors);
+            throw new InvalidOperationException($"Fallo al crear SuperAdmin: {errors}");
+        }
+    }
+    else
+    {
+        logger.LogInformation("SuperAdmin ya existe: {Email}", adminEmail);
     }
 }
 

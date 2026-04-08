@@ -1,9 +1,11 @@
 using ClientManager.API.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClientManager.API.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
@@ -12,7 +14,17 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // MUST be first: IdentityDbContext configures all 7 AspNet* tables here
         base.OnModelCreating(modelBuilder);
+
+        // ── ApplicationUser ───────────────────────────────────────
+        var user = modelBuilder.Entity<ApplicationUser>();
+        user.HasIndex(u => u.ClientId);
+        user.HasOne(u => u.Client)
+            .WithMany()
+            .HasForeignKey(u => u.ClientId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
 
         // ── Company ──────────────────────────────────────────────
         var company = modelBuilder.Entity<Company>();
