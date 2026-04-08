@@ -119,25 +119,28 @@ d:/PracticasAdrian/ApiAppClaude/
 │   └── plan-autenticacion.md            ← plan detallado de fases 1-7
 ├── CLAUDE.md
 └── AplicacionAPI/
-    ├── ClientManager/
-    │   └── ClientManager.API/
-    │       ├── Controllers/
-    │       │   ├── CompaniesController.cs   ← /api/companies
-    │       │   └── ClientsController.cs     ← /api/clients
-    │       ├── Models/
-    │       │   ├── Company.cs               ← entidad empresa (antes Client)
-    │       │   └── Client.cs                ← persona asignada a empresa
-    │       ├── DTOs/
-    │       │   ├── CompanyDtos.cs
-    │       │   └── ClientDtos.cs
-    │       ├── Data/ApplicationDbContext.cs
-    │       ├── Services/
-    │       │   ├── ICompanyService.cs / CompanyService.cs
-    │       │   └── IClientService.cs / ClientService.cs
-    │       ├── Migrations/
-    │       ├── FileUploadOperationFilter.cs
-    │       ├── Program.cs
-    │       └── appsettings.json
+    ├── ClientManager.API/
+    │   ├── Controllers/
+    │   │   ├── CompaniesController.cs   ← /api/companies
+    │   │   ├── ClientsController.cs     ← /api/clients
+    │   │   └── AuthController.cs        ← /api/auth (Fase 2+)
+    │   ├── Models/
+    │   │   ├── Company.cs               ← entidad empresa
+    │   │   ├── Client.cs                ← persona asignada a empresa
+    │   │   └── ApplicationUser.cs       ← IdentityUser extendido (Fase 2+)
+    │   ├── DTOs/
+    │   │   ├── CompanyDtos.cs
+    │   │   ├── ClientDtos.cs
+    │   │   └── AuthDtos.cs              ← LoginDto, RegisterDto, AuthResponseDto
+    │   ├── Data/ApplicationDbContext.cs
+    │   ├── Services/
+    │   │   ├── ICompanyService.cs / CompanyService.cs
+    │   │   ├── IClientService.cs / ClientService.cs
+    │   │   └── IAuthService.cs / AuthService.cs (Fase 2+)
+    │   ├── Migrations/
+    │   ├── FileUploadOperationFilter.cs
+    │   ├── Program.cs
+    │   └── appsettings.json
     └── ClientManagerWeb/
         └── src/
             ├── app/
@@ -306,7 +309,7 @@ SuperAdmin
 ### Comandos para arrancar
 ```bash
 # Backend
-cd AplicacionAPI/ClientManager/ClientManager.API
+cd AplicacionAPI/ClientManager.API
 dotnet run
 # API: http://localhost:5000
 # Swagger: http://localhost:5000/swagger
