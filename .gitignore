@@ -1,2 +1,25 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.nupkg
+*.snupkg
+
+# User Secrets (nunca al repo)
+secrets.json
+
+# Angular / Node
 node_modules/
+dist/
+.angular/
 package-lock.json
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
