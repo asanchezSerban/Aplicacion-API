@@ -1,5 +1,6 @@
 using ClientManager.API.DTOs;
 using ClientManager.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClientManager.API.Controllers;
@@ -7,6 +8,7 @@ namespace ClientManager.API.Controllers;
 [ApiController]
 [Route("api/companies")]
 [Produces("application/json")]
+[Authorize(Roles = "SuperAdmin")]
 public class CompaniesController : ControllerBase
 {
     private readonly ICompanyService _companyService;
