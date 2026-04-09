@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using ClientManager.API.DTOs;
 using ClientManager.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClientManager.API.Controllers;
@@ -7,6 +9,7 @@ namespace ClientManager.API.Controllers;
 [ApiController]
 [Route("api/clients")]
 [Produces("application/json")]
+[Authorize(Roles = "SuperAdmin")]
 public class ClientsController : ControllerBase
 {
     private readonly IClientService _clientService;
@@ -82,5 +85,24 @@ public class ClientsController : ControllerBase
     {
         await _clientService.DeleteAsync(id);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Devuelve los datos del cliente autenticado.
+    /// </summary>
+    [HttpGet("me")]
+    [Authorize(Roles = "Cliente")]
+    [ProducesResponseType(typeof(ClientResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMe()
+    {
+        var clientIdClaim = User.FindFirstValue("clientId");
+
+        if (clientIdClaim is null || !int.TryParse(clientIdClaim, out var clientId))
+            return Unauthorized();
+
+        var result = await _clientService.GetByIdAsync(clientId);
+        return Ok(result);
     }
 }
