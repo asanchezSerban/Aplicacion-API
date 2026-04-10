@@ -5,4 +5,6 @@ namespace ClientManager.API.Services;
 public interface IAuthService
 {
     Task<TokenResponseDto> LoginAsync(LoginDto dto);
+    Task<TokenResponseDto> RefreshAsync(string refreshToken);
+    Task RevokeAsync(string refreshToken);
 }

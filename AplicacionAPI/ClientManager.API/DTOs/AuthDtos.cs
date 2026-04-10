@@ -12,9 +12,16 @@ public class LoginDto
     public string Password { get; set; } = string.Empty;
 }
 
+/// <summary>DEV ONLY — eliminar antes de producción</summary>
+public class RefreshRequestDto
+{
+    public string RefreshToken { get; set; } = string.Empty;
+}
+
 public class TokenResponseDto
 {
     public string AccessToken { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
     public string UserEmail { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;

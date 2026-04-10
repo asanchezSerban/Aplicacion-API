@@ -11,6 +11,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -81,5 +82,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
               .WithMany(co => co.Clients)
               .HasForeignKey(c => c.CompanyId)
               .OnDelete(DeleteBehavior.Cascade);
+
+        // ── RefreshToken ─────────────────────────────────────────
+        var refreshToken = modelBuilder.Entity<RefreshToken>();
+
+        refreshToken.ToTable("RefreshTokens");
+        refreshToken.HasKey(r => r.Id);
+        refreshToken.Property(r => r.Id).UseIdentityAlwaysColumn();
+        refreshToken.Property(r => r.Token).HasMaxLength(200).IsRequired();
+        refreshToken.Property(r => r.UserId).IsRequired();
+        refreshToken.Property(r => r.ReplacedByToken).HasMaxLength(200);
+        refreshToken.HasIndex(r => r.Token).IsUnique();
+        refreshToken.HasIndex(r => r.UserId);
+        refreshToken.HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
