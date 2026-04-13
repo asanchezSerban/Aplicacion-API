@@ -56,7 +56,8 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer              = jwtIssuer,
         ValidAudience            = jwtAudience,
         IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
-        ClockSkew                = TimeSpan.Zero
+        ClockSkew                = TimeSpan.Zero,
+        RoleClaimType            = "role"
     };
 });
 
@@ -119,7 +120,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:4200")
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 

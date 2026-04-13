@@ -1,30 +1,30 @@
-import { Component } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatToolbar } from '@angular/material/toolbar';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
 import { ROUTES } from '../../app.routes.constants';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-navbar',
-  standalone: true,
-  imports: [MatToolbar, MatButton, MatIcon, MatSlideToggle],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MatToolbar, MatButton, MatIconButton, MatIcon, MatSlideToggle, MatTooltip],
   templateUrl: './navbar.html',
   styleUrl: './navbar.scss'
 })
 export class NavbarComponent {
+  private readonly router = inject(Router);
+  readonly authService    = inject(AuthService);
+
   isDarkMode = false;
 
-  constructor(private router: Router) {}
+  readonly routes = ROUTES;
 
-  navigateToCompanies(): void {
-    this.router.navigate([ROUTES.COMPANIES]);
-  }
-
-  navigateToClients(): void {
-    this.router.navigate([ROUTES.CLIENTS]);
-  }
+  navigateToCompanies(): void { this.router.navigate([ROUTES.COMPANIES]); }
+  navigateToClients(): void   { this.router.navigate([ROUTES.CLIENTS]); }
 
   toggleDarkMode(): void {
     this.isDarkMode = !this.isDarkMode;

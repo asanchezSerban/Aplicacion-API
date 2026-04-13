@@ -124,7 +124,7 @@ public class AuthService : IAuthService
             new(JwtRegisteredClaimNames.Sub,   user.Id),
             new(JwtRegisteredClaimNames.Email, user.Email!),
             new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
-            new(ClaimTypes.Role,               role)
+            new("role",                        role)
         };
 
         if (role == "Cliente" && user.ClientId.HasValue)

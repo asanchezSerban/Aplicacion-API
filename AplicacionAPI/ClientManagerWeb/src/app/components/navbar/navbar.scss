@@ -20,3 +20,13 @@ mat-toolbar {
 .dark-toggle {
   margin-left: 16px;
 }
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin: 0 8px;
+  cursor: default;
+}

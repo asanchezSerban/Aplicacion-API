@@ -6,15 +6,27 @@
 
   <span class="spacer"></span>
 
-  <button mat-button (click)="navigateToCompanies()">
-    <mat-icon>domain</mat-icon>
-    Empresas
-  </button>
+  @if (authService.isLoggedIn() && authService.userRole() === 'SuperAdmin') {
+    <button mat-button (click)="navigateToCompanies()">
+      <mat-icon>domain</mat-icon>
+      Empresas
+    </button>
+    <button mat-button (click)="navigateToClients()">
+      <mat-icon>people</mat-icon>
+      Clientes
+    </button>
+  }
 
-  <button mat-button (click)="navigateToClients()">
-    <mat-icon>people</mat-icon>
-    Clientes
-  </button>
+  @if (authService.isLoggedIn()) {
+    <span class="user-info" [matTooltip]="authService.userRole() ?? ''">
+      <mat-icon>account_circle</mat-icon>
+      {{ authService.userEmail() }}
+    </span>
+
+    <button mat-icon-button (click)="authService.logout()" matTooltip="Cerrar sesión">
+      <mat-icon>logout</mat-icon>
+    </button>
+  }
 
   <mat-slide-toggle
     [checked]="isDarkMode"

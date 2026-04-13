@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClientManager — Documentación Técnica</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230d0f14'/><rect x='18' y='28' width='64' height='8' rx='4' fill='%234f8ef7'/><rect x='18' y='46' width='44' height='8' rx='4' fill='%2300d4aa'/><rect x='18' y='64' width='54' height='8' rx='4' fill='%234f8ef7' opacity='.5'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #13161e;
+    --border:    #1e2330;
+    --accent:    #4f8ef7;
+    --accent2:   #00d4aa;
+    --accent3:   #f7834f;
+    --text:      #c8d0e0;
+    --text-dim:  #5a6478;
+    --text-head: #edf0f7;
+    --code-bg:   #0a0c10;
+    --tag-bg:    #1a2035;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-brand {
+    padding: 0 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-brand h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-head);
+    letter-spacing: -0.02em;
+  }
+
+  .sidebar-brand span {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .sidebar-nav {
+    padding: 1.5rem 0;
+    flex: 1;
+  }
+
+  .nav-section {
+    padding: 0 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .nav-section-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 1rem 0 0.5rem;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+    margin-bottom: 2px;
+  }
+
+  .nav-link:hover { background: var(--border); color: var(--text); }
+  .nav-link.active { background: rgba(79,142,247,0.12); color: var(--accent); }
+
+  .nav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  .nav-link.active .nav-dot { background: var(--accent); }
+
+  .badge {
+    margin-left: auto;
+    font-size: 0.6rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .badge-done { background: rgba(0,212,170,0.15); color: var(--accent2); }
+  .badge-pending { background: rgba(247,131,79,0.15); color: var(--accent3); }
+
+  /* ── Main ── */
+  main {
+    padding: 3rem 4rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ── Header ── */
+  .doc-header {
+    margin-bottom: 4rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .doc-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-head);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+
+  .doc-header h1 span { color: var(--accent); }
+
+  .doc-header p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stack-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .pill {
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+
+  /* ── Phase sections ── */
+  .phase {
+    margin-bottom: 4rem;
+    scroll-margin-top: 2rem;
+  }
+
+  .phase-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .phase-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(79,142,247,0.1);
+    border: 1px solid rgba(79,142,247,0.2);
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+
+  .phase-number.green {
+    color: var(--accent2);
+    background: rgba(0,212,170,0.1);
+    border-color: rgba(0,212,170,0.2);
+  }
+
+  .phase-title h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-head);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+  }
+
+  .phase-title p {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+  }
+
+  /* ── Content blocks ── */
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-head);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin: 2rem 0 0.75rem;
+  }
+
+  p { margin-bottom: 0.75rem; color: var(--text); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  pre code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: #a8b4cc;
+  }
+
+  .code-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.6rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid rgba(30,35,48,0.6);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  td code, th code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent);
+    background: rgba(79,142,247,0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ── Flow diagram ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 1rem 0 1.5rem;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    position: relative;
+  }
+
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 36px;
+    bottom: -4px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .flow-icon {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .flow-content strong {
+    font-size: 0.85rem;
+    color: var(--text-head);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .flow-content span {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  /* ── Endpoint list ── */
+  .endpoint {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 0.4rem;
+    font-size: 0.82rem;
+  }
+
+  .method {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    min-width: 46px;
+    text-align: center;
+  }
+
+  .method-get    { background: rgba(0,212,170,0.15); color: var(--accent2); }
+  .method-post   { background: rgba(79,142,247,0.15); color: var(--accent); }
+  .method-put    { background: rgba(247,198,79,0.15); color: #f7c64f; }
+  .method-patch  { background: rgba(175,122,247,0.15); color: #af7af7; }
+  .method-delete { background: rgba(247,83,83,0.15); color: #f75353; }
+
+  .endpoint-path {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .endpoint-desc {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+  }
+
+  .endpoint-auth {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .auth-admin  { background: rgba(247,131,79,0.15); color: var(--accent3); }
+  .auth-client { background: rgba(0,212,170,0.15); color: var(--accent2); }
+  .auth-public { background: rgba(90,100,120,0.2); color: var(--text-dim); }
+
+  /* ── Security layers ── */
+  .security-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .security-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .security-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+  }
+
+  .security-item h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-head);
+    margin-bottom: 0.3rem;
+  }
+
+  .security-item p {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  /* ── Token comparison ── */
+  .token-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .token-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+
+  .token-card h4 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .token-card h4.green { color: var(--accent2); }
+
+  .token-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0;
+    font-size: 0.8rem;
+  }
+
+  .token-row span:first-child { color: var(--text-dim); }
+  .token-row span:last-child  { color: var(--text-head); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; }
+
+  /* ── Divider ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ── Highlight inline ── */
+  mark {
+    background: rgba(79,142,247,0.15);
+    color: var(--accent);
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h1>ClientManager</h1>
+      <span>Documentación técnica v1.0</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Proyecto</div>
+        <a href="#overview" class="nav-link active">
+          <span class="nav-dot"></span> Visión general
+        </a>
+        <a href="#stack" class="nav-link">
+          <span class="nav-dot"></span> Stack tecnológico
+        </a>
+        <a href="#arquitectura" class="nav-link">
+          <span class="nav-dot"></span> Arquitectura
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Fases implementadas</div>
+        <a href="#fase1" class="nav-link">
+          <span class="nav-dot"></span> Fase 1 — Modelo de datos
+          <span class="badge badge-done">✓</span>
+        </a>
+        <a href="#fase2" class="nav-link">
+          <span class="nav-dot"></span> Fase 2 — Identity + JWT
+          <span class="badge badge-done">✓</span>
+        </a>
+        <a href="#fase3" class="nav-link">
+          <span class="nav-dot"></span> Fase 3 — Autorización
+          <span class="badge badge-done">✓</span>
+        </a>
+        <a href="#fase4" class="nav-link">
+          <span class="nav-dot"></span> Fase 4 — Refresh tokens
+          <span class="badge badge-done">✓</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Próximas fases</div>
+        <a href="#roadmap" class="nav-link">
+          <span class="nav-dot"></span> Fase 5 — Frontend Auth
+          <span class="badge badge-pending">→</span>
+        </a>
+        <a href="#roadmap" class="nav-link">
+          <span class="nav-dot"></span> Fase 6 — Vistas Admin
+          <span class="badge badge-pending">→</span>
+        </a>
+        <a href="#roadmap" class="nav-link">
+          <span class="nav-dot"></span> Fase 7 — MFA + Seguridad
+          <span class="badge badge-pending">→</span>
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Referencia</div>
+        <a href="#endpoints" class="nav-link">
+          <span class="nav-dot"></span> Endpoints
+        </a>
+        <a href="#seguridad" class="nav-link">
+          <span class="nav-dot"></span> Capas de seguridad
+        </a>
+        <a href="#bd" class="nav-link">
+          <span class="nav-dot"></span> Base de datos
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- Header -->
+    <header class="doc-header" id="overview">
+      <h1>Client<span>Manager</span><br>Documentación Técnica</h1>
+      <p>Última actualización: Fase 4 completada · Abril 2026</p>
+      <div class="stack-pills">
+        <span class="pill">.NET 10</span>
+        <span class="pill">ASP.NET Core</span>
+        <span class="pill">PostgreSQL 15</span>
+        <span class="pill">Entity Framework Core</span>
+        <span class="pill">Angular 21</span>
+        <span class="pill">Angular Material</span>
+        <span class="pill">JWT Bearer</span>
+        <span class="pill">ASP.NET Identity</span>
+      </div>
+    </header>
+
+    <!-- Stack -->
+    <section class="phase" id="stack">
+      <div class="phase-header">
+        <div class="phase-number green">STACK</div>
+        <div class="phase-title">
+          <h2>Stack tecnológico</h2>
+          <p>Tecnologías usadas en el proyecto</p>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Capa</th><th>Tecnología</th><th>Versión</th><th>Función</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Runtime</td><td>.NET</td><td>10</td><td>Plataforma de ejecución del backend</td></tr>
+          <tr><td>Framework API</td><td>ASP.NET Core Web API</td><td>10</td><td>HTTP, controllers, middleware</td></tr>
+          <tr><td>ORM</td><td>Entity Framework Core</td><td>10.0.0</td><td>Acceso a base de datos</td></tr>
+          <tr><td>Base de datos</td><td>PostgreSQL</td><td>15+</td><td>Persistencia de datos</td></tr>
+          <tr><td>Driver BD</td><td>Npgsql</td><td>9.0.4</td><td>Conector .NET ↔ PostgreSQL</td></tr>
+          <tr><td>Identidad</td><td>ASP.NET Core Identity</td><td>10</td><td>Usuarios, roles, hashing de contraseñas</td></tr>
+          <tr><td>Auth tokens</td><td>JWT Bearer</td><td>10</td><td>Autenticación stateless</td></tr>
+          <tr><td>Docs API</td><td>Swagger / Swashbuckle</td><td>6.6.2</td><td>Documentación y pruebas de la API</td></tr>
+          <tr><td>Frontend</td><td>Angular</td><td>21.2.0</td><td>SPA — interfaz de usuario</td></tr>
+          <tr><td>UI Components</td><td>Angular Material</td><td>21.2.2</td><td>Componentes visuales</td></tr>
+          <tr><td>Lenguaje front</td><td>TypeScript</td><td>5.9.2</td><td>Tipado estático en frontend</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Arquitectura -->
+    <section class="phase" id="arquitectura">
+      <div class="phase-header">
+        <div class="phase-number green">ARCH</div>
+        <div class="phase-title">
+          <h2>Arquitectura</h2>
+          <p>Modelo de negocio y estructura del sistema</p>
+        </div>
+      </div>
+
+      <p>ClientManager es una aplicación <mark>multitenant</mark> de gestión interna. El <strong>SuperAdmin</strong> gestiona empresas y clientes; cada <strong>Cliente</strong> solo puede ver sus propios datos.</p>
+
+      <h3>Modelo de negocio</h3>
+      <div class="card">
+        <pre><code>SuperAdmin
+├── Gestiona Companies (empresas)
+│   ├── Acme Corp           [Active]
+│   └── Tech Startup SL     [Prospect]
+│
+└── Gestiona Clients (personas asignadas a empresas)
+    ├── Cliente A  →  pertenece a Acme Corp
+    └── Cliente X  →  pertenece a Tech Startup SL
+
+Cada Client puede autenticarse y ver únicamente sus propios datos.</code></pre>
+      </div>
+
+      <h3>Estructura de capas</h3>
+      <table>
+        <thead><tr><th>Capa</th><th>Responsabilidad</th><th>Archivos clave</th></tr></thead>
+        <tbody>
+          <tr><td>Controllers</td><td>Recibe peticiones HTTP, valida entrada, delega al servicio</td><td><code>CompaniesController</code>, <code>ClientsController</code>, <code>AuthController</code></td></tr>
+          <tr><td>Services</td><td>Lógica de negocio, validaciones, construcción de JWT</td><td><code>CompanyService</code>, <code>ClientService</code>, <code>AuthService</code></td></tr>
+          <tr><td>Data</td><td>Acceso a BD, configuración de EF Core</td><td><code>ApplicationDbContext</code></td></tr>
+          <tr><td>Models</td><td>Entidades de base de datos</td><td><code>Company</code>, <code>Client</code>, <code>ApplicationUser</code>, <code>RefreshToken</code></td></tr>
+          <tr><td>DTOs</td><td>Contratos de entrada y salida de la API</td><td><code>CompanyDtos</code>, <code>ClientDtos</code>, <code>AuthDtos</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── FASE 1 ── -->
+    <section class="phase" id="fase1">
+      <div class="phase-header">
+        <div class="phase-number green">FASE 01</div>
+        <div class="phase-title">
+          <h2>Modelo de datos — Companies y Clients</h2>
+          <p>CRUD completo para empresas y personas asignadas</p>
+        </div>
+      </div>
+
+      <p>La primera fase establece el modelo de datos central. Una <strong>Company</strong> (empresa) puede tener múltiples <strong>Clients</strong> (personas). Cuando se elimina una empresa, sus clientes se eliminan en cascada.</p>
+
+      <h3>Entidades</h3>
+      <table>
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td colspan="3" style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:0.75rem;padding-top:1rem">Companies</td></tr>
+          <tr><td><code>Id</code></td><td>INTEGER IDENTITY</td><td>Clave primaria</td></tr>
+          <tr><td><code>Name</code></td><td>VARCHAR(200)</td><td>Nombre de la empresa</td></tr>
+          <tr><td><code>Description</code></td><td>VARCHAR(2000)</td><td>Descripción</td></tr>
+          <tr><td><code>LogoFileName</code></td><td>VARCHAR(500) NULL</td><td>Nombre del fichero de logo en <code>wwwroot/uploads/</code></td></tr>
+          <tr><td><code>Status</code></td><td>VARCHAR(50)</td><td><code>Active</code> · <code>Inactive</code> · <code>Prospect</code> · <code>Churned</code></td></tr>
+          <tr><td><code>CreatedAt / UpdatedAt</code></td><td>TIMESTAMPTZ</td><td>Auditoría temporal</td></tr>
+          <tr><td colspan="3" style="color:var(--accent2);font-family:'JetBrains Mono',monospace;font-size:0.75rem;padding-top:1rem">Clients</td></tr>
+          <tr><td><code>Id</code></td><td>INTEGER IDENTITY</td><td>Clave primaria</td></tr>
+          <tr><td><code>Name</code></td><td>VARCHAR(200)</td><td>Nombre completo</td></tr>
+          <tr><td><code>Email</code></td><td>VARCHAR(200) UNIQUE</td><td>Email único</td></tr>
+          <tr><td><code>CompanyId</code></td><td>INTEGER FK</td><td>Empresa a la que pertenece</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Endpoints implementados</h3>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/api/companies</span><span class="endpoint-desc">Listado paginado con filtros opcionales (nombre, estado)</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/api/companies/{id}</span><span class="endpoint-desc">Detalle de una empresa</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/api/companies</span><span class="endpoint-desc">Crear empresa — multipart/form-data con logo opcional</span></div>
+      <div class="endpoint"><span class="method method-put">PUT</span><span class="endpoint-path">/api/companies/{id}</span><span class="endpoint-desc">Actualizar empresa</span></div>
+      <div class="endpoint"><span class="method method-patch">PATCH</span><span class="endpoint-path">/api/companies/{id}/status</span><span class="endpoint-desc">Cambiar solo el estado</span></div>
+      <div class="endpoint"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/companies/{id}</span><span class="endpoint-desc">Eliminar empresa y sus clientes en cascada</span></div>
+      <div class="endpoint" style="margin-top:0.75rem"><span class="method method-get">GET</span><span class="endpoint-path">/api/clients</span><span class="endpoint-desc">Listado paginado con filtros opcionales (nombre, empresa)</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/api/clients/{id}</span><span class="endpoint-desc">Detalle de un cliente</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/api/clients</span><span class="endpoint-desc">Crear cliente — JSON body</span></div>
+      <div class="endpoint"><span class="method method-put">PUT</span><span class="endpoint-path">/api/clients/{id}</span><span class="endpoint-desc">Actualizar cliente</span></div>
+      <div class="endpoint"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/clients/{id}</span><span class="endpoint-desc">Eliminar cliente</span></div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── FASE 2 ── -->
+    <section class="phase" id="fase2">
+      <div class="phase-header">
+        <div class="phase-number green">FASE 02</div>
+        <div class="phase-title">
+          <h2>Identity + JWT</h2>
+          <p>Sistema de autenticación con tokens firmados</p>
+        </div>
+      </div>
+
+      <p>Se integra <strong>ASP.NET Core Identity</strong> para la gestión de usuarios y contraseñas, y <strong>JWT Bearer</strong> para la autenticación stateless mediante tokens firmados.</p>
+
+      <h3>Flujo de autenticación</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-icon">1</div>
+          <div class="flow-content">
+            <strong>POST /api/auth/login</strong>
+            <span>El usuario envía email y contraseña</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">2</div>
+          <div class="flow-content">
+            <strong>Verificación de lockout</strong>
+            <span>Si el usuario tiene ≥5 intentos fallidos, la cuenta está bloqueada 15 minutos</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">3</div>
+          <div class="flow-content">
+            <strong>Validación de contraseña</strong>
+            <span>PBKDF2-HMAC-SHA512 · Si falla, incrementa el contador de intentos fallidos</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">4</div>
+          <div class="flow-content">
+            <strong>Generación del JWT</strong>
+            <span>HMAC-SHA256 · Expiración: 15 minutos · Claims: sub, email, jti, role, clientId</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">5</div>
+          <div class="flow-content">
+            <strong>Respuesta</strong>
+            <span>Devuelve accessToken, expiresAt, userEmail, role</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Política de contraseñas</h3>
+      <table>
+        <thead><tr><th>Requisito</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Longitud mínima</td><td>8 caracteres</td></tr>
+          <tr><td>Requiere mayúsculas</td><td>Sí</td></tr>
+          <tr><td>Requiere minúsculas</td><td>Sí</td></tr>
+          <tr><td>Requiere dígitos</td><td>Sí</td></tr>
+          <tr><td>Requiere carácter especial</td><td>Sí</td></tr>
+          <tr><td>Intentos antes de lockout</td><td>5</td></tr>
+          <tr><td>Duración del lockout</td><td>15 minutos</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Tablas creadas en BD (Identity)</h3>
+      <div class="card">
+        <div class="card-title">Migración: Phase2_AddIdentityTables</div>
+        <pre><code>AspNetUsers         → usuarios (extiende ApplicationUser con ClientId y CreatedAt)
+AspNetRoles         → roles (SuperAdmin, Cliente)
+AspNetUserRoles     → relación usuario-rol
+AspNetUserClaims    → claims adicionales por usuario
+AspNetUserLogins    → logins externos (OAuth)
+AspNetUserTokens    → tokens internos de Identity
+AspNetRoleClaims    → claims por rol</code></pre>
+      </div>
+
+      <h3>Configuración de secrets (fuera del repositorio)</h3>
+      <div class="code-label">User Secrets — nunca en appsettings.json</div>
+      <pre><code>Jwt:SecretKey       → clave HMAC de 32+ caracteres para firmar tokens
+SuperAdmin:Password → contraseña del usuario administrador inicial</code></pre>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── FASE 3 ── -->
+    <section class="phase" id="fase3">
+      <div class="phase-header">
+        <div class="phase-number green">FASE 03</div>
+        <div class="phase-title">
+          <h2>Autorización por roles</h2>
+          <p>Control de acceso basado en el rol del usuario autenticado</p>
+        </div>
+      </div>
+
+      <p>Todos los endpoints quedan protegidos. Un token válido no es suficiente — el rol que contiene debe coincidir con el requerido por el endpoint.</p>
+
+      <h3>Roles y permisos</h3>
+      <table>
+        <thead><tr><th>Rol</th><th>Acceso permitido</th></tr></thead>
+        <tbody>
+          <tr><td><code>SuperAdmin</code></td><td>CRUD completo de <code>/api/companies</code> y <code>/api/clients</code></td></tr>
+          <tr><td><code>Cliente</code></td><td>Solo <code>GET /api/clients/me</code> — sus propios datos</td></tr>
+          <tr><td>Sin token</td><td>401 Unauthorized en todos los endpoints protegidos</td></tr>
+          <tr><td>Token con rol incorrecto</td><td>403 Forbidden</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Endpoint exclusivo del Cliente</h3>
+      <div class="endpoint">
+        <span class="method method-get">GET</span>
+        <span class="endpoint-path">/api/clients/me</span>
+        <span class="endpoint-desc">Datos propios del cliente autenticado — lee el claim <code>clientId</code> del JWT</span>
+        <span class="endpoint-auth auth-client">Cliente</span>
+      </div>
+
+      <h3>Casuística de respuestas</h3>
+      <table>
+        <thead><tr><th>Situación</th><th>Respuesta</th></tr></thead>
+        <tbody>
+          <tr><td>Sin token en la petición</td><td>401 Unauthorized</td></tr>
+          <tr><td>Token expirado</td><td>401 Unauthorized</td></tr>
+          <tr><td>Token válido pero rol incorrecto</td><td>403 Forbidden</td></tr>
+          <tr><td>Token válido y rol correcto</td><td>200 OK con los datos</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── FASE 4 ── -->
+    <section class="phase" id="fase4">
+      <div class="phase-header">
+        <div class="phase-number green">FASE 04</div>
+        <div class="phase-title">
+          <h2>Refresh tokens</h2>
+          <p>Renovación de sesión sin re-login</p>
+        </div>
+      </div>
+
+      <p>Se implementa un sistema de dos tokens para equilibrar seguridad y comodidad: el <strong>access token</strong> (JWT de corta vida) y el <strong>refresh token</strong> (opaco, revocable, de 24 horas).</p>
+
+      <h3>Comparativa de tokens</h3>
+      <div class="token-compare">
+        <div class="token-card">
+          <h4>Access Token (JWT)</h4>
+          <div class="token-row"><span>Duración</span><span>15 minutos</span></div>
+          <div class="token-row"><span>Tipo</span><span>JWT firmado</span></div>
+          <div class="token-row"><span>Almacenamiento</span><span>localStorage</span></div>
+          <div class="token-row"><span>Contiene</span><span>userId, email, rol</span></div>
+          <div class="token-row"><span>Validación</span><span>Firma criptográfica</span></div>
+          <div class="token-row"><span>Revocable</span><span>No (hasta que expira)</span></div>
+        </div>
+        <div class="token-card">
+          <h4 class="green">Refresh Token</h4>
+          <div class="token-row"><span>Duración</span><span>24 horas</span></div>
+          <div class="token-row"><span>Tipo</span><span>UUID aleatorio</span></div>
+          <div class="token-row"><span>Almacenamiento</span><span>Cookie HttpOnly</span></div>
+          <div class="token-row"><span>Contiene</span><span>Nada (opaco)</span></div>
+          <div class="token-row"><span>Validación</span><span>Consulta en BD</span></div>
+          <div class="token-row"><span>Revocable</span><span>Sí, inmediatamente</span></div>
+        </div>
+      </div>
+
+      <h3>Flujo de renovación</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-icon">1</div>
+          <div class="flow-content">
+            <strong>Access token expira (15 min de inactividad)</strong>
+            <span>La API responde 401 a la siguiente petición</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">2</div>
+          <div class="flow-content">
+            <strong>Interceptor Angular detecta el 401</strong>
+            <span>Llama automáticamente a POST /api/auth/refresh (Fase 5)</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">3</div>
+          <div class="flow-content">
+            <strong>API valida el refresh token en BD</strong>
+            <span>Comprueba que existe, no está revocado y no ha expirado</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">4</div>
+          <div class="flow-content">
+            <strong>Rotación de tokens</strong>
+            <span>El refresh token antiguo se revoca · Se generan nuevos access + refresh tokens</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">5</div>
+          <div class="flow-content">
+            <strong>Interceptor reintenta la petición original</strong>
+            <span>El usuario no percibe la interrupción</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Tabla en BD</h3>
+      <table>
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>Token</code></td><td>VARCHAR(200) UNIQUE</td><td>UUID aleatorio — índice único para búsqueda rápida</td></tr>
+          <tr><td><code>UserId</code></td><td>VARCHAR FK → AspNetUsers</td><td>Propietario del token</td></tr>
+          <tr><td><code>ExpiresAt</code></td><td>TIMESTAMPTZ</td><td>Expiración: creación + 24h</td></tr>
+          <tr><td><code>RevokedAt</code></td><td>TIMESTAMPTZ NULL</td><td>Momento de revocación — null si está activo</td></tr>
+          <tr><td><code>ReplacedByToken</code></td><td>VARCHAR NULL</td><td>Token que lo reemplazó al rotar — útil para auditoría</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Nuevos endpoints</h3>
+      <div class="endpoint">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">/api/auth/login</span>
+        <span class="endpoint-desc">Devuelve access token + refresh token (cookie HttpOnly)</span>
+        <span class="endpoint-auth auth-public">público</span>
+      </div>
+      <div class="endpoint">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">/api/auth/refresh</span>
+        <span class="endpoint-desc">Rota el refresh token y devuelve nuevos tokens</span>
+        <span class="endpoint-auth auth-public">público</span>
+      </div>
+      <div class="endpoint">
+        <span class="method method-post">POST</span>
+        <span class="endpoint-path">/api/auth/logout</span>
+        <span class="endpoint-desc">Revoca el refresh token activo · Cierra sesión</span>
+        <span class="endpoint-auth auth-admin">autenticado</span>
+      </div>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── SEGURIDAD ── -->
+    <section class="phase" id="seguridad">
+      <div class="phase-header">
+        <div class="phase-number">SEC</div>
+        <div class="phase-title">
+          <h2>Capas de seguridad implementadas</h2>
+          <p>Defensa en profundidad — cada capa protege contra una amenaza distinta</p>
+        </div>
+      </div>
+
+      <div class="security-grid">
+        <div class="security-item">
+          <h4>Política de contraseñas</h4>
+          <p>Mínimo 8 chars, mayúsculas, minúsculas, dígito y carácter especial obligatorios</p>
+        </div>
+        <div class="security-item">
+          <h4>Hashing PBKDF2</h4>
+          <p>PBKDF2-HMAC-SHA512 con sal única por usuario — Identity gestiona automáticamente</p>
+        </div>
+        <div class="security-item">
+          <h4>Bloqueo por intentos</h4>
+          <p>5 intentos fallidos → bloqueo de 15 minutos — protege contra fuerza bruta</p>
+        </div>
+        <div class="security-item">
+          <h4>Anti-enumeración de usuarios</h4>
+          <p>Mismo mensaje de error para usuario no encontrado y contraseña incorrecta</p>
+        </div>
+        <div class="security-item">
+          <h4>JWT de corta vida</h4>
+          <p>Access token válido solo 15 minutos — reduce la ventana de uso si es robado</p>
+        </div>
+        <div class="security-item">
+          <h4>Refresh token revocable</h4>
+          <p>UUID opaco almacenado en BD — se puede revocar inmediatamente en logout</p>
+        </div>
+        <div class="security-item">
+          <h4>Cookie HttpOnly</h4>
+          <p>Refresh token en cookie HttpOnly + Secure — JavaScript no puede accederlo</p>
+        </div>
+        <div class="security-item">
+          <h4>Autorización por roles</h4>
+          <p>SuperAdmin y Cliente con permisos distintos — token válido no garantiza acceso</p>
+        </div>
+        <div class="security-item">
+          <h4>Secrets fuera del repositorio</h4>
+          <p>JWT SecretKey y contraseñas en User Secrets — nunca en appsettings.json</p>
+        </div>
+      </div>
+
+      <h3>Pendiente (Fase 7)</h3>
+      <table>
+        <thead><tr><th>Capa</th><th>Qué protege</th></tr></thead>
+        <tbody>
+          <tr><td>MFA por email (OTP)</td><td>Acceso con credenciales robadas</td></tr>
+          <tr><td>Rate limiting</td><td>Ataques de fuerza bruta masivos</td></tr>
+          <tr><td>Recuperación de contraseña</td><td>Cuentas inaccesibles</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── BD ── -->
+    <section class="phase" id="bd">
+      <div class="phase-header">
+        <div class="phase-number">BD</div>
+        <div class="phase-title">
+          <h2>Base de datos</h2>
+          <p>Esquema actual tras las 4 primeras fases</p>
+        </div>
+      </div>
+
+      <h3>Historial de migraciones</h3>
+      <table>
+        <thead><tr><th>Migración</th><th>Qué añade</th></tr></thead>
+        <tbody>
+          <tr><td><code>20260324085131_InitialCreate</code></td><td>Tablas iniciales del proyecto</td></tr>
+          <tr><td><code>Phase1_RenameClientsToCompanies</code></td><td>Renombra tabla, crea <code>Clients</code></td></tr>
+          <tr><td><code>Phase2_AddIdentityTables</code></td><td>7 tablas de ASP.NET Identity + <code>ApplicationUser</code></td></tr>
+          <tr><td><code>Phase4_AddRefreshTokens</code></td><td>Tabla <code>RefreshTokens</code></td></tr>
+        </tbody>
+      </table>
+
+      <p style="color:var(--text-dim);font-size:0.85rem">Las migraciones se aplican automáticamente al arrancar el servidor (<code>MigrateAsync()</code> en <code>Program.cs</code>).</p>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── ROADMAP ── -->
+    <section class="phase" id="roadmap">
+      <div class="phase-header">
+        <div class="phase-number">NEXT</div>
+        <div class="phase-title">
+          <h2>Fases pendientes</h2>
+          <p>Roadmap de implementación</p>
+        </div>
+      </div>
+
+      <table>
+        <thead><tr><th>Fase</th><th>Nombre</th><th>Contenido principal</th></tr></thead>
+        <tbody>
+          <tr><td><code>Fase 5</code></td><td>Frontend Auth</td><td>Página de login, AuthService, interceptor HTTP, guards de ruta, página de perfil</td></tr>
+          <tr><td><code>Fase 6</code></td><td>Vistas SuperAdmin</td><td>CRUD completo en frontend, crear Client genera usuario vinculado con rol Cliente</td></tr>
+          <tr><td><code>Fase 7</code></td><td>MFA + Seguridad</td><td>OTP por email, recuperación de contraseña, rate limiting, dispositivos de confianza</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('section[id], header[id]');
+  const navLinks  = document.querySelectorAll('.nav-link');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
