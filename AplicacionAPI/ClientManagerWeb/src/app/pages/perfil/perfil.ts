@@ -4,8 +4,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
-import { ClientService } from '../../services/client';
-import { Client } from '../../models/client.model';
+import { UserService } from '../../services/user.service';
+import { User } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -110,21 +110,21 @@ import { AuthService } from '../../services/auth.service';
 })
 export class PerfilComponent implements OnInit {
   readonly authService = inject(AuthService);
-  private readonly clientService = inject(ClientService);
+  private readonly userService = inject(UserService);
 
-  client  = signal<Client | null>(null);
+  client  = signal<User | null>(null);
   loading = signal(true);
   error   = signal<string | null>(null);
 
   initials = () => {
     const name = this.client()?.name ?? '';
-    return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    return name.split(' ').map((w: string) => w[0]).slice(0, 2).join('').toUpperCase();
   };
 
   ngOnInit(): void {
-    this.clientService.getMe().subscribe({
-      next:  c  => { this.client.set(c);  this.loading.set(false); },
-      error: () => { this.error.set('No se pudieron cargar tus datos.'); this.loading.set(false); }
+    this.userService.getMe().subscribe({
+      next:  (u: User) => { this.client.set(u);  this.loading.set(false); },
+      error: ()        => { this.error.set('No se pudieron cargar tus datos.'); this.loading.set(false); }
     });
   }
 }

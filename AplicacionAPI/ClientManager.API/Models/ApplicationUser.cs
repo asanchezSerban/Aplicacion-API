@@ -5,11 +5,11 @@ namespace ClientManager.API.Models;
 public class ApplicationUser : IdentityUser
 {
     /// <summary>
-    /// Null para SuperAdmin. Vinculado al Client de la tabla Clients en Fase 6.
+    /// Null para SuperAdmin. Vinculado al User de la tabla Users.
     /// </summary>
-    public int? ClientId { get; set; }
+    public int? UserId { get; set; }
 
-    public Client? Client { get; set; }
+    public User? User { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

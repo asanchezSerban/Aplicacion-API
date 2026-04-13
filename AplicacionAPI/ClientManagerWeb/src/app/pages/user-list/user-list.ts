@@ -13,17 +13,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltip } from '@angular/material/tooltip';
-import { Client } from '../../models/client.model';
-import { Company } from '../../models/company.model';
-import { PagedResponse } from '../../models/company.model';
-import { ClientService } from '../../services/client';
+import { User } from '../../models/user.model';
+import { Company, PagedResponse } from '../../models/company.model';
+import { UserService } from '../../services/user.service';
 import { CompanyService } from '../../services/company.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { ROUTES } from '../../app.routes.constants';
 
 @Component({
-  selector: 'app-client-list',
-  standalone: true,
+  selector: 'app-user-list',
   imports: [
     FormsModule,
     MatTableModule, MatPaginatorModule, MatProgressSpinner,
@@ -31,13 +29,13 @@ import { ROUTES } from '../../app.routes.constants';
     MatSelectModule, MatInputModule,
     MatFormFieldModule, MatTooltip
   ],
-  templateUrl: './client-list.html',
-  styleUrl: './client-list.scss'
+  templateUrl: './user-list.html',
+  styleUrl: './user-list.scss'
 })
-export class ClientListComponent implements OnInit {
+export class UserListComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
-  clients: Client[] = [];
+  users: User[] = [];
   companies: Company[] = [];
   totalItems = 0;
   totalPages = 0;
@@ -51,7 +49,7 @@ export class ClientListComponent implements OnInit {
   displayedColumns = ['name', 'email', 'company', 'actions'];
 
   constructor(
-    private clientService: ClientService,
+    private userService: UserService,
     private companyService: CompanyService,
     private router: Router,
     private snackBar: MatSnackBar,
@@ -60,7 +58,7 @@ export class ClientListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCompanies();
-    this.loadClients();
+    this.loadUsers();
   }
 
   loadCompanies(): void {
@@ -69,20 +67,20 @@ export class ClientListComponent implements OnInit {
       .subscribe({ next: (r) => this.companies = r.data });
   }
 
-  loadClients(): void {
+  loadUsers(): void {
     this.isLoading = true;
-    this.clientService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.companyFilter || undefined)
+    this.userService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.companyFilter || undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (response: PagedResponse<Client>) => {
-          this.clients = response.data;
+        next: (response: PagedResponse<User>) => {
+          this.users = response.data;
           this.totalItems = response.totalItems;
           this.totalPages = response.totalPages;
           this.currentPage = response.currentPage;
           this.isLoading = false;
         },
         error: () => {
-          this.showSnackBar('Error al cargar los clientes', true);
+          this.showSnackBar('Error al cargar los usuarios', true);
           this.isLoading = false;
         }
       });
@@ -91,54 +89,40 @@ export class ClientListComponent implements OnInit {
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex + 1;
     this.pageSize = event.pageSize;
-    this.loadClients();
+    this.loadUsers();
   }
 
   onFilterChange(): void {
     this.currentPage = 1;
-    this.loadClients();
+    this.loadUsers();
   }
 
   clearFilters(): void {
     this.nameFilter = '';
     this.companyFilter = null;
     this.currentPage = 1;
-    this.loadClients();
+    this.loadUsers();
   }
 
-  viewClient(id: number): void {
-    this.router.navigate([ROUTES.clientDetail(id)]);
-  }
+  viewUser(id: number): void { this.router.navigate([ROUTES.userDetail(id)]); }
+  editUser(id: number): void { this.router.navigate([ROUTES.userEdit(id)]); }
+  newUser(): void             { this.router.navigate([ROUTES.USER_NEW]); }
 
-  editClient(id: number): void {
-    this.router.navigate([ROUTES.clientEdit(id)]);
-  }
-
-  newClient(): void {
-    this.router.navigate([ROUTES.CLIENT_NEW]);
-  }
-
-  deleteClient(client: Client): void {
+  deleteUser(user: User): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
-      data: {
-        title: 'Eliminar cliente',
-        message: `¿Estás seguro de que deseas eliminar a "${client.name}"?`
-      }
+      data: { title: 'Eliminar usuario', message: `¿Estás seguro de que deseas eliminar a "${user.name}"?` }
     });
 
     dialogRef.afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(confirmed => {
         if (confirmed) {
-          this.clientService.delete(client.id)
+          this.userService.delete(user.id)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-              next: () => {
-                this.showSnackBar('Cliente eliminado correctamente');
-                this.loadClients();
-              },
-              error: () => this.showSnackBar('Error al eliminar el cliente', true)
+              next: () => { this.showSnackBar('Usuario eliminado correctamente'); this.loadUsers(); },
+              error: () => this.showSnackBar('Error al eliminar el usuario', true)
             });
         }
       });

@@ -1,7 +1,7 @@
 <div class="form-container">
   <mat-card>
     <mat-card-header>
-      <mat-card-title>{{ isEditMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</mat-card-title>
+      <mat-card-title>{{ isEditMode ? 'Editar Usuario' : 'Nuevo Usuario' }}</mat-card-title>
     </mat-card-header>
 
     <mat-card-content>
@@ -13,7 +13,7 @@
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nombre</mat-label>
-            <input matInput formControlName="name" placeholder="Nombre del cliente">
+            <input matInput formControlName="name" placeholder="Nombre del usuario">
             @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
               <mat-error>El nombre es obligatorio</mat-error>
             }

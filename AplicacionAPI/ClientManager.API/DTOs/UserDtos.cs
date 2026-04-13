@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ClientManager.API.DTOs;
 
-public class CreateClientDto
+public class CreateUserDto
 {
     [Required]
     [StringLength(200, MinimumLength = 2)]
@@ -17,7 +17,7 @@ public class CreateClientDto
     public int CompanyId { get; set; }
 }
 
-public class UpdateClientDto
+public class UpdateUserDto
 {
     [Required]
     [StringLength(200, MinimumLength = 2)]
@@ -32,7 +32,7 @@ public class UpdateClientDto
     public int CompanyId { get; set; }
 }
 
-public class ClientResponseDto
+public class UserResponseDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

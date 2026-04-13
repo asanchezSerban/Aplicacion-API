@@ -10,38 +10,35 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { Company } from '../../models/company.model';
-import { ClientService } from '../../services/client';
+import { UserService } from '../../services/user.service';
 import { CompanyService } from '../../services/company.service';
 import { ROUTES } from '../../app.routes.constants';
 
 @Component({
-  selector: 'app-client-form',
-  standalone: true,
+  selector: 'app-user-form',
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButton, MatProgressSpinner, MatCardModule
   ],
-  templateUrl: './client-form.html',
-  styleUrl: './client-form.scss'
+  templateUrl: './user-form.html',
+  styleUrl: './user-form.scss'
 })
-export class ClientFormComponent implements OnInit {
+export class UserFormComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   form!: FormGroup;
   companies: Company[] = [];
   isLoading = false;
   isEditMode = false;
-  clientId!: number;
+  userId!: number;
 
-  constructor(
-    private fb: FormBuilder,
-    private clientService: ClientService,
-    private companyService: CompanyService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private snackBar: MatSnackBar
-  ) {}
+  private fb = inject(FormBuilder);
+  private userService = inject(UserService);
+  private companyService = inject(CompanyService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private snackBar = inject(MatSnackBar);
 
   ngOnInit(): void {
     this.form = this.fb.group({
@@ -55,8 +52,8 @@ export class ClientFormComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
-      this.clientId = +id;
-      this.loadClient();
+      this.userId = +id;
+      this.loadUser();
     }
   }
 
@@ -66,23 +63,23 @@ export class ClientFormComponent implements OnInit {
       .subscribe({ next: (r) => this.companies = r.data });
   }
 
-  private loadClient(): void {
+  private loadUser(): void {
     this.isLoading = true;
-    this.clientService.getById(this.clientId)
+    this.userService.getById(this.userId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (client) => {
+        next: (user) => {
           this.form.patchValue({
-            name: client.name,
-            email: client.email,
-            companyId: client.companyId
+            name: user.name,
+            email: user.email,
+            companyId: user.companyId
           });
           this.isLoading = false;
         },
         error: () => {
-          this.showSnackBar('Error al cargar el cliente', true);
+          this.showSnackBar('Error al cargar el usuario', true);
           this.isLoading = false;
-          this.router.navigate([ROUTES.CLIENTS]);
+          this.router.navigate([ROUTES.USERS]);
         }
       });
   }
@@ -94,25 +91,25 @@ export class ClientFormComponent implements OnInit {
     const dto = this.form.value;
 
     const operation = this.isEditMode
-      ? this.clientService.update(this.clientId, dto)
-      : this.clientService.create(dto);
+      ? this.userService.update(this.userId, dto)
+      : this.userService.create(dto);
 
     operation
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.showSnackBar(this.isEditMode ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente');
-          this.router.navigate([ROUTES.CLIENTS]);
+          this.showSnackBar(this.isEditMode ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente');
+          this.router.navigate([ROUTES.USERS]);
         },
         error: () => {
-          this.showSnackBar('Error al guardar el cliente', true);
+          this.showSnackBar('Error al guardar el usuario', true);
           this.isLoading = false;
         }
       });
   }
 
   cancel(): void {
-    this.router.navigate([ROUTES.CLIENTS]);
+    this.router.navigate([ROUTES.USERS]);
   }
 
   private showSnackBar(message: string, isError = false): void {

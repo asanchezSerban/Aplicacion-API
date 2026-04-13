@@ -5,30 +5,30 @@
     </div>
   }
 
-  @if (client) {
+  @if (user) {
     <mat-card>
       <mat-card-content>
         <div class="detail-header">
-          <mat-icon class="client-avatar">person</mat-icon>
+          <mat-icon class="user-avatar">person</mat-icon>
           <div class="header-info">
-            <h1>{{ client.name }}</h1>
-            <span class="client-email">{{ client.email }}</span>
+            <h1>{{ user.name }}</h1>
+            <span class="user-email">{{ user.email }}</span>
           </div>
         </div>
 
         <div class="detail-section">
           <h3>Empresa</h3>
-          <p>{{ client.companyName }}</p>
+          <p>{{ user.companyName }}</p>
         </div>
 
         <div class="detail-dates">
           <div class="date-item">
             <span class="date-label">Creado</span>
-            <span>{{ client.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span>{{ user.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
           <div class="date-item">
             <span class="date-label">Actualizado</span>
-            <span>{{ client.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span>{{ user.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
         </div>
 
@@ -37,7 +37,7 @@
             <mat-icon>arrow_back</mat-icon>
             Volver
           </button>
-          <button mat-raised-button color="primary" (click)="editClient()">
+          <button mat-raised-button color="primary" (click)="editUser()">
             <mat-icon>edit</mat-icon>
             Editar
           </button>

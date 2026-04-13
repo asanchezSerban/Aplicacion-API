@@ -5,9 +5,9 @@ export const ROUTES = {
   companyDetail: (id: number) => `/empresas/${id}`,
   companyEdit: (id: number) => `/empresas/${id}/editar`,
 
-  // Clients (clientes asignados a empresas)
-  CLIENTS: '/clientes',
-  CLIENT_NEW: '/clientes/nuevo',
-  clientDetail: (id: number) => `/clientes/${id}`,
-  clientEdit: (id: number) => `/clientes/${id}/editar`,
+  // Users (usuarios asignados a empresas)
+  USERS: '/usuarios',
+  USER_NEW: '/usuarios/nuevo',
+  userDetail: (id: number) => `/usuarios/${id}`,
+  userEdit: (id: number) => `/usuarios/${id}/editar`,
 };

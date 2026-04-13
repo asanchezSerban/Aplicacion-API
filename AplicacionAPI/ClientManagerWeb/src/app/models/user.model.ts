@@ -1,4 +1,4 @@
-export interface Client {
+export interface User {
   id: number;
   name: string;
   email: string;
@@ -8,13 +8,13 @@ export interface Client {
   updatedAt: string;
 }
 
-export interface CreateClient {
+export interface CreateUser {
   name: string;
   email: string;
   companyId: number;
 }
 
-export interface UpdateClient {
+export interface UpdateUser {
   name: string;
   email: string;
   companyId: number;

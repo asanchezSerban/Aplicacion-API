@@ -46,6 +46,6 @@ export class NotFoundComponent {
   constructor(private router: Router) {}
 
   goHome(): void {
-    this.router.navigate([ROUTES.CLIENTS]);
+    this.router.navigate([ROUTES.COMPANIES]);
   }
 }

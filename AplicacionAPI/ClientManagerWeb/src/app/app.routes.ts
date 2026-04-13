@@ -2,9 +2,9 @@ import { Routes } from '@angular/router';
 import { CompanyListComponent } from './pages/company-list/company-list';
 import { CompanyFormComponent } from './pages/company-form/company-form';
 import { CompanyDetailComponent } from './pages/company-detail/company-detail';
-import { ClientListComponent } from './pages/client-list/client-list';
-import { ClientFormComponent } from './pages/client-form/client-form';
-import { ClientDetailComponent } from './pages/client-detail/client-detail';
+import { UserListComponent } from './pages/user-list/user-list';
+import { UserFormComponent } from './pages/user-form/user-form';
+import { UserDetailComponent } from './pages/user-detail/user-detail';
 import { NotFoundComponent } from './pages/not-found/not-found';
 import { authGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
@@ -19,11 +19,11 @@ export const routes: Routes = [
   { path: 'empresas/:id/editar', component: CompanyFormComponent,   canActivate: [authGuard, adminGuard] },
   { path: 'empresas/:id',        component: CompanyDetailComponent, canActivate: [authGuard, adminGuard] },
 
-  // Clients — solo SuperAdmin
-  { path: 'clientes',            component: ClientListComponent,    canActivate: [authGuard, adminGuard] },
-  { path: 'clientes/nuevo',      component: ClientFormComponent,    canActivate: [authGuard, adminGuard] },
-  { path: 'clientes/:id/editar', component: ClientFormComponent,    canActivate: [authGuard, adminGuard] },
-  { path: 'clientes/:id',        component: ClientDetailComponent,  canActivate: [authGuard, adminGuard] },
+  // Users — solo SuperAdmin
+  { path: 'usuarios',            component: UserListComponent,      canActivate: [authGuard, adminGuard] },
+  { path: 'usuarios/nuevo',      component: UserFormComponent,      canActivate: [authGuard, adminGuard] },
+  { path: 'usuarios/:id/editar', component: UserFormComponent,      canActivate: [authGuard, adminGuard] },
+  { path: 'usuarios/:id',        component: UserDetailComponent,    canActivate: [authGuard, adminGuard] },
 
   // Login — público
   { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent), canActivate: [guestGuard] },

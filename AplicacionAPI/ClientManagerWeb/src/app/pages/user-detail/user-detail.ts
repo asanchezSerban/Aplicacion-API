@@ -6,58 +6,55 @@ import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
-import { Client } from '../../models/client.model';
-import { ClientService } from '../../services/client';
+import { User } from '../../models/user.model';
+import { UserService } from '../../services/user.service';
 import { ROUTES } from '../../app.routes.constants';
 
 @Component({
-  selector: 'app-client-detail',
-  standalone: true,
+  selector: 'app-user-detail',
   imports: [
     DatePipe,
     MatButton, MatIcon, MatProgressSpinner,
     MatCardModule
   ],
-  templateUrl: './client-detail.html',
-  styleUrl: './client-detail.scss'
+  templateUrl: './user-detail.html',
+  styleUrl: './user-detail.scss'
 })
-export class ClientDetailComponent implements OnInit {
+export class UserDetailComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
-  client: Client | null = null;
+  user: User | null = null;
   isLoading = true;
 
-  constructor(
-    private clientService: ClientService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
+  private userService = inject(UserService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.clientService.getById(+id)
+      this.userService.getById(+id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: (client) => {
-            this.client = client;
+          next: (user) => {
+            this.user = user;
             this.isLoading = false;
           },
           error: () => {
             this.isLoading = false;
-            this.router.navigate([ROUTES.CLIENTS]);
+            this.router.navigate([ROUTES.USERS]);
           }
         });
     }
   }
 
-  editClient(): void {
-    if (this.client) {
-      this.router.navigate([ROUTES.clientEdit(this.client.id)]);
+  editUser(): void {
+    if (this.user) {
+      this.router.navigate([ROUTES.userEdit(this.user.id)]);
     }
   }
 
   goBack(): void {
-    this.router.navigate([ROUTES.CLIENTS]);
+    this.router.navigate([ROUTES.USERS]);
   }
 }

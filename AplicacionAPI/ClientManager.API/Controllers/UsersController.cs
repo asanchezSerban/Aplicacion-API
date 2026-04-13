@@ -7,102 +7,102 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClientManager.API.Controllers;
 
 [ApiController]
-[Route("api/clients")]
+[Route("api/users")]
 [Produces("application/json")]
 [Authorize(Roles = "SuperAdmin")]
-public class ClientsController : ControllerBase
+public class UsersController : ControllerBase
 {
-    private readonly IClientService _clientService;
+    private readonly IUserService _userService;
 
-    public ClientsController(IClientService clientService)
+    public UsersController(IUserService userService)
     {
-        _clientService = clientService;
+        _userService = userService;
     }
 
     /// <summary>
-    /// Obtiene todos los clientes con paginación y filtros opcionales.
+    /// Obtiene todos los usuarios con paginación y filtros opcionales.
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(PagedResponseDto<ClientResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResponseDto<UserResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? name = null,
         [FromQuery] int? companyId = null)
     {
-        page = Math.Max(1, page);
+        page     = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
-        var result = await _clientService.GetAllAsync(page, pageSize, name, companyId);
+        var result = await _userService.GetAllAsync(page, pageSize, name, companyId);
         return Ok(result);
     }
 
     /// <summary>
-    /// Obtiene un cliente por su ID.
+    /// Obtiene un usuario por su ID.
     /// </summary>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(ClientResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
-        var result = await _clientService.GetByIdAsync(id);
+        var result = await _userService.GetByIdAsync(id);
         return Ok(result);
     }
 
     /// <summary>
-    /// Crea un nuevo cliente asignado a una empresa.
+    /// Crea un nuevo usuario asignado a una empresa.
     /// </summary>
     [HttpPost]
-    [ProducesResponseType(typeof(ClientResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromBody] CreateClientDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        var result = await _clientService.CreateAsync(dto);
+        var result = await _userService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     /// <summary>
-    /// Actualiza un cliente existente.
+    /// Actualiza un usuario existente.
     /// </summary>
     [HttpPut("{id:int}")]
-    [ProducesResponseType(typeof(ClientResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateClientDto dto)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateUserDto dto)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        var result = await _clientService.UpdateAsync(id, dto);
+        var result = await _userService.UpdateAsync(id, dto);
         return Ok(result);
     }
 
     /// <summary>
-    /// Elimina un cliente por su ID.
+    /// Elimina un usuario por su ID.
     /// </summary>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        await _clientService.DeleteAsync(id);
+        await _userService.DeleteAsync(id);
         return NoContent();
     }
 
     /// <summary>
-    /// Devuelve los datos del cliente autenticado.
+    /// Devuelve los datos del usuario autenticado.
     /// </summary>
     [HttpGet("me")]
     [Authorize(Roles = "Cliente")]
-    [ProducesResponseType(typeof(ClientResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetMe()
     {
-        var clientIdClaim = User.FindFirstValue("clientId");
+        var userIdClaim = User.FindFirstValue("userId");
 
-        if (clientIdClaim is null || !int.TryParse(clientIdClaim, out var clientId))
+        if (userIdClaim is null || !int.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var result = await _clientService.GetByIdAsync(clientId);
+        var result = await _userService.GetByIdAsync(userId);
         return Ok(result);
     }
 }

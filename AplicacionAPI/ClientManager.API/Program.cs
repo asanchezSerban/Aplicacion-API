@@ -47,6 +47,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.MapInboundClaims = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer           = true,
@@ -69,7 +70,7 @@ builder.Services.AddHttpContextAccessor();
 
 // ── Application Services ──────────────────────────────────────────────────────
 builder.Services.AddScoped<ICompanyService, CompanyService>();
-builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 // ── Controllers ───────────────────────────────────────────────────────────────

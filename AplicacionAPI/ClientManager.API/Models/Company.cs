@@ -23,7 +23,7 @@ public class Company
 
     public DateTime UpdatedAt { get; set; }
 
-    public ICollection<Client> Clients { get; set; } = [];
+    public ICollection<User> Users { get; set; } = [];
 }
 
 public enum CompanyStatus

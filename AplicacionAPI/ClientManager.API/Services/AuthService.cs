@@ -124,11 +124,11 @@ public class AuthService : IAuthService
             new(JwtRegisteredClaimNames.Sub,   user.Id),
             new(JwtRegisteredClaimNames.Email, user.Email!),
             new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
-            new("role",                        role)
+            new("role",            role)
         };
 
-        if (role == "Cliente" && user.ClientId.HasValue)
-            claims.Add(new Claim("clientId", user.ClientId.Value.ToString()));
+        if (role == "Cliente" && user.UserId.HasValue)
+            claims.Add(new Claim("userId", user.UserId.Value.ToString()));
 
         var secretKey     = _configuration["Jwt:SecretKey"]       ?? throw new InvalidOperationException("Jwt:SecretKey no configurado.");
         var issuer        = _configuration["Jwt:Issuer"]          ?? "ClientManagerAPI";

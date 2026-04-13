@@ -10,7 +10,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
     public DbSet<Company> Companies => Set<Company>();
-    public DbSet<Client> Clients => Set<Client>();
+    public DbSet<User> CompanyUsers => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -19,11 +19,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         base.OnModelCreating(modelBuilder);
 
         // ── ApplicationUser ───────────────────────────────────────
-        var user = modelBuilder.Entity<ApplicationUser>();
-        user.HasIndex(u => u.ClientId);
-        user.HasOne(u => u.Client)
+        var appUser = modelBuilder.Entity<ApplicationUser>();
+        appUser.HasIndex(u => u.UserId);
+        appUser.HasOne(u => u.User)
             .WithMany()
-            .HasForeignKey(u => u.ClientId)
+            .HasForeignKey(u => u.UserId)
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
 
@@ -64,24 +64,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             }
         );
 
-        // ── Client ───────────────────────────────────────────────
-        var client = modelBuilder.Entity<Client>();
+        // ── User ─────────────────────────────────────────────────
+        var user = modelBuilder.Entity<User>();
 
-        client.ToTable("Clients");
-        client.HasKey(c => c.Id);
-        client.Property(c => c.Id).UseIdentityAlwaysColumn();
-        client.Property(c => c.Name).HasMaxLength(200).IsRequired();
-        client.Property(c => c.Email).HasMaxLength(200).IsRequired();
-        client.Property(c => c.CreatedAt).HasDefaultValueSql("NOW()");
-        client.Property(c => c.UpdatedAt).HasDefaultValueSql("NOW()");
-        client.HasIndex(c => c.Name);
-        client.HasIndex(c => c.CompanyId);
-        client.HasIndex(c => c.Email).IsUnique();
+        user.ToTable("Users");
+        user.HasKey(u => u.Id);
+        user.Property(u => u.Id).UseIdentityAlwaysColumn();
+        user.Property(u => u.Name).HasMaxLength(200).IsRequired();
+        user.Property(u => u.Email).HasMaxLength(200).IsRequired();
+        user.Property(u => u.CreatedAt).HasDefaultValueSql("NOW()");
+        user.Property(u => u.UpdatedAt).HasDefaultValueSql("NOW()");
+        user.HasIndex(u => u.Name);
+        user.HasIndex(u => u.CompanyId);
+        user.HasIndex(u => u.Email).IsUnique();
 
-        client.HasOne(c => c.Company)
-              .WithMany(co => co.Clients)
-              .HasForeignKey(c => c.CompanyId)
-              .OnDelete(DeleteBehavior.Cascade);
+        user.HasOne(u => u.Company)
+            .WithMany(c => c.Users)
+            .HasForeignKey(u => u.CompanyId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // ── RefreshToken ─────────────────────────────────────────
         var refreshToken = modelBuilder.Entity<RefreshToken>();

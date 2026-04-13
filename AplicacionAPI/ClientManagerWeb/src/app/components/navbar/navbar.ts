@@ -24,7 +24,7 @@ export class NavbarComponent {
   readonly routes = ROUTES;
 
   navigateToCompanies(): void { this.router.navigate([ROUTES.COMPANIES]); }
-  navigateToClients(): void   { this.router.navigate([ROUTES.CLIENTS]); }
+  navigateToUsers(): void     { this.router.navigate([ROUTES.USERS]); }
 
   toggleDarkMode(): void {
     this.isDarkMode = !this.isDarkMode;

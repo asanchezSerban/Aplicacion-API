@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ClientManager.API.Models;
 
-public class Client
+public class User
 {
     public int Id { get; set; }
 
