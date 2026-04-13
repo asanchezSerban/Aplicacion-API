@@ -564,18 +564,18 @@
           <span class="nav-dot"></span> Fase 4 — Refresh tokens
           <span class="badge badge-done">✓</span>
         </a>
+        <a href="#fase5" class="nav-link">
+          <span class="nav-dot"></span> Fase 5 — Frontend Auth
+          <span class="badge badge-done">✓</span>
+        </a>
+        <a href="#fase6" class="nav-link">
+          <span class="nav-dot"></span> Fase 6 — Rename + CRUD front
+          <span class="badge badge-done">✓</span>
+        </a>
       </div>
 
       <div class="nav-section">
         <div class="nav-section-title">Próximas fases</div>
-        <a href="#roadmap" class="nav-link">
-          <span class="nav-dot"></span> Fase 5 — Frontend Auth
-          <span class="badge badge-pending">→</span>
-        </a>
-        <a href="#roadmap" class="nav-link">
-          <span class="nav-dot"></span> Fase 6 — Vistas Admin
-          <span class="badge badge-pending">→</span>
-        </a>
         <a href="#roadmap" class="nav-link">
           <span class="nav-dot"></span> Fase 7 — MFA + Seguridad
           <span class="badge badge-pending">→</span>
@@ -603,7 +603,7 @@
     <!-- Header -->
     <header class="doc-header" id="overview">
       <h1>Client<span>Manager</span><br>Documentación Técnica</h1>
-      <p>Última actualización: Fase 4 completada · Abril 2026</p>
+      <p>Última actualización: Fase 6 completada · Abril 2026</p>
       <div class="stack-pills">
         <span class="pill">.NET 10</span>
         <span class="pill">ASP.NET Core</span>
@@ -656,7 +656,7 @@
         </div>
       </div>
 
-      <p>ClientManager es una aplicación <mark>multitenant</mark> de gestión interna. El <strong>SuperAdmin</strong> gestiona empresas y clientes; cada <strong>Cliente</strong> solo puede ver sus propios datos.</p>
+      <p>ClientManager es una aplicación <mark>multitenant</mark> de gestión interna. El <strong>SuperAdmin</strong> gestiona empresas y usuarios; cada <strong>Usuario</strong> solo puede ver sus propios datos.</p>
 
       <h3>Modelo de negocio</h3>
       <div class="card">
@@ -665,22 +665,22 @@
 │   ├── Acme Corp           [Active]
 │   └── Tech Startup SL     [Prospect]
 │
-└── Gestiona Clients (personas asignadas a empresas)
-    ├── Cliente A  →  pertenece a Acme Corp
-    └── Cliente X  →  pertenece a Tech Startup SL
+└── Gestiona Users (trabajadores asignados a empresas)
+    ├── Usuario A  →  pertenece a Acme Corp
+    └── Usuario X  →  pertenece a Tech Startup SL
 
-Cada Client puede autenticarse y ver únicamente sus propios datos.</code></pre>
+Cada User puede autenticarse y ver únicamente sus propios datos.</code></pre>
       </div>
 
       <h3>Estructura de capas</h3>
       <table>
         <thead><tr><th>Capa</th><th>Responsabilidad</th><th>Archivos clave</th></tr></thead>
         <tbody>
-          <tr><td>Controllers</td><td>Recibe peticiones HTTP, valida entrada, delega al servicio</td><td><code>CompaniesController</code>, <code>ClientsController</code>, <code>AuthController</code></td></tr>
-          <tr><td>Services</td><td>Lógica de negocio, validaciones, construcción de JWT</td><td><code>CompanyService</code>, <code>ClientService</code>, <code>AuthService</code></td></tr>
+          <tr><td>Controllers</td><td>Recibe peticiones HTTP, valida entrada, delega al servicio</td><td><code>CompaniesController</code>, <code>UsersController</code>, <code>AuthController</code></td></tr>
+          <tr><td>Services</td><td>Lógica de negocio, validaciones, construcción de JWT</td><td><code>CompanyService</code>, <code>UserService</code>, <code>AuthService</code></td></tr>
           <tr><td>Data</td><td>Acceso a BD, configuración de EF Core</td><td><code>ApplicationDbContext</code></td></tr>
-          <tr><td>Models</td><td>Entidades de base de datos</td><td><code>Company</code>, <code>Client</code>, <code>ApplicationUser</code>, <code>RefreshToken</code></td></tr>
-          <tr><td>DTOs</td><td>Contratos de entrada y salida de la API</td><td><code>CompanyDtos</code>, <code>ClientDtos</code>, <code>AuthDtos</code></td></tr>
+          <tr><td>Models</td><td>Entidades de base de datos</td><td><code>Company</code>, <code>User</code>, <code>ApplicationUser</code>, <code>RefreshToken</code></td></tr>
+          <tr><td>DTOs</td><td>Contratos de entrada y salida de la API</td><td><code>CompanyDtos</code>, <code>UserDtos</code>, <code>AuthDtos</code></td></tr>
         </tbody>
       </table>
     </section>
@@ -697,7 +697,7 @@ Cada Client puede autenticarse y ver únicamente sus propios datos.</code></pre>
         </div>
       </div>
 
-      <p>La primera fase establece el modelo de datos central. Una <strong>Company</strong> (empresa) puede tener múltiples <strong>Clients</strong> (personas). Cuando se elimina una empresa, sus clientes se eliminan en cascada.</p>
+      <p>La primera fase establece el modelo de datos central. Una <strong>Company</strong> (empresa) puede tener múltiples <strong>Users</strong> (trabajadores). Cuando se elimina una empresa, sus usuarios se eliminan en cascada.</p>
 
       <h3>Entidades</h3>
       <table>
@@ -710,11 +710,11 @@ Cada Client puede autenticarse y ver únicamente sus propios datos.</code></pre>
           <tr><td><code>LogoFileName</code></td><td>VARCHAR(500) NULL</td><td>Nombre del fichero de logo en <code>wwwroot/uploads/</code></td></tr>
           <tr><td><code>Status</code></td><td>VARCHAR(50)</td><td><code>Active</code> · <code>Inactive</code> · <code>Prospect</code> · <code>Churned</code></td></tr>
           <tr><td><code>CreatedAt / UpdatedAt</code></td><td>TIMESTAMPTZ</td><td>Auditoría temporal</td></tr>
-          <tr><td colspan="3" style="color:var(--accent2);font-family:'JetBrains Mono',monospace;font-size:0.75rem;padding-top:1rem">Clients</td></tr>
+          <tr><td colspan="3" style="color:var(--accent2);font-family:'JetBrains Mono',monospace;font-size:0.75rem;padding-top:1rem">Users (renombrado desde Clients en Fase 6)</td></tr>
           <tr><td><code>Id</code></td><td>INTEGER IDENTITY</td><td>Clave primaria</td></tr>
           <tr><td><code>Name</code></td><td>VARCHAR(200)</td><td>Nombre completo</td></tr>
           <tr><td><code>Email</code></td><td>VARCHAR(200) UNIQUE</td><td>Email único</td></tr>
-          <tr><td><code>CompanyId</code></td><td>INTEGER FK</td><td>Empresa a la que pertenece</td></tr>
+          <tr><td><code>CompanyId</code></td><td>INTEGER FK CASCADE</td><td>Empresa a la que pertenece — borrado en cascada</td></tr>
         </tbody>
       </table>
 
@@ -724,12 +724,12 @@ Cada Client puede autenticarse y ver únicamente sus propios datos.</code></pre>
       <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/api/companies</span><span class="endpoint-desc">Crear empresa — multipart/form-data con logo opcional</span></div>
       <div class="endpoint"><span class="method method-put">PUT</span><span class="endpoint-path">/api/companies/{id}</span><span class="endpoint-desc">Actualizar empresa</span></div>
       <div class="endpoint"><span class="method method-patch">PATCH</span><span class="endpoint-path">/api/companies/{id}/status</span><span class="endpoint-desc">Cambiar solo el estado</span></div>
-      <div class="endpoint"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/companies/{id}</span><span class="endpoint-desc">Eliminar empresa y sus clientes en cascada</span></div>
-      <div class="endpoint" style="margin-top:0.75rem"><span class="method method-get">GET</span><span class="endpoint-path">/api/clients</span><span class="endpoint-desc">Listado paginado con filtros opcionales (nombre, empresa)</span></div>
-      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/api/clients/{id}</span><span class="endpoint-desc">Detalle de un cliente</span></div>
-      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/api/clients</span><span class="endpoint-desc">Crear cliente — JSON body</span></div>
-      <div class="endpoint"><span class="method method-put">PUT</span><span class="endpoint-path">/api/clients/{id}</span><span class="endpoint-desc">Actualizar cliente</span></div>
-      <div class="endpoint"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/clients/{id}</span><span class="endpoint-desc">Eliminar cliente</span></div>
+      <div class="endpoint"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/companies/{id}</span><span class="endpoint-desc">Eliminar empresa y sus usuarios en cascada</span></div>
+      <div class="endpoint" style="margin-top:0.75rem"><span class="method method-get">GET</span><span class="endpoint-path">/api/users</span><span class="endpoint-desc">Listado paginado con filtros opcionales (nombre, empresa)</span></div>
+      <div class="endpoint"><span class="method method-get">GET</span><span class="endpoint-path">/api/users/{id}</span><span class="endpoint-desc">Detalle de un usuario</span></div>
+      <div class="endpoint"><span class="method method-post">POST</span><span class="endpoint-path">/api/users</span><span class="endpoint-desc">Crear usuario — JSON body</span></div>
+      <div class="endpoint"><span class="method method-put">PUT</span><span class="endpoint-path">/api/users/{id}</span><span class="endpoint-desc">Actualizar usuario</span></div>
+      <div class="endpoint"><span class="method method-delete">DELETE</span><span class="endpoint-path">/api/users/{id}</span><span class="endpoint-desc">Eliminar usuario</span></div>
     </section>
 
     <hr class="divider">
@@ -835,18 +835,18 @@ SuperAdmin:Password → contraseña del usuario administrador inicial</code></pr
       <table>
         <thead><tr><th>Rol</th><th>Acceso permitido</th></tr></thead>
         <tbody>
-          <tr><td><code>SuperAdmin</code></td><td>CRUD completo de <code>/api/companies</code> y <code>/api/clients</code></td></tr>
-          <tr><td><code>Cliente</code></td><td>Solo <code>GET /api/clients/me</code> — sus propios datos</td></tr>
+          <tr><td><code>SuperAdmin</code></td><td>CRUD completo de <code>/api/companies</code> y <code>/api/users</code></td></tr>
+          <tr><td><code>Cliente</code></td><td>Solo <code>GET /api/users/me</code> — sus propios datos</td></tr>
           <tr><td>Sin token</td><td>401 Unauthorized en todos los endpoints protegidos</td></tr>
           <tr><td>Token con rol incorrecto</td><td>403 Forbidden</td></tr>
         </tbody>
       </table>
 
-      <h3>Endpoint exclusivo del Cliente</h3>
+      <h3>Endpoint exclusivo del Usuario</h3>
       <div class="endpoint">
         <span class="method method-get">GET</span>
-        <span class="endpoint-path">/api/clients/me</span>
-        <span class="endpoint-desc">Datos propios del cliente autenticado — lee el claim <code>clientId</code> del JWT</span>
+        <span class="endpoint-path">/api/users/me</span>
+        <span class="endpoint-desc">Datos propios del usuario autenticado — lee el claim <code>userId</code> del JWT</span>
         <span class="endpoint-auth auth-client">Cliente</span>
       </div>
 
@@ -972,6 +972,142 @@ SuperAdmin:Password → contraseña del usuario administrador inicial</code></pr
 
     <hr class="divider">
 
+    <!-- ── FASE 5 ── -->
+    <section class="phase" id="fase5">
+      <div class="phase-header">
+        <div class="phase-number green">FASE 05</div>
+        <div class="phase-title">
+          <h2>Frontend Auth — Login, Guards e Interceptor</h2>
+          <p>Autenticación completa en Angular con renovación transparente de tokens</p>
+        </div>
+      </div>
+
+      <p>Se implementa la capa de autenticación en el frontend: servicio de auth con señales reactivas, interceptor HTTP para inyección y renovación automática de tokens, guards de ruta y páginas de login y perfil.</p>
+
+      <h3>Piezas implementadas</h3>
+      <table>
+        <thead><tr><th>Archivo</th><th>Responsabilidad</th></tr></thead>
+        <tbody>
+          <tr><td><code>services/auth.service.ts</code></td><td>Login, logout, refresh. Estado reactivo con <code>signal()</code> — <code>isLoggedIn</code>, <code>userRole</code>, <code>userEmail</code></td></tr>
+          <tr><td><code>interceptors/auth.interceptor.ts</code></td><td>Añade <code>Authorization: Bearer</code> a cada petición. En 401, llama a <code>/refresh</code> y reintenta automáticamente</td></tr>
+          <tr><td><code>guards/auth.guard.ts</code></td><td>Redirige a <code>/login</code> si no hay sesión activa</td></tr>
+          <tr><td><code>guards/admin.guard.ts</code></td><td>Redirige a <code>/login</code> si el rol no es <code>SuperAdmin</code></td></tr>
+          <tr><td><code>guards/guest.guard.ts</code></td><td>Redirige a <code>/empresas</code> si el usuario ya está autenticado (evita ver <code>/login</code> con sesión activa)</td></tr>
+          <tr><td><code>pages/login/login.ts</code></td><td>Formulario de login con Angular Material. Muestra error en credenciales incorrectas</td></tr>
+          <tr><td><code>pages/perfil/perfil.ts</code></td><td>Vista de solo lectura del usuario autenticado — nombre, email, empresa, fecha de alta</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Flujo de renovación transparente</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-icon">1</div>
+          <div class="flow-content">
+            <strong>Petición con access token expirado</strong>
+            <span>El interceptor inyecta el token en el header — la API devuelve 401</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">2</div>
+          <div class="flow-content">
+            <strong>Interceptor detecta el 401</strong>
+            <span>Llama a <code>authService.refresh()</code> → <code>POST /api/auth/refresh</code></span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">3</div>
+          <div class="flow-content">
+            <strong>Nuevo access token recibido</strong>
+            <span>Se guarda en <code>localStorage</code>, la señal <code>isLoggedIn</code> se actualiza</span>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-icon">4</div>
+          <div class="flow-content">
+            <strong>Petición original reintentada</strong>
+            <span>El usuario no percibe ninguna interrupción en la navegación</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Almacenamiento de tokens</h3>
+      <table>
+        <thead><tr><th>Token</th><th>Dónde</th><th>Por qué</th></tr></thead>
+        <tbody>
+          <tr><td>Access token (JWT)</td><td><code>localStorage</code></td><td>Accesible por JavaScript para inyectarlo en el header</td></tr>
+          <tr><td>Refresh token (UUID)</td><td>Cookie <code>HttpOnly</code></td><td>JavaScript no puede leerlo — el navegador lo envía automáticamente</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Rutas y guards</h3>
+      <table>
+        <thead><tr><th>Ruta</th><th>Guards</th><th>Acceso</th></tr></thead>
+        <tbody>
+          <tr><td><code>/login</code></td><td><code>guestGuard</code></td><td>Solo usuarios no autenticados</td></tr>
+          <tr><td><code>/empresas/**</code></td><td><code>authGuard + adminGuard</code></td><td>Solo SuperAdmin</td></tr>
+          <tr><td><code>/usuarios/**</code></td><td><code>authGuard + adminGuard</code></td><td>Solo SuperAdmin</td></tr>
+          <tr><td><code>/perfil</code></td><td><code>authGuard</code></td><td>Cualquier usuario autenticado</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr class="divider">
+
+    <!-- ── FASE 6 ── -->
+    <section class="phase" id="fase6">
+      <div class="phase-header">
+        <div class="phase-number green">FASE 06</div>
+        <div class="phase-title">
+          <h2>Rename Client → User + CRUD frontend</h2>
+          <p>Renombrado completo de la entidad y vistas del panel de administración</p>
+        </div>
+      </div>
+
+      <p>La entidad <code>Client</code> se renombra a <code>User</code> en todo el sistema — backend y frontend — para reflejar la realidad del negocio: los usuarios son <strong>trabajadores de una empresa</strong>, no clientes externos.</p>
+
+      <h3>Cambios en backend</h3>
+      <table>
+        <thead><tr><th>Antes</th><th>Después</th></tr></thead>
+        <tbody>
+          <tr><td><code>Models/Client.cs</code></td><td><code>Models/User.cs</code></td></tr>
+          <tr><td><code>Services/ClientService.cs</code></td><td><code>Services/UserService.cs</code></td></tr>
+          <tr><td><code>Controllers/ClientsController.cs</code></td><td><code>Controllers/UsersController.cs</code></td></tr>
+          <tr><td><code>DTOs/ClientDtos.cs</code></td><td><code>DTOs/UserDtos.cs</code></td></tr>
+          <tr><td>Tabla <code>Clients</code></td><td>Tabla <code>Users</code></td></tr>
+          <tr><td><code>/api/clients</code></td><td><code>/api/users</code></td></tr>
+          <tr><td><code>ApplicationUser.ClientId</code></td><td><code>ApplicationUser.UserId</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Cambios en frontend</h3>
+      <table>
+        <thead><tr><th>Antes</th><th>Después</th></tr></thead>
+        <tbody>
+          <tr><td><code>pages/client-list/</code></td><td><code>pages/user-list/</code></td></tr>
+          <tr><td><code>pages/client-form/</code></td><td><code>pages/user-form/</code></td></tr>
+          <tr><td><code>pages/client-detail/</code></td><td><code>pages/user-detail/</code></td></tr>
+          <tr><td><code>models/client.model.ts</code></td><td><code>models/user.model.ts</code></td></tr>
+          <tr><td><code>services/client.ts</code></td><td><code>services/user.service.ts</code></td></tr>
+          <tr><td>Ruta <code>/clientes</code></td><td>Ruta <code>/usuarios</code></td></tr>
+          <tr><td>Navbar: "Clientes"</td><td>Navbar: "Usuarios"</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Migración de base de datos</h3>
+      <div class="card">
+        <div class="card-title">Phase6_RenameClientsToUsers — RenameTable (preserva datos)</div>
+        <pre><code>RenameTable("Clients" → "Users")
+RenameIndex("IX_Clients_CompanyId" → "IX_Users_CompanyId")
+RenameIndex("IX_Clients_Email"     → "IX_Users_Email")
+RenameIndex("IX_Clients_Name"      → "IX_Users_Name")
+RenameColumn("AspNetUsers.ClientId" → "AspNetUsers.UserId")
+RenameIndex("IX_AspNetUsers_ClientId" → "IX_AspNetUsers_UserId")</code></pre>
+      </div>
+      <p style="color:var(--text-dim);font-size:0.85rem">Se usó <code>RenameTable</code> en lugar de <code>DropTable + CreateTable</code> para preservar todos los datos existentes.</p>
+    </section>
+
+    <hr class="divider">
+
     <!-- ── SEGURIDAD ── -->
     <section class="phase" id="seguridad">
       <div class="phase-header">
@@ -1040,7 +1176,7 @@ SuperAdmin:Password → contraseña del usuario administrador inicial</code></pr
         <div class="phase-number">BD</div>
         <div class="phase-title">
           <h2>Base de datos</h2>
-          <p>Esquema actual tras las 4 primeras fases</p>
+          <p>Esquema actual tras las 6 primeras fases</p>
         </div>
       </div>
 
@@ -1052,6 +1188,7 @@ SuperAdmin:Password → contraseña del usuario administrador inicial</code></pr
           <tr><td><code>Phase1_RenameClientsToCompanies</code></td><td>Renombra tabla, crea <code>Clients</code></td></tr>
           <tr><td><code>Phase2_AddIdentityTables</code></td><td>7 tablas de ASP.NET Identity + <code>ApplicationUser</code></td></tr>
           <tr><td><code>Phase4_AddRefreshTokens</code></td><td>Tabla <code>RefreshTokens</code></td></tr>
+          <tr><td><code>Phase6_RenameClientsToUsers</code></td><td>Renombra <code>Clients</code> → <code>Users</code>, renombra índices y columna <code>ClientId</code> → <code>UserId</code></td></tr>
         </tbody>
       </table>
 
@@ -1073,8 +1210,6 @@ SuperAdmin:Password → contraseña del usuario administrador inicial</code></pr
       <table>
         <thead><tr><th>Fase</th><th>Nombre</th><th>Contenido principal</th></tr></thead>
         <tbody>
-          <tr><td><code>Fase 5</code></td><td>Frontend Auth</td><td>Página de login, AuthService, interceptor HTTP, guards de ruta, página de perfil</td></tr>
-          <tr><td><code>Fase 6</code></td><td>Vistas SuperAdmin</td><td>CRUD completo en frontend, crear Client genera usuario vinculado con rol Cliente</td></tr>
           <tr><td><code>Fase 7</code></td><td>MFA + Seguridad</td><td>OTP por email, recuperación de contraseña, rate limiting, dispositivos de confianza</td></tr>
         </tbody>
       </table>
