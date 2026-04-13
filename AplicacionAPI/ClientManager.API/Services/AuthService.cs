@@ -38,7 +38,7 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException(invalidCredentialsMessage);
 
         if (await _userManager.IsLockedOutAsync(user))
-            throw new UnauthorizedAccessException("Cuenta bloqueada temporalmente. Intente de nuevo más tarde.");
+            throw new AccountLockedException("Tu cuenta está bloqueada durante 15 minutos por demasiados intentos fallidos.");
 
         var passwordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
         if (!passwordValid)

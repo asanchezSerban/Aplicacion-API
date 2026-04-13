@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
+
 import { ChangeDetectionStrategy } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 
@@ -155,7 +155,6 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LoginComponent {
   private readonly authService = inject(AuthService);
-  private readonly snackBar    = inject(MatSnackBar);
 
   email    = '';
   password = '';
@@ -173,7 +172,11 @@ export class LoginComponent {
     try {
       await this.authService.login({ email: this.email, password: this.password });
     } catch (err: any) {
-      const msg = err?.error?.error ?? 'Credenciales incorrectas. Inténtalo de nuevo.';
+      const status = err?.status;
+      const msg =
+        status === 423 ? (err?.error?.error ?? 'Tu cuenta está bloqueada durante 15 minutos por demasiados intentos fallidos.') :
+        status === 429 ? 'Demasiados intentos. Espera un minuto antes de intentarlo de nuevo.' :
+        'Credenciales incorrectas. Inténtalo de nuevo.';
       this.errorMessage.set(msg);
     } finally {
       this.loading.set(false);

@@ -1,11 +1,13 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using ClientManager.API;
 using ClientManager.API.Data;
 using ClientManager.API.Models;
 using ClientManager.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -126,6 +128,24 @@ builder.Services.AddCors(options =>
     });
 });
 
+// ── Rate Limiting ─────────────────────────────────────────────────────────────
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit        = 5,
+                Window             = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit         = 0
+            }
+        ));
+});
+
 // ── Kestrel ───────────────────────────────────────────────────────────────────
 builder.WebHost.ConfigureKestrel(options =>
 {
@@ -145,6 +165,7 @@ app.UseExceptionHandler(errorApp =>
         {
             ArgumentException ex          => (StatusCodes.Status400BadRequest,    ex.Message),
             KeyNotFoundException ex        => (StatusCodes.Status404NotFound,      ex.Message),
+            AccountLockedException ex      => (StatusCodes.Status423Locked,        ex.Message),
             UnauthorizedAccessException ex => (StatusCodes.Status401Unauthorized,  ex.Message),
             _                              => (StatusCodes.Status500InternalServerError,
                                                "Ha ocurrido un error interno en el servidor.")
@@ -159,6 +180,7 @@ app.UseExceptionHandler(errorApp =>
 app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseCors("AllowAngular");
+app.UseRateLimiter();
 app.UseAuthentication();   // debe ir antes de UseAuthorization
 app.UseAuthorization();
 app.MapControllers();

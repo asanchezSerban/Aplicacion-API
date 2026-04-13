@@ -2,12 +2,14 @@ using ClientManager.API.DTOs;
 using ClientManager.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace ClientManager.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
 [Produces("application/json")]
+[EnableRateLimiting("auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
