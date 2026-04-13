@@ -13,10 +13,12 @@ namespace ClientManager.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IEmailService _emailService;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IEmailService emailService)
     {
-        _authService = authService;
+        _authService  = authService;
+        _emailService = emailService;
     }
 
     /// <summary>
