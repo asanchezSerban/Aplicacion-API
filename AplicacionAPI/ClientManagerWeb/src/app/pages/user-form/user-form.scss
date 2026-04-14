@@ -25,3 +25,31 @@ mat-card-header {
   justify-content: center;
   padding: 48px;
 }
+
+.password-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem;
+  background: var(--mat-sys-surface-container);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.rule {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  transition: color 0.2s;
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  &.ok   { color: #2e7d32; mat-icon { color: #2e7d32; } }
+  &.fail { color: var(--mat-sys-on-surface-variant); mat-icon { color: #c62828; } }
+}

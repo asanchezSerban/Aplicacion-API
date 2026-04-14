@@ -26,7 +26,9 @@ export const routes: Routes = [
   { path: 'usuarios/:id',        component: UserDetailComponent,    canActivate: [authGuard, adminGuard] },
 
   // Login — público
-  { path: 'login', loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent), canActivate: [guestGuard] },
+  { path: 'login',              loadComponent: () => import('./pages/login/login').then(m => m.LoginComponent),                           canActivate: [guestGuard] },
+  { path: 'recuperar-password', loadComponent: () => import('./pages/recuperar-password/recuperar-password').then(m => m.RecuperarPasswordComponent), canActivate: [guestGuard] },
+  { path: 'reset-password',     loadComponent: () => import('./pages/reset-password/reset-password').then(m => m.ResetPasswordComponent),             canActivate: [guestGuard] },
 
   // Perfil — solo Cliente autenticado
   { path: 'perfil', loadComponent: () => import('./pages/perfil/perfil').then(m => m.PerfilComponent), canActivate: [authGuard] },

@@ -71,6 +71,32 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Envía un email de recuperación de contraseña. Siempre devuelve 200 aunque el email no exista.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        var frontendBaseUrl = Request.Headers["Origin"].FirstOrDefault() ?? "http://localhost:4200";
+        await _authService.ForgotPasswordAsync(dto, frontendBaseUrl);
+        return Ok(new { message = "Si el email existe, recibirás un enlace de recuperación." });
+    }
+
+    /// <summary>
+    /// Restablece la contraseña usando el token recibido por email.
+    /// </summary>
+    [HttpPost("reset-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        await _authService.ResetPasswordAsync(dto);
+        return Ok(new { message = "Contraseña restablecida correctamente." });
+    }
+
     // ── Helper ───────────────────────────────────────────────────────────────
 
     private void SetRefreshTokenCookie(string token)

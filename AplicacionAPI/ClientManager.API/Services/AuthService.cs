@@ -16,17 +16,20 @@ public class AuthService : IAuthService
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthService> _logger;
     private readonly ApplicationDbContext _db;
+    private readonly IEmailService _emailService;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         IConfiguration configuration,
         ILogger<AuthService> logger,
-        ApplicationDbContext db)
+        ApplicationDbContext db,
+        IEmailService emailService)
     {
-        _userManager = userManager;
+        _userManager   = userManager;
         _configuration = configuration;
-        _logger = logger;
-        _db = db;
+        _logger        = logger;
+        _db            = db;
+        _emailService  = emailService;
     }
 
     public async Task<TokenResponseDto> LoginAsync(LoginDto dto)
@@ -113,6 +116,73 @@ public class AuthService : IAuthService
         await _db.SaveChangesAsync();
 
         _logger.LogInformation("Refresh token revocado (logout)");
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordDto dto, string frontendBaseUrl)
+    {
+        // Siempre devolvemos 200 aunque el email no exista — evita user enumeration
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user is null)
+        {
+            _logger.LogInformation("ForgotPassword solicitado para email no registrado: {Email}", dto.Email);
+            return;
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var encodedToken = Uri.EscapeDataString(token);
+        var encodedEmail = Uri.EscapeDataString(dto.Email);
+        var resetLink = $"{frontendBaseUrl}/reset-password?email={encodedEmail}&token={encodedToken}";
+
+        var html = $"""
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+              <h2 style="color:#1a1a2e">Recuperar contraseña</h2>
+              <p>Has solicitado restablecer tu contraseña en <strong>ClientManager</strong>.</p>
+              <p>Haz clic en el siguiente enlace para crear una nueva contraseña. El enlace expira en <strong>1 hora</strong>.</p>
+              <a href="{resetLink}"
+                 style="display:inline-block;margin:16px 0;padding:12px 24px;background:#4f8ef7;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">
+                Restablecer contraseña
+              </a>
+              <p style="color:#888;font-size:0.85rem">Si no solicitaste este cambio, ignora este email.</p>
+            </div>
+            """;
+
+        await _emailService.SendAsync(dto.Email, user.UserName!, "Recuperar contraseña — ClientManager", html);
+        _logger.LogInformation("Email de recuperación enviado a {Email}", dto.Email);
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email)
+            ?? throw new ArgumentException("Email no encontrado.");
+
+        var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+        if (!result.Succeeded)
+        {
+            var errorCodes = result.Errors.Select(e => e.Code).ToList();
+            _logger.LogWarning("ResetPassword fallido para {Email}: {Errors}", dto.Email, string.Join(", ", errorCodes));
+
+            if (errorCodes.Contains("InvalidToken"))
+                throw new ArgumentException("El enlace de recuperación no es válido o ha expirado.");
+
+            var mensajes = result.Errors.Select(e => e.Code switch
+            {
+                "PasswordTooShort"                => "Mínimo 8 caracteres.",
+                "PasswordRequiresNonAlphanumeric" => "Debe incluir al menos un carácter especial (!@#$...).",
+                "PasswordRequiresDigit"           => "Debe incluir al menos un número.",
+                "PasswordRequiresLower"           => "Debe incluir al menos una letra minúscula.",
+                "PasswordRequiresUpper"           => "Debe incluir al menos una letra mayúscula.",
+                _                                 => e.Description
+            });
+            throw new ArgumentException(string.Join(" ", mensajes));
+        }
+
+        // Revocar todos los refresh tokens activos al cambiar contraseña
+        var activeTokens = _db.RefreshTokens
+            .Where(r => r.UserId == user.Id && r.RevokedAt == null && r.ExpiresAt > DateTime.UtcNow);
+        await activeTokens.ForEachAsync(t => t.RevokedAt = DateTime.UtcNow);
+        await _db.SaveChangesAsync();
+
+        _logger.LogInformation("Contraseña restablecida para {Email}", dto.Email);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

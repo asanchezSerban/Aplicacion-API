@@ -1,5 +1,6 @@
 import { Component, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,12 +14,9 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    FormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
+    FormsModule, RouterLink,
+    MatFormFieldModule, MatInputModule, MatButtonModule,
+    MatIconModule, MatProgressSpinnerModule,
   ],
   template: `
     <div class="login-wrapper">
@@ -61,6 +59,10 @@ import { AuthService } from '../../services/auth.service';
               Iniciar sesión
             }
           </button>
+
+          <a mat-button routerLink="/recuperar-password" class="forgot-link">
+            ¿Olvidaste tu contraseña?
+          </a>
 
         </form>
       </div>
@@ -150,6 +152,13 @@ import { AuthService } from '../../services/auth.service';
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
+    }
+
+    .forgot-link {
+      width: 100%;
+      justify-content: center;
+      font-size: 0.875rem;
+      color: var(--mat-sys-on-surface-variant);
     }
   `]
 })

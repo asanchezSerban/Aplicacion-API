@@ -48,10 +48,39 @@
             }
           </mat-form-field>
 
+          @if (!isEditMode) {
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Contraseña</mat-label>
+              <input matInput formControlName="password"
+                     [type]="showPassword() ? 'text' : 'password'"
+                     placeholder="Contraseña del usuario"
+                     (input)="onPasswordInput($event)">
+              <button mat-icon-button matSuffix type="button"
+                      (click)="showPassword.set(!showPassword())"
+                      [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+                <mat-error>La contraseña es obligatoria</mat-error>
+              }
+            </mat-form-field>
+
+            @if (form.get('password')?.value?.length > 0) {
+              <div class="password-rules">
+                @for (rule of passwordRules(); track rule.label) {
+                  <div class="rule" [class.ok]="rule.ok" [class.fail]="!rule.ok">
+                    <mat-icon>{{ rule.ok ? 'check_circle' : 'cancel' }}</mat-icon>
+                    <span>{{ rule.label }}</span>
+                  </div>
+                }
+              </div>
+            }
+          }
+
           <div class="form-actions">
             <button mat-button type="button" (click)="cancel()">Cancelar</button>
             <button mat-raised-button color="primary" type="submit"
-                    [disabled]="form.invalid || isLoading">
+                    [disabled]="form.invalid || isLoading || (!isEditMode && !allPasswordValid())">
               @if (isLoading) {
                 <mat-spinner diameter="20"></mat-spinner>
               } @else {

@@ -15,6 +15,9 @@ public class CreateUserDto
 
     [Required]
     public int CompanyId { get; set; }
+
+    [Required]
+    public string Password { get; set; } = string.Empty;
 }
 
 public class UpdateUserDto
