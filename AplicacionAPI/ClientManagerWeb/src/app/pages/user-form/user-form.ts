@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -30,6 +30,7 @@ const PASSWORD_RULES: PasswordRule[] = [
 
 @Component({
   selector: 'app-user-form',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
@@ -39,17 +40,17 @@ const PASSWORD_RULES: PasswordRule[] = [
   styleUrl: './user-form.scss'
 })
 export class UserFormComponent implements OnInit {
-  private destroyRef    = inject(DestroyRef);
-  private fb            = inject(FormBuilder);
-  private userService   = inject(UserService);
+  private destroyRef     = inject(DestroyRef);
+  private fb             = inject(FormBuilder);
+  private userService    = inject(UserService);
   private companyService = inject(CompanyService);
-  private router        = inject(Router);
-  private route         = inject(ActivatedRoute);
-  private snackBar      = inject(MatSnackBar);
+  private router         = inject(Router);
+  private route          = inject(ActivatedRoute);
+  private snackBar       = inject(MatSnackBar);
 
   form!: FormGroup;
-  companies: Company[] = [];
-  isLoading    = false;
+  companies    = signal<Company[]>([]);
+  isLoading    = signal(false);
   isEditMode   = false;
   userId!: number;
   showPassword = signal(false);
@@ -75,37 +76,35 @@ export class UserFormComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
-      this.userId = +id;
+      this.userId     = +id;
       this.loadUser();
-      // En modo edición el password no es obligatorio
       this.form.get('password')!.clearValidators();
       this.form.get('password')!.updateValueAndValidity();
     }
   }
 
   onPasswordInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this._password.set(value);
+    this._password.set((event.target as HTMLInputElement).value);
   }
 
   private loadCompanies(): void {
     this.companyService.getAll(1, 100)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (r) => this.companies = r.data });
+      .subscribe({ next: (r) => this.companies.set(r.data) });
   }
 
   private loadUser(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.userService.getById(this.userId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (user) => {
           this.form.patchValue({ name: user.name, email: user.email, companyId: user.companyId });
-          this.isLoading = false;
+          this.isLoading.set(false);
         },
         error: () => {
           this.showSnackBar('Error al cargar el usuario', true);
-          this.isLoading = false;
+          this.isLoading.set(false);
           this.router.navigate([ROUTES.USERS]);
         }
       });
@@ -115,7 +114,7 @@ export class UserFormComponent implements OnInit {
     if (this.form.invalid) return;
     if (!this.isEditMode && !this.allPasswordValid()) return;
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     const dto = this.form.value;
 
     const operation = this.isEditMode
@@ -132,14 +131,12 @@ export class UserFormComponent implements OnInit {
         error: (err: any) => {
           const msg = err?.error?.error ?? 'Error al guardar el usuario';
           this.showSnackBar(msg, true);
-          this.isLoading = false;
+          this.isLoading.set(false);
         }
       });
   }
 
-  cancel(): void {
-    this.router.navigate([ROUTES.USERS]);
-  }
+  cancel(): void { this.router.navigate([ROUTES.USERS]); }
 
   private showSnackBar(message: string, isError = false): void {
     this.snackBar.open(message, 'Cerrar', {

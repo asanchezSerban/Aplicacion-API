@@ -1,38 +1,38 @@
 <div class="detail-container">
-  @if (isLoading) {
+  @if (isLoading()) {
     <div class="spinner-container">
       <mat-spinner diameter="48"></mat-spinner>
     </div>
   }
 
-  @if (company) {
+  @if (company()) {
     <mat-card>
       <mat-card-content>
         <div class="detail-header">
-          @if (company.logoUrl) {
-            <img [src]="company.logoUrl" alt="Logo de {{ company.name }}" class="company-logo">
+          @if (company()!.logoUrl) {
+            <img [src]="company()!.logoUrl" alt="Logo de {{ company()!.name }}" class="company-logo">
           }
           <div class="header-info">
-            <h1>{{ company.name }}</h1>
-            <span class="status-chip" [ngClass]="getStatusClass(company.status)">
-              {{ company.statusName }}
+            <h1>{{ company()!.name }}</h1>
+            <span class="status-chip" [ngClass]="getStatusClass(company()!.status)">
+              {{ company()!.statusName }}
             </span>
           </div>
         </div>
 
         <div class="detail-section">
           <h3>Descripción</h3>
-          <p>{{ company.description }}</p>
+          <p>{{ company()!.description }}</p>
         </div>
 
         <div class="detail-dates">
           <div class="date-item">
             <span class="date-label">Creado</span>
-            <span>{{ company.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span>{{ company()!.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
           <div class="date-item">
             <span class="date-label">Actualizado</span>
-            <span>{{ company.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span>{{ company()!.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
         </div>
 

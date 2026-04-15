@@ -32,22 +32,22 @@
   </div>
 
   <!-- Loading -->
-  @if (isLoading) {
+  @if (isLoading()) {
     <div class="spinner-container">
       <mat-spinner diameter="48"></mat-spinner>
     </div>
   }
 
   <!-- Table -->
-  @if (!isLoading) {
-    @if (companies.length === 0) {
+  @if (!isLoading()) {
+    @if (companies().length === 0) {
       <div class="empty-state">
         <mat-icon class="empty-icon">business_outline</mat-icon>
         <p>No se encontraron empresas</p>
       </div>
     } @else {
       <div class="table-container">
-        <table mat-table [dataSource]="companies">
+        <table mat-table [dataSource]="companies()">
           <!-- Logo -->
           <ng-container matColumnDef="logo">
             <th mat-header-cell *matHeaderCellDef></th>
@@ -118,7 +118,7 @@
       </div>
 
       <mat-paginator
-        [length]="totalItems"
+        [length]="totalItems()"
         [pageSize]="pageSize"
         [pageSizeOptions]="pageSizeOptions"
         [pageIndex]="currentPage - 1"

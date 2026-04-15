@@ -18,7 +18,7 @@
       <mat-label>Empresa</mat-label>
       <mat-select [(ngModel)]="companyFilter" (selectionChange)="onFilterChange()">
         <mat-option [value]="null">Todas</mat-option>
-        @for (company of companies; track company.id) {
+        @for (company of companies(); track company.id) {
           <mat-option [value]="company.id">{{ company.name }}</mat-option>
         }
       </mat-select>
@@ -30,21 +30,21 @@
     </button>
   </div>
 
-  @if (isLoading) {
+  @if (isLoading()) {
     <div class="spinner-container">
       <mat-spinner diameter="48"></mat-spinner>
     </div>
   }
 
-  @if (!isLoading) {
-    @if (users.length === 0) {
+  @if (!isLoading()) {
+    @if (users().length === 0) {
       <div class="empty-state">
         <mat-icon class="empty-icon">person_outline</mat-icon>
         <p>No se encontraron usuarios</p>
       </div>
     } @else {
       <div class="table-container">
-        <table mat-table [dataSource]="users">
+        <table mat-table [dataSource]="users()">
 
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef>Nombre</th>
@@ -84,7 +84,7 @@
       </div>
 
       <mat-paginator
-        [length]="totalItems"
+        [length]="totalItems()"
         [pageSize]="pageSize"
         [pageSizeOptions]="pageSizeOptions"
         [pageIndex]="currentPage - 1"

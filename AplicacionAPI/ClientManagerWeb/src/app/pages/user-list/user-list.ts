@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +22,7 @@ import { ROUTES } from '../../app.routes.constants';
 
 @Component({
   selector: 'app-user-list',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
     MatTableModule, MatPaginatorModule, MatProgressSpinner,
@@ -33,28 +34,26 @@ import { ROUTES } from '../../app.routes.constants';
   styleUrl: './user-list.scss'
 })
 export class UserListComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
+  private destroyRef     = inject(DestroyRef);
+  private userService    = inject(UserService);
+  private companyService = inject(CompanyService);
+  private router         = inject(Router);
+  private snackBar       = inject(MatSnackBar);
+  private dialog         = inject(MatDialog);
 
-  users: User[] = [];
-  companies: Company[] = [];
-  totalItems = 0;
-  totalPages = 0;
-  currentPage = 1;
-  pageSize = 10;
-  pageSizeOptions = [5, 10, 25];
-  isLoading = false;
-  nameFilter = '';
+  users      = signal<User[]>([]);
+  companies  = signal<Company[]>([]);
+  totalItems = signal(0);
+  totalPages = signal(0);
+  isLoading  = signal(false);
+
+  currentPage           = 1;
+  pageSize              = 10;
+  pageSizeOptions       = [5, 10, 25];
+  nameFilter            = '';
   companyFilter: number | null = null;
 
   displayedColumns = ['name', 'email', 'company', 'actions'];
-
-  constructor(
-    private userService: UserService,
-    private companyService: CompanyService,
-    private router: Router,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog
-  ) {}
 
   ngOnInit(): void {
     this.loadCompanies();
@@ -64,31 +63,31 @@ export class UserListComponent implements OnInit {
   loadCompanies(): void {
     this.companyService.getAll(1, 100)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({ next: (r) => this.companies = r.data });
+      .subscribe({ next: (r) => this.companies.set(r.data) });
   }
 
   loadUsers(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.userService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.companyFilter || undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: PagedResponse<User>) => {
-          this.users = response.data;
-          this.totalItems = response.totalItems;
-          this.totalPages = response.totalPages;
+          this.users.set(response.data);
+          this.totalItems.set(response.totalItems);
+          this.totalPages.set(response.totalPages);
           this.currentPage = response.currentPage;
-          this.isLoading = false;
+          this.isLoading.set(false);
         },
         error: () => {
           this.showSnackBar('Error al cargar los usuarios', true);
-          this.isLoading = false;
+          this.isLoading.set(false);
         }
       });
   }
 
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex + 1;
-    this.pageSize = event.pageSize;
+    this.pageSize    = event.pageSize;
     this.loadUsers();
   }
 
@@ -98,9 +97,9 @@ export class UserListComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.nameFilter = '';
+    this.nameFilter    = '';
     this.companyFilter = null;
-    this.currentPage = 1;
+    this.currentPage   = 1;
     this.loadUsers();
   }
 
@@ -121,8 +120,8 @@ export class UserListComponent implements OnInit {
           this.userService.delete(user.id)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-              next: () => { this.showSnackBar('Usuario eliminado correctamente'); this.loadUsers(); },
-              error: () => this.showSnackBar('Error al eliminar el usuario', true)
+              next:  () => { this.showSnackBar('Usuario eliminado correctamente'); this.loadUsers(); },
+              error: () =>   this.showSnackBar('Error al eliminar el usuario', true)
             });
         }
       });

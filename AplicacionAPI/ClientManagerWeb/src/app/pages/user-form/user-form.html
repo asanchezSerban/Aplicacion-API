@@ -5,7 +5,7 @@
     </mat-card-header>
 
     <mat-card-content>
-      @if (isLoading && isEditMode) {
+      @if (isLoading() && isEditMode) {
         <div class="spinner-container">
           <mat-spinner diameter="48"></mat-spinner>
         </div>
@@ -39,7 +39,7 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Empresa</mat-label>
             <mat-select formControlName="companyId">
-              @for (company of companies; track company.id) {
+              @for (company of companies(); track company.id) {
                 <mat-option [value]="company.id">{{ company.name }}</mat-option>
               }
             </mat-select>
@@ -80,8 +80,8 @@
           <div class="form-actions">
             <button mat-button type="button" (click)="cancel()">Cancelar</button>
             <button mat-raised-button color="primary" type="submit"
-                    [disabled]="form.invalid || isLoading || (!isEditMode && !allPasswordValid())">
-              @if (isLoading) {
+                    [disabled]="form.invalid || isLoading() || (!isEditMode && !allPasswordValid())">
+              @if (isLoading()) {
                 <mat-spinner diameter="20"></mat-spinner>
               } @else {
                 {{ isEditMode ? 'Actualizar' : 'Crear' }}

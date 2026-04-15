@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe, NgClass } from '@angular/common';
@@ -13,7 +13,7 @@ import { ROUTES } from '../../app.routes.constants';
 
 @Component({
   selector: 'app-company-detail',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DatePipe, NgClass,
     MatButton, MatIcon, MatProgressSpinner,
@@ -23,16 +23,13 @@ import { ROUTES } from '../../app.routes.constants';
   styleUrl: './company-detail.scss'
 })
 export class CompanyDetailComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
+  private destroyRef     = inject(DestroyRef);
+  private companyService = inject(CompanyService);
+  private route          = inject(ActivatedRoute);
+  private router         = inject(Router);
 
-  company: Company | null = null;
-  isLoading = true;
-
-  constructor(
-    private companyService: CompanyService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
+  company   = signal<Company | null>(null);
+  isLoading = signal(true);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -40,35 +37,24 @@ export class CompanyDetailComponent implements OnInit {
       this.companyService.getById(+id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: (company) => {
-            this.company = company;
-            this.isLoading = false;
-          },
-          error: () => {
-            this.isLoading = false;
-            this.router.navigate([ROUTES.COMPANIES]);
-          }
+          next: (company) => { this.company.set(company); this.isLoading.set(false); },
+          error: () => { this.isLoading.set(false); this.router.navigate([ROUTES.COMPANIES]); }
         });
     }
   }
 
   getStatusClass(status: string): string {
     const map: Record<string, string> = {
-      Active: 'status-active',
-      Inactive: 'status-inactive',
-      Prospect: 'status-prospect',
-      Churned: 'status-churned'
+      Active: 'status-active', Inactive: 'status-inactive',
+      Prospect: 'status-prospect', Churned: 'status-churned'
     };
     return map[status] || '';
   }
 
   editCompany(): void {
-    if (this.company) {
-      this.router.navigate([ROUTES.companyEdit(this.company.id)]);
-    }
+    const c = this.company();
+    if (c) this.router.navigate([ROUTES.companyEdit(c.id)]);
   }
 
-  goBack(): void {
-    this.router.navigate([ROUTES.COMPANIES]);
-  }
+  goBack(): void { this.router.navigate([ROUTES.COMPANIES]); }
 }

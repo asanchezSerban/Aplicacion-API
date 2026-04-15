@@ -5,7 +5,7 @@
     </mat-card-header>
 
     <mat-card-content>
-      @if (isLoading && isEditMode) {
+      @if (isLoading() && isEditMode) {
         <div class="spinner-container">
           <mat-spinner diameter="48"></mat-spinner>
         </div>
@@ -51,9 +51,9 @@
           <div class="file-upload">
             <label>Logo</label>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onFileSelected($event)">
-            @if (currentLogoUrl && !selectedFile) {
+            @if (currentLogoUrl() && !selectedFile) {
               <div class="logo-preview">
-                <img [src]="currentLogoUrl" alt="Logo actual" class="preview-img">
+                <img [src]="currentLogoUrl()!" alt="Logo actual" class="preview-img">
                 <span>Logo actual</span>
               </div>
             }
@@ -62,8 +62,8 @@
           <div class="form-actions">
             <button mat-button type="button" (click)="cancel()">Cancelar</button>
             <button mat-raised-button color="primary" type="submit"
-                    [disabled]="form.invalid || isLoading">
-              @if (isLoading) {
+                    [disabled]="form.invalid || isLoading()">
+              @if (isLoading()) {
                 <mat-spinner diameter="20"></mat-spinner>
               } @else {
                 {{ isEditMode ? 'Actualizar' : 'Crear' }}

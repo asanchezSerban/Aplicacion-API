@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
@@ -12,6 +12,7 @@ import { ROUTES } from '../../app.routes.constants';
 
 @Component({
   selector: 'app-user-detail',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DatePipe,
     MatButton, MatIcon, MatProgressSpinner,
@@ -21,14 +22,13 @@ import { ROUTES } from '../../app.routes.constants';
   styleUrl: './user-detail.scss'
 })
 export class UserDetailComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
-
-  user: User | null = null;
-  isLoading = true;
-
+  private destroyRef  = inject(DestroyRef);
   private userService = inject(UserService);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
+  private route       = inject(ActivatedRoute);
+  private router      = inject(Router);
+
+  user      = signal<User | null>(null);
+  isLoading = signal(true);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -36,25 +36,16 @@ export class UserDetailComponent implements OnInit {
       this.userService.getById(+id)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: (user) => {
-            this.user = user;
-            this.isLoading = false;
-          },
-          error: () => {
-            this.isLoading = false;
-            this.router.navigate([ROUTES.USERS]);
-          }
+          next: (user) => { this.user.set(user); this.isLoading.set(false); },
+          error: () => { this.isLoading.set(false); this.router.navigate([ROUTES.USERS]); }
         });
     }
   }
 
   editUser(): void {
-    if (this.user) {
-      this.router.navigate([ROUTES.userEdit(this.user.id)]);
-    }
+    const u = this.user();
+    if (u) this.router.navigate([ROUTES.userEdit(u.id)]);
   }
 
-  goBack(): void {
-    this.router.navigate([ROUTES.USERS]);
-  }
+  goBack(): void { this.router.navigate([ROUTES.USERS]); }
 }

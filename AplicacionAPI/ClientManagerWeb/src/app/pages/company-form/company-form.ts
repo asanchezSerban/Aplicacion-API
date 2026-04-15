@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -15,7 +15,7 @@ import { ROUTES } from '../../app.routes.constants';
 
 @Component({
   selector: 'app-company-form',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
@@ -25,56 +25,49 @@ import { ROUTES } from '../../app.routes.constants';
   styleUrl: './company-form.scss'
 })
 export class CompanyFormComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
+  private destroyRef     = inject(DestroyRef);
+  private fb             = inject(FormBuilder);
+  private companyService = inject(CompanyService);
+  private router         = inject(Router);
+  private route          = inject(ActivatedRoute);
+  private snackBar       = inject(MatSnackBar);
 
   form!: FormGroup;
   selectedFile: File | null = null;
-  currentLogoUrl: string | null = null;
-  isLoading = false;
-  isEditMode = false;
+  currentLogoUrl = signal<string | null>(null);
+  isLoading      = signal(false);
+  isEditMode     = false;
   companyId!: number;
   statuses = Object.values(CompanyStatus);
 
-  constructor(
-    private fb: FormBuilder,
-    private companyService: CompanyService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private snackBar: MatSnackBar
-  ) {}
-
   ngOnInit(): void {
     this.form = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
+      name:        ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
       description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
-      status: [CompanyStatus.Prospect, Validators.required]
+      status:      [CompanyStatus.Prospect, Validators.required]
     });
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEditMode = true;
-      this.companyId = +id;
+      this.companyId  = +id;
       this.loadCompany();
     }
   }
 
   private loadCompany(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.companyService.getById(this.companyId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (company) => {
-          this.form.patchValue({
-            name: company.name,
-            description: company.description,
-            status: company.status
-          });
-          this.currentLogoUrl = company.logoUrl;
-          this.isLoading = false;
+          this.form.patchValue({ name: company.name, description: company.description, status: company.status });
+          this.currentLogoUrl.set(company.logoUrl);
+          this.isLoading.set(false);
         },
         error: () => {
           this.showSnackBar('Error al cargar la empresa', true);
-          this.isLoading = false;
+          this.isLoading.set(false);
           this.router.navigate([ROUTES.COMPANIES]);
         }
       });
@@ -90,13 +83,11 @@ export class CompanyFormComponent implements OnInit {
   onSubmit(): void {
     if (this.form.invalid) return;
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     const formValue = this.form.value;
     const dto = {
-      name: formValue.name,
-      description: formValue.description,
-      status: formValue.status,
-      logo: this.selectedFile || undefined
+      name: formValue.name, description: formValue.description,
+      status: formValue.status, logo: this.selectedFile || undefined
     };
 
     const operation = this.isEditMode
@@ -112,14 +103,12 @@ export class CompanyFormComponent implements OnInit {
         },
         error: () => {
           this.showSnackBar('Error al guardar la empresa', true);
-          this.isLoading = false;
+          this.isLoading.set(false);
         }
       });
   }
 
-  cancel(): void {
-    this.router.navigate([ROUTES.COMPANIES]);
-  }
+  cancel(): void { this.router.navigate([ROUTES.COMPANIES]); }
 
   private showSnackBar(message: string, isError = false): void {
     this.snackBar.open(message, 'Cerrar', {

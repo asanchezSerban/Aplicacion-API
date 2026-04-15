@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -23,7 +23,7 @@ import { ROUTES } from '../../app.routes.constants';
 
 @Component({
   selector: 'app-company-list',
-  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     NgClass, FormsModule,
     MatTableModule, MatPaginatorModule, MatProgressSpinner,
@@ -35,54 +35,52 @@ import { ROUTES } from '../../app.routes.constants';
   styleUrl: './company-list.scss'
 })
 export class CompanyListComponent implements OnInit {
-  private destroyRef = inject(DestroyRef);
+  private destroyRef     = inject(DestroyRef);
+  private companyService = inject(CompanyService);
+  private router         = inject(Router);
+  private snackBar       = inject(MatSnackBar);
+  private dialog         = inject(MatDialog);
 
-  companies: Company[] = [];
-  totalItems = 0;
-  totalPages = 0;
-  currentPage = 1;
-  pageSize = 10;
+  companies  = signal<Company[]>([]);
+  totalItems = signal(0);
+  totalPages = signal(0);
+  isLoading  = signal(false);
+
+  currentPage     = 1;
+  pageSize        = 10;
   pageSizeOptions = [5, 10, 25];
-  isLoading = false;
-  nameFilter = '';
-  statusFilter = '';
+  nameFilter      = '';
+  statusFilter    = '';
 
   displayedColumns = ['logo', 'name', 'description', 'status', 'actions'];
-  statuses = Object.values(CompanyStatus);
-
-  constructor(
-    private companyService: CompanyService,
-    private router: Router,
-    private snackBar: MatSnackBar,
-    private dialog: MatDialog
-  ) {}
+  statuses         = Object.values(CompanyStatus);
 
   ngOnInit(): void {
     this.loadCompanies();
   }
 
   loadCompanies(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.companyService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.statusFilter || undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: PagedResponse<Company>) => {
-          this.companies = response.data;
-          this.totalItems = response.totalItems;
-          this.totalPages = response.totalPages;
+          this.companies.set(response.data);
+          this.totalItems.set(response.totalItems);
+          this.totalPages.set(response.totalPages);
           this.currentPage = response.currentPage;
-          this.isLoading = false;
+          this.isLoading.set(false);
         },
         error: () => {
           this.showSnackBar('Error al cargar las empresas', true);
-          this.isLoading = false;
+          this.isLoading.set(false);
         }
       });
   }
 
   onPageChange(event: PageEvent): void {
     this.currentPage = event.pageIndex + 1;
-    this.pageSize = event.pageSize;
+    this.pageSize    = event.pageSize;
     this.loadCompanies();
   }
 
@@ -92,43 +90,29 @@ export class CompanyListComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.nameFilter = '';
+    this.nameFilter   = '';
     this.statusFilter = '';
-    this.currentPage = 1;
+    this.currentPage  = 1;
     this.loadCompanies();
   }
 
-  viewCompany(id: number): void {
-    this.router.navigate([ROUTES.companyDetail(id)]);
-  }
-
-  editCompany(id: number): void {
-    this.router.navigate([ROUTES.companyEdit(id)]);
-  }
-
-  newCompany(): void {
-    this.router.navigate([ROUTES.COMPANY_NEW]);
-  }
+  viewCompany(id: number): void { this.router.navigate([ROUTES.companyDetail(id)]); }
+  editCompany(id: number): void { this.router.navigate([ROUTES.companyEdit(id)]); }
+  newCompany(): void             { this.router.navigate([ROUTES.COMPANY_NEW]); }
 
   changeStatus(company: Company, newStatus: CompanyStatus): void {
     this.companyService.updateStatus(company.id, { status: newStatus })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
-          this.showSnackBar('Estado actualizado correctamente');
-          this.loadCompanies();
-        },
-        error: () => this.showSnackBar('Error al cambiar el estado', true)
+        next:  () => { this.showSnackBar('Estado actualizado correctamente'); this.loadCompanies(); },
+        error: () =>   this.showSnackBar('Error al cambiar el estado', true)
       });
   }
 
   deleteCompany(company: Company): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
-      data: {
-        title: 'Eliminar empresa',
-        message: `¿Estás seguro de que deseas eliminar "${company.name}"?`
-      }
+      data: { title: 'Eliminar empresa', message: `¿Estás seguro de que deseas eliminar "${company.name}"?` }
     });
 
     dialogRef.afterClosed()
@@ -138,11 +122,8 @@ export class CompanyListComponent implements OnInit {
           this.companyService.delete(company.id)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-              next: () => {
-                this.showSnackBar('Empresa eliminada correctamente');
-                this.loadCompanies();
-              },
-              error: () => this.showSnackBar('Error al eliminar la empresa', true)
+              next:  () => { this.showSnackBar('Empresa eliminada correctamente'); this.loadCompanies(); },
+              error: () =>   this.showSnackBar('Error al eliminar la empresa', true)
             });
         }
       });
@@ -150,15 +131,13 @@ export class CompanyListComponent implements OnInit {
 
   getStatusClass(status: CompanyStatus): string {
     const map: Record<string, string> = {
-      Active: 'status-active',
-      Inactive: 'status-inactive',
-      Prospect: 'status-prospect',
-      Churned: 'status-churned'
+      Active: 'status-active', Inactive: 'status-inactive',
+      Prospect: 'status-prospect', Churned: 'status-churned'
     };
     return map[status] || '';
   }
 
-  truncate(text: string, length: number = 80): string {
+  truncate(text: string, length = 80): string {
     return text.length > length ? text.substring(0, length) + '...' : text;
   }
 
