@@ -34,5 +34,9 @@ function addToken(req: HttpRequest<unknown>, token: string | null): HttpRequest<
 }
 
 function isAuthEndpoint(url: string): boolean {
-  return url.includes('/auth/login') || url.includes('/auth/refresh');
+  return url.includes('/auth/login')
+      || url.includes('/auth/refresh')
+      || url.includes('/auth/mfa-verify')
+      || url.includes('/auth/forgot-password')
+      || url.includes('/auth/reset-password');
 }

@@ -9,7 +9,7 @@ namespace ClientManager.API.Controllers;
 [ApiController]
 [Route("api/users")]
 [Produces("application/json")]
-[Authorize(Roles = "SuperAdmin")]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -23,6 +23,7 @@ public class UsersController : ControllerBase
     /// Obtiene todos los usuarios con paginación y filtros opcionales.
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "SuperAdmin")]
     [ProducesResponseType(typeof(PagedResponseDto<UserResponseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
@@ -40,6 +41,7 @@ public class UsersController : ControllerBase
     /// Obtiene un usuario por su ID.
     /// </summary>
     [HttpGet("{id:int}")]
+    [Authorize(Roles = "SuperAdmin")]
     [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
@@ -52,6 +54,7 @@ public class UsersController : ControllerBase
     /// Crea un nuevo usuario asignado a una empresa.
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "SuperAdmin")]
     [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
@@ -65,6 +68,7 @@ public class UsersController : ControllerBase
     /// Actualiza un usuario existente.
     /// </summary>
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "SuperAdmin")]
     [ProducesResponseType(typeof(UserResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -79,6 +83,7 @@ public class UsersController : ControllerBase
     /// Elimina un usuario por su ID.
     /// </summary>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "SuperAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

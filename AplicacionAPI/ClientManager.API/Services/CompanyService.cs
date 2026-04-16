@@ -34,18 +34,13 @@ public class CompanyService : ICompanyService
         _logger = logger;
     }
 
-    public async Task<PagedResponseDto<CompanyResponseDto>> GetAllAsync(int page, int pageSize, string? name, string? status)
+    public async Task<PagedResponseDto<CompanyResponseDto>> GetAllAsync(int page, int pageSize, string? name)
     {
         var query = _db.Companies.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(name))
         {
             query = query.Where(c => c.Name.ToLower().Contains(name.ToLower()));
-        }
-
-        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<CompanyStatus>(status, ignoreCase: true, out var parsedStatus))
-        {
-            query = query.Where(c => c.Status == parsedStatus);
         }
 
         var totalItems = await query.CountAsync();
@@ -77,11 +72,15 @@ public class CompanyService : ICompanyService
 
     public async Task<CompanyResponseDto> CreateAsync(CreateCompanyDto dto, IFormFile? logo)
     {
+        var sanitizedName = SanitizeInput(dto.Name);
+
+        if (await _db.Companies.AnyAsync(c => c.Name.ToLower() == sanitizedName.ToLower()))
+            throw new ArgumentException($"Ya existe una empresa con el nombre '{sanitizedName}'.");
+
         var company = new Company
         {
-            Name = SanitizeInput(dto.Name),
+            Name = sanitizedName,
             Description = SanitizeInput(dto.Description),
-            Status = dto.Status ?? CompanyStatus.Prospect,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -104,9 +103,13 @@ public class CompanyService : ICompanyService
         var company = await _db.Companies.FindAsync(id)
             ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
 
-        company.Name = SanitizeInput(dto.Name);
+        var sanitizedName = SanitizeInput(dto.Name);
+
+        if (await _db.Companies.AnyAsync(c => c.Name.ToLower() == sanitizedName.ToLower() && c.Id != id))
+            throw new ArgumentException($"Ya existe una empresa con el nombre '{sanitizedName}'.");
+
+        company.Name = sanitizedName;
         company.Description = SanitizeInput(dto.Description);
-        company.Status = dto.Status;
         company.UpdatedAt = DateTime.UtcNow;
 
         if (logo is not null && logo.Length > 0)
@@ -118,21 +121,6 @@ public class CompanyService : ICompanyService
         await _db.SaveChangesAsync();
 
         _logger.LogInformation("Empresa {CompanyId} actualizada", company.Id);
-
-        return MapToDto(company);
-    }
-
-    public async Task<CompanyResponseDto> UpdateStatusAsync(int id, UpdateCompanyStatusDto dto)
-    {
-        var company = await _db.Companies.FindAsync(id)
-            ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
-
-        company.Status = dto.Status;
-        company.UpdatedAt = DateTime.UtcNow;
-
-        await _db.SaveChangesAsync();
-
-        _logger.LogInformation("Estado de la empresa {CompanyId} cambiado a {Status}", company.Id, dto.Status);
 
         return MapToDto(company);
     }
@@ -158,8 +146,6 @@ public class CompanyService : ICompanyService
             Name = company.Name,
             Description = company.Description,
             LogoUrl = BuildLogoUrl(company.LogoFileName),
-            Status = company.Status,
-            StatusName = company.Status.ToString(),
             CreatedAt = company.CreatedAt,
             UpdatedAt = company.UpdatedAt
         };

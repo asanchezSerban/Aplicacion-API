@@ -48,13 +48,41 @@ Al comenzar cualquier conversación sobre este proyecto, DEBES:
 - Frontend: páginas en `/empresas` y `/clientes`, navbar con ambas secciones
 - Migración EF aplicada: `20260407120958_Phase1_RenameClientsToCompanies_AddClientsTable`
 
-### Próximas fases
-- **Fase 2**: Identity + JWT (backend)
-- **Fase 3**: Roles + autorización
-- **Fase 4**: Refresh tokens
-- **Fase 5**: Frontend auth (login, guards, interceptor)
-- **Fase 6**: Vistas SuperAdmin completas
-- **Fase 7**: MFA por email, recuperación de contraseña, rate limiting
+### Fase 2 — COMPLETADA ✅
+- `ApplicationUser` extiende `IdentityUser` con `ClientId` y `CreatedAt`
+- Identity + JWT configurados en `Program.cs`
+- Seed automático: roles "SuperAdmin" y "Cliente", usuario admin al arrancar
+- `POST /api/auth/login` → devuelve `accessToken`, `refreshToken`, `role`, `expiresAt`
+
+### Fase 3 — COMPLETADA ✅
+- `[Authorize(Roles = "SuperAdmin")]` en `CompaniesController` y `ClientsController`
+- `GET /api/clients/me` con `[Authorize(Roles = "Cliente")]`
+
+### Fase 4 — COMPLETADA ✅
+- Refresh tokens con rotación almacenados en BD
+- `POST /api/auth/refresh` y `POST /api/auth/logout`
+
+### Fase 7 Backend — COMPLETADA ✅
+- Email service con MailKit + smtp4dev
+- MFA por OTP de 6 dígitos enviado por email
+- Recuperación de contraseña (forgot/reset password)
+- Rate limiting: 5 req/min por IP en `/api/auth/*`
+- Lockout: 5 intentos fallidos → 15 min bloqueado
+
+### Fase 5 — COMPLETADA ✅
+- `auth.service.ts` con signals, login, logout, refresh, forgotPassword, resetPassword
+- `auth.interceptor.ts` con Bearer header y retry en 401
+- `auth.guard.ts`, `admin.guard.ts`, `guest.guard.ts`
+- Páginas: `/login`, `/perfil`, `/recuperar-password`, `/reset-password`
+- Navbar reactivo según rol
+
+### Fase 6 — COMPLETADA ✅
+- Tabla `Clients` renombrada a `Users` (migración `Phase6_RenameClientsToUsers`)
+- `UserService.CreateAsync` crea `User` + `ApplicationUser` vinculado con rol "Cliente" en una sola operación atómica
+- Rollback automático si falla la creación de la cuenta de acceso
+
+### Pendiente — Lo único que falta
+- **Fase 7 Frontend**: página `/mfa-verificar` (el backend MFA ya está implementado)
 
 ---
 
@@ -348,3 +376,108 @@ npm start
 - **Dark mode**: clase CSS `dark-mode` en `document.body` gestionada desde Navbar
 - **Auto-migrate**: `dbContext.Database.MigrateAsync()` en Program.cs al arrancar
 - **JWT signing key** (Fase 2+): en User Secrets o variables de entorno, NUNCA en appsettings.json
+
+---
+
+## MEJORAS APLICADAS AL FRONTEND (referencia)
+
+Estas mejoras se aplicaron durante el desarrollo. Son las convenciones que debe seguir todo componente nuevo o modificado.
+
+### 1. Migración a Signals + OnPush
+
+**Qué se hizo:** en todos los componentes de páginas (list, form, detail).
+
+**Patrón:**
+```typescript
+// Antes
+isLoading = false;
+companies: Company[] = [];
+
+// Después
+isLoading = signal(false);
+companies = signal<Company[]>([]);
+```
+
+**Regla:** cualquier variable que afecta a la vista y cambia asíncronamente → `signal()`.
+Variables que solo se leen en el template de forma síncrona (constantes, opciones de paginación) → pueden quedarse como variables normales.
+
+**En el template:** siempre llamar con `()`:
+```html
+@if (isLoading()) { ... }
+[dataSource]="companies()"
+```
+
+**Por qué importa:** con `ChangeDetectionStrategy.OnPush`, Angular solo re-renderiza cuando cambia una referencia de signal. Sin signals, los cambios asíncronos no se reflejan en pantalla.
+
+---
+
+### 2. inject() en lugar de constructor injection
+
+**Qué se hizo:** en todos los componentes.
+
+```typescript
+// Antes
+constructor(private router: Router, private service: CompanyService) {}
+
+// Después
+private router  = inject(Router);
+private service = inject(CompanyService);
+```
+
+**Por qué:** es el estilo moderno de Angular. Elimina boilerplate del constructor, funciona igual que la inyección por constructor a nivel de DI.
+
+---
+
+### 3. Formularios reactivos con nonNullable + getRawValue() + getters
+
+**Qué se hizo:** en `company-form.ts` y `user-form.ts`.
+
+**a) `fb.nonNullable.group`** en lugar de `fb.group`:
+```typescript
+// Antes
+this.form = this.fb.group({ name: ['', Validators.required] });
+
+// Después
+this.form = this.fb.nonNullable.group({ name: ['', Validators.required] });
+```
+Efecto: al hacer `form.reset()`, los campos vuelven a su valor inicial (ej. `''`) en lugar de `null`. Tipos TypeScript más estrictos: `form.controls.name.value` es `string`, no `string | null`.
+
+**b) `getRawValue()`** en lugar de `form.value`:
+```typescript
+// Antes
+const dto = this.form.value;  // tipo: { name?: string } — campos disabled son undefined
+
+// Después
+const dto = this.form.getRawValue();  // tipo: { name: string } — incluye campos disabled
+```
+Efecto: si un campo está `disabled` (ej. email en modo edición), `form.value` lo omite. `getRawValue()` siempre los incluye.
+
+**c) Getter properties** para acceder a los controles:
+```typescript
+// Antes (en el template)
+form.get('name')?.hasError('required') && form.get('name')?.touched
+
+// Después: getter en el componente
+// IMPORTANTE: usar bracket notation — noPropertyAccessFromIndexSignature está activado en tsconfig
+get name() { return this.form.controls['name']; }
+
+// Template con getter
+name.hasError('required') && name.touched
+```
+Efecto: sintaxis más corta, con tipos correctos (no requiere `?.`), y Angular puede optimizar mejor las expresiones del template.
+
+**Campos nullables en nonNullable.group:** para selects sin valor inicial (ej. `companyId`), usar `null as unknown as number` para mantener la validación `required` funcionando correctamente (el validador `required` considera `null` inválido, pero no `0`).
+
+---
+
+### 4. Componentes afectados
+
+| Componente | Signals | OnPush | inject() | nonNullable | getRawValue | Getters |
+|---|---|---|---|---|---|---|
+| `company-list` | ✅ | ✅ | ✅ | n/a | n/a | n/a |
+| `company-form` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `company-detail` | ✅ | ✅ | ✅ | n/a | n/a | n/a |
+| `user-list` | ✅ | ✅ | ✅ | n/a | n/a | n/a |
+| `user-form` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `user-detail` | ✅ | ✅ | ✅ | n/a | n/a | n/a |
+| `login` | ✅ | ✅ | ✅ | n/a (FormsModule) | n/a | n/a |

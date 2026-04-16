@@ -4,12 +4,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatButton } from '@angular/material/button';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
-import { CompanyStatus } from '../../models/company.model';
 import { CompanyService } from '../../services/company.service';
 import { ROUTES } from '../../app.routes.constants';
 
@@ -18,7 +16,7 @@ import { ROUTES } from '../../app.routes.constants';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule,
+    MatFormFieldModule, MatInputModule,
     MatButton, MatProgressSpinner, MatCardModule
   ],
   templateUrl: './company-form.html',
@@ -38,13 +36,13 @@ export class CompanyFormComponent implements OnInit {
   isLoading      = signal(false);
   isEditMode     = false;
   companyId!: number;
-  statuses = Object.values(CompanyStatus);
+  get name()        { return this.form.controls['name']; }
+  get description() { return this.form.controls['description']; }
 
   ngOnInit(): void {
-    this.form = this.fb.group({
+    this.form = this.fb.nonNullable.group({
       name:        ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
-      description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
-      status:      [CompanyStatus.Prospect, Validators.required]
+      description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]]
     });
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -61,7 +59,7 @@ export class CompanyFormComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (company) => {
-          this.form.patchValue({ name: company.name, description: company.description, status: company.status });
+          this.form.patchValue({ name: company.name, description: company.description });
           this.currentLogoUrl.set(company.logoUrl);
           this.isLoading.set(false);
         },
@@ -84,11 +82,8 @@ export class CompanyFormComponent implements OnInit {
     if (this.form.invalid) return;
 
     this.isLoading.set(true);
-    const formValue = this.form.value;
-    const dto = {
-      name: formValue.name, description: formValue.description,
-      status: formValue.status, logo: this.selectedFile || undefined
-    };
+    const { name, description } = this.form.getRawValue();
+    const dto = { name, description, logo: this.selectedFile || undefined };
 
     const operation = this.isEditMode
       ? this.companyService.update(this.companyId, dto)

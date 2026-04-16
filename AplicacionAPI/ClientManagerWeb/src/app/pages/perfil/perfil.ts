@@ -24,7 +24,7 @@ import { AuthService } from '../../services/auth.service';
               {{ initials() }}
             </div>
             <mat-card-title>{{ client()!.name }}</mat-card-title>
-            <mat-card-subtitle>Cliente</mat-card-subtitle>
+            <mat-card-subtitle>Usuario</mat-card-subtitle>
           </mat-card-header>
 
           <mat-card-content>
@@ -38,7 +38,7 @@ import { AuthService } from '../../services/auth.service';
             </div>
             <div class="perfil-field">
               <mat-icon>calendar_today</mat-icon>
-              <span>Cliente desde {{ client()!.createdAt | date:'MMMM yyyy' }}</span>
+              <span>Usuario desde {{ client()!.createdAt | date:'MMMM yyyy' }}</span>
             </div>
           </mat-card-content>
 

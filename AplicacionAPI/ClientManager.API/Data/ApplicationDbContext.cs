@@ -12,6 +12,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<User> CompanyUsers => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<EmailOtpCode> EmailOtpCodes => Set<EmailOtpCode>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,12 +37,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         company.Property(c => c.Name).HasMaxLength(200).IsRequired();
         company.Property(c => c.Description).HasMaxLength(2000).IsRequired();
         company.Property(c => c.LogoFileName).HasMaxLength(500);
-        company.Property(c => c.Status).HasMaxLength(50).HasConversion<string>().IsRequired();
         company.Property(c => c.CreatedAt).HasDefaultValueSql("NOW()");
         company.Property(c => c.UpdatedAt).HasDefaultValueSql("NOW()");
-        company.HasIndex(c => c.Status);
         company.HasIndex(c => c.UpdatedAt);
-        company.HasIndex(c => c.Name);
+        company.HasIndex(c => c.Name).IsUnique();
 
         company.HasData(
             new Company
@@ -49,7 +48,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 Id = 1,
                 Name = "Acme Corp",
                 Description = "Empresa principal del sector industrial",
-                Status = CompanyStatus.Active,
                 CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             },
@@ -58,7 +56,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 Id = 2,
                 Name = "Tech Startup SL",
                 Description = "Startup tecnológica en fase de evaluación",
-                Status = CompanyStatus.Prospect,
                 CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             }
@@ -81,6 +78,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         user.HasOne(u => u.Company)
             .WithMany(c => c.Users)
             .HasForeignKey(u => u.CompanyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ── EmailOtpCode ─────────────────────────────────────────
+        var otp = modelBuilder.Entity<EmailOtpCode>();
+
+        otp.ToTable("EmailOtpCodes");
+        otp.HasKey(o => o.Id);
+        otp.Property(o => o.Id).UseIdentityAlwaysColumn();
+        otp.Property(o => o.UserId).IsRequired();
+        otp.Property(o => o.CodeHash).HasMaxLength(64).IsRequired();
+        otp.HasIndex(o => o.UserId);
+        otp.HasOne(o => o.User)
+            .WithMany()
+            .HasForeignKey(o => o.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // ── RefreshToken ─────────────────────────────────────────

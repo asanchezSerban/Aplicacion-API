@@ -1,5 +1,4 @@
 import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
-import { NgClass } from '@angular/common';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -10,13 +9,10 @@ import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltip } from '@angular/material/tooltip';
-import { Company, CompanyStatus, PagedResponse } from '../../models/company.model';
+import { Company, PagedResponse } from '../../models/company.model';
 import { CompanyService } from '../../services/company.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { ROUTES } from '../../app.routes.constants';
@@ -25,11 +21,10 @@ import { ROUTES } from '../../app.routes.constants';
   selector: 'app-company-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    NgClass, FormsModule,
+    FormsModule,
     MatTableModule, MatPaginatorModule, MatProgressSpinner,
     MatButton, MatIconButton, MatIcon,
-    MatMenuModule, MatSelectModule, MatInputModule,
-    MatFormFieldModule, MatChipsModule, MatTooltip
+    MatInputModule, MatFormFieldModule, MatTooltip
   ],
   templateUrl: './company-list.html',
   styleUrl: './company-list.scss'
@@ -50,10 +45,8 @@ export class CompanyListComponent implements OnInit {
   pageSize        = 10;
   pageSizeOptions = [5, 10, 25];
   nameFilter      = '';
-  statusFilter    = '';
 
-  displayedColumns = ['logo', 'name', 'description', 'status', 'actions'];
-  statuses         = Object.values(CompanyStatus);
+  displayedColumns = ['logo', 'name', 'description', 'actions'];
 
   ngOnInit(): void {
     this.loadCompanies();
@@ -61,7 +54,7 @@ export class CompanyListComponent implements OnInit {
 
   loadCompanies(): void {
     this.isLoading.set(true);
-    this.companyService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.statusFilter || undefined)
+    this.companyService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: PagedResponse<Company>) => {
@@ -90,24 +83,14 @@ export class CompanyListComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.nameFilter   = '';
-    this.statusFilter = '';
-    this.currentPage  = 1;
+    this.nameFilter  = '';
+    this.currentPage = 1;
     this.loadCompanies();
   }
 
   viewCompany(id: number): void { this.router.navigate([ROUTES.companyDetail(id)]); }
   editCompany(id: number): void { this.router.navigate([ROUTES.companyEdit(id)]); }
   newCompany(): void             { this.router.navigate([ROUTES.COMPANY_NEW]); }
-
-  changeStatus(company: Company, newStatus: CompanyStatus): void {
-    this.companyService.updateStatus(company.id, { status: newStatus })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next:  () => { this.showSnackBar('Estado actualizado correctamente'); this.loadCompanies(); },
-        error: () =>   this.showSnackBar('Error al cambiar el estado', true)
-      });
-  }
 
   deleteCompany(company: Company): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -127,14 +110,6 @@ export class CompanyListComponent implements OnInit {
             });
         }
       });
-  }
-
-  getStatusClass(status: CompanyStatus): string {
-    const map: Record<string, string> = {
-      Active: 'status-active', Inactive: 'status-inactive',
-      Prospect: 'status-prospect', Churned: 'status-churned'
-    };
-    return map[status] || '';
   }
 
   truncate(text: string, length = 80): string {

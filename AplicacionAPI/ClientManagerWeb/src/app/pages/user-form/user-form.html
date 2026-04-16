@@ -14,13 +14,13 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nombre</mat-label>
             <input matInput formControlName="name" placeholder="Nombre del usuario">
-            @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+            @if (name.hasError('required') && name.touched) {
               <mat-error>El nombre es obligatorio</mat-error>
             }
-            @if (form.get('name')?.hasError('minlength')) {
+            @if (name.hasError('minlength')) {
               <mat-error>Mínimo 2 caracteres</mat-error>
             }
-            @if (form.get('name')?.hasError('maxlength')) {
+            @if (name.hasError('maxlength')) {
               <mat-error>Máximo 200 caracteres</mat-error>
             }
           </mat-form-field>
@@ -28,10 +28,10 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Email</mat-label>
             <input matInput formControlName="email" placeholder="email@ejemplo.com" type="email">
-            @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+            @if (email.hasError('required') && email.touched) {
               <mat-error>El email es obligatorio</mat-error>
             }
-            @if (form.get('email')?.hasError('email')) {
+            @if (email.hasError('email')) {
               <mat-error>Introduce un email válido</mat-error>
             }
           </mat-form-field>
@@ -43,7 +43,7 @@
                 <mat-option [value]="company.id">{{ company.name }}</mat-option>
               }
             </mat-select>
-            @if (form.get('companyId')?.hasError('required') && form.get('companyId')?.touched) {
+            @if (companyId.hasError('required') && companyId.touched) {
               <mat-error>Selecciona una empresa</mat-error>
             }
           </mat-form-field>
@@ -60,12 +60,12 @@
                       [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
                 <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
-              @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+              @if (password.hasError('required') && password.touched) {
                 <mat-error>La contraseña es obligatoria</mat-error>
               }
             </mat-form-field>
 
-            @if (form.get('password')?.value?.length > 0) {
+            @if (password.value.length > 0) {
               <div class="password-rules">
                 @for (rule of passwordRules(); track rule.label) {
                   <div class="rule" [class.ok]="rule.ok" [class.fail]="!rule.ok">

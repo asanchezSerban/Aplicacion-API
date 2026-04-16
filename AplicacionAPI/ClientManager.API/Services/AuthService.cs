@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using ClientManager.API.Data;
 using ClientManager.API.DTOs;
@@ -32,7 +33,7 @@ public class AuthService : IAuthService
         _emailService  = emailService;
     }
 
-    public async Task<TokenResponseDto> LoginAsync(LoginDto dto)
+    public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
     {
         const string invalidCredentialsMessage = "Credenciales inválidas.";
 
@@ -53,13 +54,90 @@ public class AuthService : IAuthService
 
         await _userManager.ResetAccessFailedCountAsync(user);
 
-        var roles = await _userManager.GetRolesAsync(user);
-        var role = roles.FirstOrDefault() ?? string.Empty;
+        // Invalidar OTPs anteriores activos del mismo usuario
+        var previousOtps = await _db.EmailOtpCodes
+            .Where(o => o.UserId == user.Id && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
+            .ToListAsync();
+        foreach (var old in previousOtps)
+            old.IsUsed = true;
 
-        var accessToken = GenerateAccessToken(user, role, out var expiresAt);
+        // Generar OTP de 6 dígitos
+        var bytes = new byte[4];
+        RandomNumberGenerator.Fill(bytes);
+        var code     = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
+        var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+
+        _db.EmailOtpCodes.Add(new EmailOtpCode
+        {
+            UserId    = user.Id,
+            CodeHash  = codeHash,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+
+        // Enviar email con el código
+        var html = $"""
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+              <h2 style="color:#1a1a2e">Verificación de acceso</h2>
+              <p>Tu código de verificación para <strong>ClientManager</strong> es:</p>
+              <div style="font-size:2.5rem;font-weight:700;letter-spacing:0.5rem;
+                          text-align:center;padding:1.5rem;margin:1rem 0;
+                          background:#f0f4ff;border-radius:12px;color:#1a1a2e">
+                {code}
+              </div>
+              <p>Este código expira en <strong>1 minuto</strong>.</p>
+              <p style="color:#888;font-size:0.85rem">Si no intentaste iniciar sesión, ignora este email.</p>
+            </div>
+            """;
+
+        await _emailService.SendAsync(user.Email!, user.UserName!, "Código de verificación — ClientManager", html);
+        _logger.LogInformation("OTP enviado para {Email}", user.Email);
+
+        return new LoginResponseDto { RequiresMfa = true, MfaEmail = user.Email };
+    }
+
+    public async Task<TokenResponseDto> MfaVerifyAsync(MfaVerifyDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email)
+            ?? throw new UnauthorizedAccessException("Credenciales inválidas.");
+
+        var otp = await _db.EmailOtpCodes
+            .Where(o => o.UserId == user.Id && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
+            .OrderByDescending(o => o.CreatedAt)
+            .FirstOrDefaultAsync()
+            ?? throw new UnauthorizedAccessException("El código ha expirado. Inicia sesión de nuevo.");
+
+        if (otp.Attempts >= 3)
+        {
+            otp.IsUsed = true;
+            await _db.SaveChangesAsync();
+            throw new UnauthorizedAccessException("Demasiados intentos. Inicia sesión de nuevo.");
+        }
+
+        var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(dto.Code)));
+        if (otp.CodeHash != codeHash)
+        {
+            otp.Attempts++;
+            await _db.SaveChangesAsync();
+            var remaining = 3 - otp.Attempts;
+            throw new UnauthorizedAccessException(
+                remaining > 0
+                    ? $"Código incorrecto. Te quedan {remaining} intento{(remaining == 1 ? "" : "s")}."
+                    : "Demasiados intentos. Inicia sesión de nuevo.");
+        }
+
+        otp.IsUsed = true;
+        await _db.SaveChangesAsync();
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var role   = roles.FirstOrDefault() ?? string.Empty;
+
+        var accessToken  = GenerateAccessToken(user, role, out var expiresAt);
         var refreshToken = await CreateRefreshTokenAsync(user.Id);
 
-        _logger.LogInformation("Login correcto para {Email} con rol {Role}", dto.Email, role);
+        _logger.LogInformation("MFA verificado correctamente para {Email}", user.Email);
 
         return new TokenResponseDto
         {

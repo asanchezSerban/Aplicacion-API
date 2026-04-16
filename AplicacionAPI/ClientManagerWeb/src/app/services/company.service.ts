@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Company, CreateCompany, UpdateCompany, UpdateCompanyStatus, PagedResponse } from '../models/company.model';
+import { Company, CreateCompany, UpdateCompany, PagedResponse } from '../models/company.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -10,13 +10,12 @@ export class CompanyService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(page: number, pageSize: number, name?: string, status?: string): Observable<PagedResponse<Company>> {
+  getAll(page: number, pageSize: number, name?: string): Observable<PagedResponse<Company>> {
     let params = new HttpParams()
       .set('page', page)
       .set('pageSize', pageSize);
 
     if (name) params = params.set('name', name);
-    if (status) params = params.set('status', status);
 
     return this.http.get<PagedResponse<Company>>(this.apiUrl, { params });
   }
@@ -33,10 +32,6 @@ export class CompanyService {
     return this.http.put<Company>(`${this.apiUrl}/${id}`, this.toFormData(dto));
   }
 
-  updateStatus(id: number, dto: UpdateCompanyStatus): Observable<Company> {
-    return this.http.patch<Company>(`${this.apiUrl}/${id}/status`, dto);
-  }
-
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
@@ -45,7 +40,6 @@ export class CompanyService {
     const formData = new FormData();
     formData.append('name', dto.name);
     formData.append('description', dto.description);
-    formData.append('status', dto.status);
     if (dto.logo) {
       formData.append('logo', dto.logo);
     }

@@ -17,19 +17,9 @@ public class Company
     [MaxLength(500)]
     public string? LogoFileName { get; set; }
 
-    public CompanyStatus Status { get; set; }
-
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
 
     public ICollection<User> Users { get; set; } = [];
-}
-
-public enum CompanyStatus
-{
-    Active,
-    Inactive,
-    Prospect,
-    Churned
 }

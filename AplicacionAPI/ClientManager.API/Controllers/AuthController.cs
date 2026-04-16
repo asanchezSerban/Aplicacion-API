@@ -22,16 +22,30 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Autentica un usuario y devuelve un JWT de acceso y un refresh token.
+    /// Verifica credenciales y envía un OTP por email. Devuelve requiresMfa=true si las credenciales son correctas.
     /// </summary>
     [HttpPost("login")]
-    [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
         var result = await _authService.LoginAsync(dto);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Verifica el OTP recibido por email y devuelve los tokens JWT si es correcto.
+    /// </summary>
+    [HttpPost("mfa-verify")]
+    [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> MfaVerify([FromBody] MfaVerifyDto dto)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        var result = await _authService.MfaVerifyAsync(dto);
         SetRefreshTokenCookie(result.RefreshToken);
         return Ok(result);
     }

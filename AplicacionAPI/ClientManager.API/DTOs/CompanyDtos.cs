@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using ClientManager.API.Models;
 
 namespace ClientManager.API.DTOs;
 
@@ -12,8 +11,6 @@ public class CreateCompanyDto
     [Required]
     [StringLength(2000, MinimumLength = 10)]
     public string Description { get; set; } = string.Empty;
-
-    public CompanyStatus? Status { get; set; } = CompanyStatus.Prospect;
 }
 
 public class UpdateCompanyDto
@@ -25,15 +22,6 @@ public class UpdateCompanyDto
     [Required]
     [StringLength(2000, MinimumLength = 10)]
     public string Description { get; set; } = string.Empty;
-
-    [Required]
-    public CompanyStatus Status { get; set; }
-}
-
-public class UpdateCompanyStatusDto
-{
-    [Required]
-    public CompanyStatus Status { get; set; }
 }
 
 public class CompanyResponseDto
@@ -42,8 +30,6 @@ public class CompanyResponseDto
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? LogoUrl { get; set; }
-    public CompanyStatus Status { get; set; }
-    public string StatusName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

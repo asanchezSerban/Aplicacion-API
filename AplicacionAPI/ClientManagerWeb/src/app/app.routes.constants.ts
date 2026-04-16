@@ -10,4 +10,11 @@ export const ROUTES = {
   USER_NEW: '/usuarios/nuevo',
   userDetail: (id: number) => `/usuarios/${id}`,
   userEdit: (id: number) => `/usuarios/${id}/editar`,
+
+  // Auth
+  LOGIN:              '/login',
+  MFA_VERIFY:         '/mfa-verificar',
+  RECUPERAR_PASSWORD: '/recuperar-password',
+  RESET_PASSWORD:     '/reset-password',
+  PERFIL:             '/perfil',
 };

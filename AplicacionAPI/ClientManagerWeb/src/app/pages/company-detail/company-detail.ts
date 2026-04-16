@@ -1,12 +1,11 @@
 import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { Company } from '../../models/company.model';
 import { CompanyService } from '../../services/company.service';
 import { ROUTES } from '../../app.routes.constants';
@@ -15,9 +14,9 @@ import { ROUTES } from '../../app.routes.constants';
   selector: 'app-company-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    DatePipe, NgClass,
+    DatePipe,
     MatButton, MatIcon, MatProgressSpinner,
-    MatCardModule, MatChipsModule
+    MatCardModule
   ],
   templateUrl: './company-detail.html',
   styleUrl: './company-detail.scss'
@@ -41,14 +40,6 @@ export class CompanyDetailComponent implements OnInit {
           error: () => { this.isLoading.set(false); this.router.navigate([ROUTES.COMPANIES]); }
         });
     }
-  }
-
-  getStatusClass(status: string): string {
-    const map: Record<string, string> = {
-      Active: 'status-active', Inactive: 'status-inactive',
-      Prospect: 'status-prospect', Churned: 'status-churned'
-    };
-    return map[status] || '';
   }
 
   editCompany(): void {

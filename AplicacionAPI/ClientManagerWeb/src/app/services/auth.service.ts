@@ -9,11 +9,22 @@ export interface LoginDto {
   password: string;
 }
 
+export interface LoginResponse {
+  requiresMfa: boolean;
+  mfaEmail?:   string;
+  // Populated when requiresMfa = false (no MFA step — future use)
+  accessToken?:  string;
+  refreshToken?: string;
+  expiresAt?:    string;
+  userEmail?:    string;
+  role?:         string;
+}
+
 export interface TokenResponse {
   accessToken: string;
-  expiresAt: string;
-  userEmail: string;
-  role: string;
+  expiresAt:   string;
+  userEmail:   string;
+  role:        string;
 }
 
 interface JwtPayload {
@@ -46,9 +57,16 @@ export class AuthService {
   readonly userRole  = computed(() => this.decodeToken(this._token())?.role     ?? null);
   readonly clientId  = computed(() => this.decodeToken(this._token())?.clientId ?? null);
 
-  async login(dto: LoginDto): Promise<void> {
+  async login(dto: LoginDto): Promise<LoginResponse> {
     const res = await firstValueFrom(
-      this.http.post<TokenResponse>(`${this.apiUrl}/login`, dto, { withCredentials: true })
+      this.http.post<LoginResponse>(`${this.apiUrl}/login`, dto, { withCredentials: true })
+    );
+    return res;
+  }
+
+  async mfaVerify(email: string, code: string): Promise<void> {
+    const res = await firstValueFrom(
+      this.http.post<TokenResponse>(`${this.apiUrl}/mfa-verify`, { email, code }, { withCredentials: true })
     );
     this.setToken(res.accessToken);
     this.router.navigate([res.role === 'SuperAdmin' ? '/empresas' : '/perfil']);
@@ -108,7 +126,10 @@ export class AuthService {
     if (!token) return null;
     try {
       const payload = token.split('.')[1];
-      return JSON.parse(atob(payload)) as JwtPayload;
+      // JWT usa base64url: reemplazar -_ por +/ y añadir padding = que base64url omite
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded  = base64 + '='.repeat((4 - base64.length % 4) % 4);
+      return JSON.parse(atob(padded)) as JwtPayload;
     } catch {
       return null;
     }

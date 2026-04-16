@@ -1,14 +1,13 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
-import { ChangeDetectionStrategy } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
+import { ROUTES } from '../../app.routes.constants';
 
 @Component({
   selector: 'app-login',
@@ -164,6 +163,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LoginComponent {
   private readonly authService = inject(AuthService);
+  private readonly router      = inject(Router);
 
   email    = '';
   password = '';
@@ -179,7 +179,11 @@ export class LoginComponent {
     this.errorMessage.set(null);
 
     try {
-      await this.authService.login({ email: this.email, password: this.password });
+      const result = await this.authService.login({ email: this.email, password: this.password });
+      if (result.requiresMfa) {
+        sessionStorage.setItem('mfa_sent_at', Date.now().toString());
+        this.router.navigate([ROUTES.MFA_VERIFY], { queryParams: { email: result.mfaEmail } });
+      }
     } catch (err: any) {
       const status = err?.status;
       const msg =

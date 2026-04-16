@@ -1,0 +1,75 @@
+<div class="page-wrapper">
+  <div class="card">
+
+    <div class="card-header">
+      <div class="logo">CM</div>
+      <h1>Verificación en dos pasos</h1>
+      <p>Hemos enviado un código de 6 dígitos a <strong>{{ email }}</strong></p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()">
+
+      <div class="digits-row" (paste)="onPaste($event)">
+        <input #d0 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+               [class.error]="errorMessage()" autocomplete="one-time-code"
+               (input)="onDigitInput(0, $event)" (keydown)="onKeyDown(0, $event)">
+        <input #d1 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+               [class.error]="errorMessage()"
+               (input)="onDigitInput(1, $event)" (keydown)="onKeyDown(1, $event)">
+        <input #d2 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+               [class.error]="errorMessage()"
+               (input)="onDigitInput(2, $event)" (keydown)="onKeyDown(2, $event)">
+        <input #d3 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+               [class.error]="errorMessage()"
+               (input)="onDigitInput(3, $event)" (keydown)="onKeyDown(3, $event)">
+        <input #d4 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+               [class.error]="errorMessage()"
+               (input)="onDigitInput(4, $event)" (keydown)="onKeyDown(4, $event)">
+        <input #d5 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+               [class.error]="errorMessage()"
+               (input)="onDigitInput(5, $event)" (keydown)="onKeyDown(5, $event)">
+      </div>
+
+      @if (errorMessage()) {
+        <div class="error-box">
+          <mat-icon>error_outline</mat-icon>
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <div class="timer">
+        <mat-icon>schedule</mat-icon>
+        <span>El código expira en <strong>{{ timeDisplay() }}</strong></span>
+      </div>
+
+      @if (timeLeft() === 0) {
+        <div class="expired-box">
+          <mat-icon>timer_off</mat-icon>
+          El código ha expirado. Vuelve a iniciar sesión.
+        </div>
+        <button mat-flat-button type="button" (click)="goBack()" class="btn-full">
+          Volver al login
+        </button>
+      } @else {
+        <button mat-flat-button type="submit"
+                [disabled]="!codeComplete() || loading()"
+                class="btn-full">
+          @if (loading()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Verificar código
+          }
+        </button>
+      }
+
+    </form>
+
+    <div class="footer-links">
+      <button mat-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Volver al login
+      </button>
+    </div>
+
+  </div>
+</div>

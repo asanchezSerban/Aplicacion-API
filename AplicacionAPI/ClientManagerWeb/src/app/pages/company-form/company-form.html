@@ -14,13 +14,13 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Nombre</mat-label>
             <input matInput formControlName="name" placeholder="Nombre de la empresa">
-            @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+            @if (name.hasError('required') && name.touched) {
               <mat-error>El nombre es obligatorio</mat-error>
             }
-            @if (form.get('name')?.hasError('minlength')) {
+            @if (name.hasError('minlength')) {
               <mat-error>Mínimo 2 caracteres</mat-error>
             }
-            @if (form.get('name')?.hasError('maxlength')) {
+            @if (name.hasError('maxlength')) {
               <mat-error>Máximo 200 caracteres</mat-error>
             }
           </mat-form-field>
@@ -28,24 +28,15 @@
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Descripción</mat-label>
             <textarea matInput formControlName="description" rows="4" placeholder="Descripción de la empresa"></textarea>
-            @if (form.get('description')?.hasError('required') && form.get('description')?.touched) {
+            @if (description.hasError('required') && description.touched) {
               <mat-error>La descripción es obligatoria</mat-error>
             }
-            @if (form.get('description')?.hasError('minlength')) {
+            @if (description.hasError('minlength')) {
               <mat-error>Mínimo 10 caracteres</mat-error>
             }
-            @if (form.get('description')?.hasError('maxlength')) {
+            @if (description.hasError('maxlength')) {
               <mat-error>Máximo 2000 caracteres</mat-error>
             }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Estado</mat-label>
-            <mat-select formControlName="status">
-              @for (status of statuses; track status) {
-                <mat-option [value]="status">{{ status }}</mat-option>
-              }
-            </mat-select>
           </mat-form-field>
 
           <div class="file-upload">

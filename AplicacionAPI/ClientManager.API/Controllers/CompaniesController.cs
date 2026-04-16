@@ -26,12 +26,11 @@ public class CompaniesController : ControllerBase
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string? name = null,
-        [FromQuery] string? status = null)
+        [FromQuery] string? name = null)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
-        var result = await _companyService.GetAllAsync(page, pageSize, name, status);
+        var result = await _companyService.GetAllAsync(page, pageSize, name);
         return Ok(result);
     }
 
@@ -73,20 +72,6 @@ public class CompaniesController : ControllerBase
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
         var result = await _companyService.UpdateAsync(id, dto, logo);
-        return Ok(result);
-    }
-
-    /// <summary>
-    /// Actualiza únicamente el estado de una empresa.
-    /// </summary>
-    [HttpPatch("{id:int}/status")]
-    [ProducesResponseType(typeof(CompanyResponseDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateCompanyStatusDto dto)
-    {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        var result = await _companyService.UpdateStatusAsync(id, dto);
         return Ok(result);
     }
 

@@ -63,11 +63,16 @@ export class UserFormComponent implements OnInit {
 
   allPasswordValid = computed(() => this.passwordRules().every(r => r.ok));
 
+  get name()      { return this.form.controls['name']; }
+  get email()     { return this.form.controls['email']; }
+  get companyId() { return this.form.controls['companyId']; }
+  get password()  { return this.form.controls['password']; }
+
   ngOnInit(): void {
-    this.form = this.fb.group({
+    this.form = this.fb.nonNullable.group({
       name:      ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
       email:     ['', [Validators.required, Validators.email, Validators.maxLength(200)]],
-      companyId: [null, Validators.required],
+      companyId: [null as unknown as number, Validators.required],
       password:  ['', Validators.required]
     });
 
@@ -115,7 +120,7 @@ export class UserFormComponent implements OnInit {
     if (!this.isEditMode && !this.allPasswordValid()) return;
 
     this.isLoading.set(true);
-    const dto = this.form.value;
+    const dto = this.form.getRawValue();
 
     const operation = this.isEditMode
       ? this.userService.update(this.userId, { name: dto.name, email: dto.email, companyId: dto.companyId })
