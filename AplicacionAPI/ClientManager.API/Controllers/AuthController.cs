@@ -14,11 +14,13 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly IEmailService _emailService;
+    private readonly string _frontendBaseUrl;
 
-    public AuthController(IAuthService authService, IEmailService emailService)
+    public AuthController(IAuthService authService, IEmailService emailService, IConfiguration configuration)
     {
-        _authService  = authService;
-        _emailService = emailService;
+        _authService     = authService;
+        _emailService    = emailService;
+        _frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "http://localhost:4200";
     }
 
     /// <summary>
@@ -56,10 +58,9 @@ public class AuthController : ControllerBase
     [HttpPost("refresh")]
     [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto? dto = null)
+    public async Task<IActionResult> Refresh()
     {
-        // DEV ONLY: acepta token por body si no viene en cookie
-        var refreshToken = Request.Cookies["refreshToken"] ?? dto?.RefreshToken;
+        var refreshToken = Request.Cookies["refreshToken"];
         if (string.IsNullOrEmpty(refreshToken))
             return Unauthorized("Refresh token no encontrado.");
 
@@ -93,8 +94,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        var frontendBaseUrl = Request.Headers["Origin"].FirstOrDefault() ?? "http://localhost:4200";
-        await _authService.ForgotPasswordAsync(dto, frontendBaseUrl);
+        await _authService.ForgotPasswordAsync(dto, _frontendBaseUrl);
         return Ok(new { message = "Si el email existe, recibirás un enlace de recuperación." });
     }
 

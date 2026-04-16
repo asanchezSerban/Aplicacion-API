@@ -9,6 +9,15 @@ obj/
 
 # User Secrets (nunca al repo)
 secrets.json
+appsettings.Development.json
+
+# Credenciales y claves (nunca al repo)
+**/cuenta*.txt
+**/*.pfx
+**/*.pem
+**/*.key
+.env
+.env.*
 
 # Angular / Node
 node_modules/
