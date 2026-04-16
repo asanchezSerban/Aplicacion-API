@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ClientManager.API.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260416141555_Phase9_AddTotpToApplicationUser")]
+    [Migration("20260416153910_Phase9_AddTotpToApplicationUser")]
     partial class Phase9_AddTotpToApplicationUser
     {
         /// <inheritdoc />
@@ -71,6 +71,12 @@ namespace ClientManager.API.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TotpEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TotpSecret")
                         .HasColumnType("text");
 
                     b.Property<bool>("TwoFactorEnabled")
