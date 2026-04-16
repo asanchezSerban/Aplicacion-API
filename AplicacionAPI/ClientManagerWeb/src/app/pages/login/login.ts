@@ -181,8 +181,12 @@ export class LoginComponent {
     try {
       const result = await this.authService.login({ email: this.email, password: this.password });
       if (result.requiresMfa) {
-        sessionStorage.setItem('mfa_sent_at', Date.now().toString());
-        this.router.navigate([ROUTES.MFA_VERIFY], { queryParams: { email: result.mfaEmail } });
+        const queryParams: Record<string, string> = { email: result.mfaEmail ?? '' };
+        if (result.mfaType === 'email') {
+          sessionStorage.setItem('mfa_sent_at', Date.now().toString());
+        }
+        if (result.mfaType) queryParams['mfaType'] = result.mfaType;
+        this.router.navigate([ROUTES.MFA_VERIFY], { queryParams });
       }
     } catch (err: any) {
       const status = err?.status;

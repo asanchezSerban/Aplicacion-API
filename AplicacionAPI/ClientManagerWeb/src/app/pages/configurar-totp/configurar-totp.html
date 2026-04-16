@@ -1,0 +1,123 @@
+<div class="page-wrapper">
+  <div class="card">
+
+    <div class="card-header">
+      <div class="logo">CM</div>
+      <h1>Autenticación en dos pasos</h1>
+      <p>Configura Google Authenticator u otra app TOTP para tu cuenta de administrador.</p>
+    </div>
+
+    @if (loading()) {
+      <div class="spinner-center">
+        <mat-spinner diameter="40" />
+      </div>
+    } @else {
+
+      @if (success()) {
+        <div class="success-box">
+          <mat-icon>check_circle</mat-icon>
+          {{ success() }}
+        </div>
+      }
+
+      @if (error()) {
+        <div class="error-box">
+          <mat-icon>error_outline</mat-icon>
+          {{ error() }}
+        </div>
+      }
+
+      @if (totpEnabled() && !setup()) {
+        <!-- Estado: TOTP activo -->
+        <div class="status-active">
+          <mat-icon class="status-icon">verified_user</mat-icon>
+          <div>
+            <strong>2FA activo</strong>
+            <span>Tu cuenta está protegida con Google Authenticator.</span>
+          </div>
+        </div>
+
+        <button mat-stroked-button color="warn" class="btn-full"
+                [disabled]="disabling()"
+                (click)="disable()">
+          @if (disabling()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            <mat-icon>no_encryption</mat-icon>
+            Desactivar 2FA
+          }
+        </button>
+
+      } @else if (!setup()) {
+        <!-- Estado: TOTP no activo -->
+        <div class="status-inactive">
+          <mat-icon class="status-icon">lock_open</mat-icon>
+          <div>
+            <strong>2FA no activado</strong>
+            <span>Actívalo para proteger tu cuenta con un segundo factor.</span>
+          </div>
+        </div>
+
+        <button mat-flat-button class="btn-full" (click)="startSetup()">
+          <mat-icon>qr_code_scanner</mat-icon>
+          Activar autenticación en dos pasos
+        </button>
+
+      } @else {
+        <!-- Estado: setup en curso — mostrar QR -->
+        <div class="setup-steps">
+
+          <div class="step">
+            <div class="step-num">1</div>
+            <span>Abre Google Authenticator (u otra app TOTP) y escanea el código QR.</span>
+          </div>
+
+          @if (qrDataUrl()) {
+            <div class="qr-container">
+              <img [src]="qrDataUrl()" alt="Código QR para Google Authenticator" width="220" height="220">
+            </div>
+          }
+
+          <div class="secret-manual">
+            <span class="secret-label">¿No puedes escanear? Introduce esta clave manualmente:</span>
+            <code class="secret-code">{{ setup()!.secret }}</code>
+          </div>
+
+          <div class="step">
+            <div class="step-num">2</div>
+            <span>Introduce el código de 6 dígitos que muestra la app para confirmar.</span>
+          </div>
+
+          <div class="digits-row">
+            <input class="confirm-input" type="text" inputmode="numeric"
+                   maxlength="6" placeholder="000000"
+                   [(ngModel)]="confirmCode"
+                   [class.error]="error()"
+                   autocomplete="one-time-code">
+          </div>
+
+          <button mat-flat-button class="btn-full"
+                  [disabled]="confirmCode.length !== 6 || confirming()"
+                  (click)="confirmSetup()">
+            @if (confirming()) {
+              <mat-spinner diameter="20" />
+            } @else {
+              <mat-icon>check</mat-icon>
+              Confirmar y activar
+            }
+          </button>
+
+        </div>
+      }
+
+    }
+
+    <div class="footer-links">
+      <button mat-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        Volver
+      </button>
+    </div>
+
+  </div>
+</div>

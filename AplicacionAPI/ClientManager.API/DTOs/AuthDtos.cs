@@ -47,6 +47,7 @@ public class LoginResponseDto
 
     // Solo cuando RequiresMfa = true
     public string? MfaEmail { get; set; }
+    public string? MfaType  { get; set; }  // "email" | "totp"
 
     // Solo cuando RequiresMfa = false
     public string? AccessToken  { get; set; }
@@ -54,6 +55,24 @@ public class LoginResponseDto
     public DateTime ExpiresAt   { get; set; }
     public string? UserEmail    { get; set; }
     public string? Role         { get; set; }
+}
+
+public class TotpSetupResponseDto
+{
+    public string QrUri  { get; set; } = string.Empty;  // otpauth:// URI para el QR
+    public string Secret { get; set; } = string.Empty;  // Base32, para entrada manual
+}
+
+public class TotpConfirmDto
+{
+    [Required]
+    [StringLength(6, MinimumLength = 6)]
+    public string Code { get; set; } = string.Empty;
+}
+
+public class TotpStatusDto
+{
+    public bool Enabled { get; set; }
 }
 
 public class MfaVerifyDto

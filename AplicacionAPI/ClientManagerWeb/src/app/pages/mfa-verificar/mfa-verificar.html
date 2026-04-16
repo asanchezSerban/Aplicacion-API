@@ -4,7 +4,11 @@
     <div class="card-header">
       <div class="logo">CM</div>
       <h1>Verificación en dos pasos</h1>
-      <p>Hemos enviado un código de 6 dígitos a <strong>{{ email }}</strong></p>
+      @if (mfaType() === 'totp') {
+        <p>Abre tu app de autenticación y escribe el código de 6 dígitos.</p>
+      } @else {
+        <p>Hemos enviado un código de 6 dígitos a <strong>{{ email }}</strong></p>
+      }
     </div>
 
     <form (ngSubmit)="onSubmit()">
@@ -37,12 +41,14 @@
         </div>
       }
 
-      <div class="timer">
-        <mat-icon>schedule</mat-icon>
-        <span>El código expira en <strong>{{ timeDisplay() }}</strong></span>
-      </div>
+      @if (mfaType() === 'email') {
+        <div class="timer">
+          <mat-icon>schedule</mat-icon>
+          <span>El código expira en <strong>{{ timeDisplay() }}</strong></span>
+        </div>
+      }
 
-      @if (timeLeft() === 0) {
+      @if (mfaType() === 'email' && timeLeft() === 0) {
         <div class="expired-box">
           <mat-icon>timer_off</mat-icon>
           El código ha expirado. Vuelve a iniciar sesión.

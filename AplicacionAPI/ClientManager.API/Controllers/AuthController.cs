@@ -111,6 +111,58 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Contraseña restablecida correctamente." });
     }
 
+    // ── TOTP (Google Authenticator) — solo SuperAdmin ────────────────────────
+
+    /// <summary>Estado actual del TOTP del usuario autenticado.</summary>
+    [HttpGet("totp/status")]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(typeof(TotpStatusDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> TotpStatus()
+    {
+        var userId = User.FindFirst("sub")?.Value;
+        if (userId is null) return Unauthorized();
+        var result = await _authService.TotpStatusAsync(userId);
+        return Ok(result);
+    }
+
+    /// <summary>Genera una semilla TOTP y devuelve el QR URI para escanear con la app.</summary>
+    [HttpGet("totp/setup")]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(typeof(TotpSetupResponseDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> TotpSetup()
+    {
+        var userId = User.FindFirst("sub")?.Value;
+        if (userId is null) return Unauthorized();
+        var result = await _authService.TotpSetupAsync(userId);
+        return Ok(result);
+    }
+
+    /// <summary>Confirma el setup verificando el primer código de la app. Activa TOTP.</summary>
+    [HttpPost("totp/confirm")]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> TotpConfirm([FromBody] TotpConfirmDto dto)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        var userId = User.FindFirst("sub")?.Value;
+        if (userId is null) return Unauthorized();
+        await _authService.TotpConfirmAsync(userId, dto.Code);
+        return Ok(new { message = "Autenticación en dos pasos activada correctamente." });
+    }
+
+    /// <summary>Desactiva TOTP y elimina la semilla del usuario.</summary>
+    [HttpPost("totp/disable")]
+    [Authorize(Roles = "SuperAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> TotpDisable()
+    {
+        var userId = User.FindFirst("sub")?.Value;
+        if (userId is null) return Unauthorized();
+        await _authService.TotpDisableAsync(userId);
+        return Ok(new { message = "Autenticación en dos pasos desactivada." });
+    }
+
     // ── Helper ───────────────────────────────────────────────────────────────
 
     private void SetRefreshTokenCookie(string token)

@@ -17,4 +17,5 @@ export const ROUTES = {
   RECUPERAR_PASSWORD: '/recuperar-password',
   RESET_PASSWORD:     '/reset-password',
   PERFIL:             '/perfil',
+  CONFIGURAR_TOTP:    '/configurar-totp',
 };

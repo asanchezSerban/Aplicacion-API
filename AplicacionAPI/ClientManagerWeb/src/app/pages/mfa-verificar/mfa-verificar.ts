@@ -37,6 +37,7 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
   loading      = signal(false);
   errorMessage = signal<string | null>(null);
   codeComplete = signal(false);
+  mfaType      = signal<'email' | 'totp'>('email');
   private static readonly OTP_TTL = 60; // segundos, debe coincidir con el backend
   timeLeft = signal(MfaVerificarComponent.OTP_TTL);
 
@@ -56,11 +57,16 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const sentAt  = parseInt(sessionStorage.getItem('mfa_sent_at') ?? '0', 10);
-    const elapsed = sentAt ? Math.floor((Date.now() - sentAt) / 1000) : 0;
-    this.timeLeft.set(Math.max(0, MfaVerificarComponent.OTP_TTL - elapsed));
+    const type = this.route.snapshot.queryParamMap.get('mfaType');
+    this.mfaType.set(type === 'totp' ? 'totp' : 'email');
 
-    this.startTimer();
+    // El timer solo aplica al flujo de Email OTP
+    if (this.mfaType() === 'email') {
+      const sentAt  = parseInt(sessionStorage.getItem('mfa_sent_at') ?? '0', 10);
+      const elapsed = sentAt ? Math.floor((Date.now() - sentAt) / 1000) : 0;
+      this.timeLeft.set(Math.max(0, MfaVerificarComponent.OTP_TTL - elapsed));
+      this.startTimer();
+    }
   }
 
   ngAfterViewInit(): void {

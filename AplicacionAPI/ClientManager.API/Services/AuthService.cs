@@ -8,6 +8,7 @@ using ClientManager.API.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OtpNet;
 
 namespace ClientManager.API.Services;
 
@@ -54,6 +55,13 @@ public class AuthService : IAuthService
 
         await _userManager.ResetAccessFailedCountAsync(user);
 
+        // Si es SuperAdmin con TOTP activo, no enviamos email — el código lo genera la app
+        var isSuperAdmin = (await _userManager.GetRolesAsync(user)).Contains("SuperAdmin");
+        if (isSuperAdmin && user.TotpEnabled)
+        {
+            return new LoginResponseDto { RequiresMfa = true, MfaEmail = user.Email, MfaType = "totp" };
+        }
+
         // Invalidar OTPs anteriores activos del mismo usuario
         var previousOtps = await _db.EmailOtpCodes
             .Where(o => o.UserId == user.Id && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
@@ -95,7 +103,7 @@ public class AuthService : IAuthService
         await _emailService.SendAsync(user.Email!, user.UserName!, "Código de verificación — ClientManager", html);
         _logger.LogInformation("OTP enviado para {Email}", user.Email);
 
-        return new LoginResponseDto { RequiresMfa = true, MfaEmail = user.Email };
+        return new LoginResponseDto { RequiresMfa = true, MfaEmail = user.Email, MfaType = "email" };
     }
 
     public async Task<TokenResponseDto> MfaVerifyAsync(MfaVerifyDto dto)
@@ -103,41 +111,57 @@ public class AuthService : IAuthService
         var user = await _userManager.FindByEmailAsync(dto.Email)
             ?? throw new UnauthorizedAccessException("Credenciales inválidas.");
 
-        var otp = await _db.EmailOtpCodes
-            .Where(o => o.UserId == user.Id && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
-            .OrderByDescending(o => o.CreatedAt)
-            .FirstOrDefaultAsync()
-            ?? throw new UnauthorizedAccessException("El código ha expirado. Inicia sesión de nuevo.");
-
-        if (otp.Attempts >= 3)
+        if (user.TotpEnabled)
         {
+            // ── Verificación TOTP (Google Authenticator) ─────────────────────
+            if (string.IsNullOrEmpty(user.TotpSecret))
+                throw new UnauthorizedAccessException("TOTP no configurado correctamente.");
+
+            var totp  = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
+            var valid = totp.VerifyTotp(DateTime.UtcNow, dto.Code, out _, VerificationWindow.RfcSpecifiedNetworkDelay);
+            if (!valid)
+                throw new UnauthorizedAccessException("Código incorrecto. Verifica que tu app esté sincronizada.");
+        }
+        else
+        {
+            // ── Verificación Email OTP ────────────────────────────────────────
+            var otp = await _db.EmailOtpCodes
+                .Where(o => o.UserId == user.Id && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
+                .OrderByDescending(o => o.CreatedAt)
+                .FirstOrDefaultAsync()
+                ?? throw new UnauthorizedAccessException("El código ha expirado. Inicia sesión de nuevo.");
+
+            if (otp.Attempts >= 3)
+            {
+                otp.IsUsed = true;
+                await _db.SaveChangesAsync();
+                throw new UnauthorizedAccessException("Demasiados intentos. Inicia sesión de nuevo.");
+            }
+
+            var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(dto.Code)));
+            if (otp.CodeHash != codeHash)
+            {
+                otp.Attempts++;
+                await _db.SaveChangesAsync();
+                var remaining = 3 - otp.Attempts;
+                throw new UnauthorizedAccessException(
+                    remaining > 0
+                        ? $"Código incorrecto. Te quedan {remaining} intento{(remaining == 1 ? "" : "s")}."
+                        : "Demasiados intentos. Inicia sesión de nuevo.");
+            }
+
             otp.IsUsed = true;
             await _db.SaveChangesAsync();
-            throw new UnauthorizedAccessException("Demasiados intentos. Inicia sesión de nuevo.");
         }
-
-        var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(dto.Code)));
-        if (otp.CodeHash != codeHash)
-        {
-            otp.Attempts++;
-            await _db.SaveChangesAsync();
-            var remaining = 3 - otp.Attempts;
-            throw new UnauthorizedAccessException(
-                remaining > 0
-                    ? $"Código incorrecto. Te quedan {remaining} intento{(remaining == 1 ? "" : "s")}."
-                    : "Demasiados intentos. Inicia sesión de nuevo.");
-        }
-
-        otp.IsUsed = true;
-        await _db.SaveChangesAsync();
 
         var roles = await _userManager.GetRolesAsync(user);
-        var role   = roles.FirstOrDefault() ?? string.Empty;
+        var role  = roles.FirstOrDefault() ?? string.Empty;
 
         var accessToken  = GenerateAccessToken(user, role, out var expiresAt);
         var refreshToken = await CreateRefreshTokenAsync(user.Id);
 
-        _logger.LogInformation("MFA verificado correctamente para {Email}", user.Email);
+        _logger.LogInformation("{MfaType} verificado correctamente para {Email}",
+            user.TotpEnabled ? "TOTP" : "Email OTP", user.Email);
 
         return new TokenResponseDto
         {
@@ -147,6 +171,68 @@ public class AuthService : IAuthService
             UserEmail    = user.Email!,
             Role         = role
         };
+    }
+
+    // ── TOTP ─────────────────────────────────────────────────────────────────
+
+    public async Task<TotpStatusDto> TotpStatusAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new KeyNotFoundException("Usuario no encontrado.");
+        return new TotpStatusDto { Enabled = user.TotpEnabled };
+    }
+
+    public async Task<TotpSetupResponseDto> TotpSetupAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new KeyNotFoundException("Usuario no encontrado.");
+
+        // Generar semilla aleatoria de 160 bits (estándar TOTP)
+        var secretBytes = KeyGeneration.GenerateRandomKey(20);
+        var secret      = Base32Encoding.ToString(secretBytes);
+
+        // Guardar la semilla (aún no activada — TotpEnabled sigue false hasta confirmar)
+        user.TotpSecret = secret;
+        await _userManager.UpdateAsync(user);
+
+        var label  = Uri.EscapeDataString(user.Email!);
+        var issuer = Uri.EscapeDataString("ClientManager");
+        var qrUri  = $"otpauth://totp/{issuer}:{label}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30";
+
+        _logger.LogInformation("TOTP setup iniciado para {Email}", user.Email);
+
+        return new TotpSetupResponseDto { QrUri = qrUri, Secret = secret };
+    }
+
+    public async Task TotpConfirmAsync(string userId, string code)
+    {
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new KeyNotFoundException("Usuario no encontrado.");
+
+        if (string.IsNullOrEmpty(user.TotpSecret))
+            throw new InvalidOperationException("Inicia el setup de TOTP antes de confirmar.");
+
+        var totp  = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
+        var valid = totp.VerifyTotp(DateTime.UtcNow, code, out _, VerificationWindow.RfcSpecifiedNetworkDelay);
+        if (!valid)
+            throw new ArgumentException("Código incorrecto. Asegúrate de haber escaneado el QR y de que la hora del dispositivo sea correcta.");
+
+        user.TotpEnabled = true;
+        await _userManager.UpdateAsync(user);
+
+        _logger.LogInformation("TOTP activado para {Email}", user.Email);
+    }
+
+    public async Task TotpDisableAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId)
+            ?? throw new KeyNotFoundException("Usuario no encontrado.");
+
+        user.TotpEnabled = false;
+        user.TotpSecret  = null;
+        await _userManager.UpdateAsync(user);
+
+        _logger.LogInformation("TOTP desactivado para {Email}", user.Email);
     }
 
     public async Task<TokenResponseDto> RefreshAsync(string refreshToken)

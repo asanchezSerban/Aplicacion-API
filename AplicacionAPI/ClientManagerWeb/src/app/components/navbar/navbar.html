@@ -15,6 +15,10 @@
       <mat-icon>people</mat-icon>
       Usuarios
     </button>
+    <button mat-button (click)="navigateToTotp()" matTooltip="Configurar autenticación en dos pasos">
+      <mat-icon>security</mat-icon>
+      2FA
+    </button>
   }
 
   @if (authService.isLoggedIn()) {

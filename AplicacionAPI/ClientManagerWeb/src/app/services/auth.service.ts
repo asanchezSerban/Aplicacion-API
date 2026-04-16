@@ -12,12 +12,22 @@ export interface LoginDto {
 export interface LoginResponse {
   requiresMfa: boolean;
   mfaEmail?:   string;
+  mfaType?:    'email' | 'totp';
   // Populated when requiresMfa = false (no MFA step — future use)
   accessToken?:  string;
   refreshToken?: string;
   expiresAt?:    string;
   userEmail?:    string;
   role?:         string;
+}
+
+export interface TotpSetupResponse {
+  qrUri:  string;
+  secret: string;
+}
+
+export interface TotpStatus {
+  enabled: boolean;
 }
 
 export interface TokenResponse {
@@ -105,6 +115,32 @@ export class AuthService {
   async resetPassword(email: string, token: string, newPassword: string): Promise<void> {
     await firstValueFrom(
       this.http.post<void>(`${this.apiUrl}/reset-password`, { email, token, newPassword })
+    );
+  }
+
+  // ── TOTP ──────────────────────────────────────────────────────────────────
+
+  async totpStatus(): Promise<TotpStatus> {
+    return firstValueFrom(
+      this.http.get<TotpStatus>(`${this.apiUrl}/totp/status`, { withCredentials: true })
+    );
+  }
+
+  async totpSetup(): Promise<TotpSetupResponse> {
+    return firstValueFrom(
+      this.http.get<TotpSetupResponse>(`${this.apiUrl}/totp/setup`, { withCredentials: true })
+    );
+  }
+
+  async totpConfirm(code: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.apiUrl}/totp/confirm`, { code }, { withCredentials: true })
+    );
+  }
+
+  async totpDisable(): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.apiUrl}/totp/disable`, {}, { withCredentials: true })
     );
   }
 

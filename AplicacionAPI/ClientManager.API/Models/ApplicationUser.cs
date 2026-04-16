@@ -12,4 +12,8 @@ public class ApplicationUser : IdentityUser
     public User? User { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // TOTP (Google Authenticator) — solo SuperAdmin
+    public string? TotpSecret  { get; set; }
+    public bool    TotpEnabled { get; set; }
 }
