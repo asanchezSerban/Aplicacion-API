@@ -39,8 +39,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // ── JWT Authentication ────────────────────────────────────────────────────────
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
     ?? throw new InvalidOperationException("Jwt:SecretKey es obligatorio. Configúralo en User Secrets.");
-var jwtIssuer   = builder.Configuration["Jwt:Issuer"]   ?? "ClientManagerAPI";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "ClientManagerApp";
+var jwtIssuer   = builder.Configuration["Jwt:Issuer"]
+    ?? throw new InvalidOperationException("Jwt:Issuer es obligatorio. Configúralo en appsettings.json.");
+var jwtAudience = builder.Configuration["Jwt:Audience"]
+    ?? throw new InvalidOperationException("Jwt:Audience es obligatorio. Configúralo en appsettings.json.");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -130,11 +132,15 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? throw new InvalidOperationException(
+        "Cors:AllowedOrigins es obligatorio. Configúralo en appsettings.json o por entorno.");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(corsOrigins)
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();

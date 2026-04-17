@@ -55,6 +55,8 @@ export class UserFormComponent implements OnInit {
   userId!: number;
   showPassword = signal(false);
 
+  private returnCompanyId: number | null = null;
+
   private readonly _password = signal('');
 
   passwordRules = computed(() =>
@@ -75,6 +77,9 @@ export class UserFormComponent implements OnInit {
       companyId: [null as unknown as number, Validators.required],
       password:  ['', Validators.required]
     });
+
+    const companyParam = this.route.snapshot.queryParamMap.get('companyId');
+    this.returnCompanyId = companyParam ? +companyParam : null;
 
     this.loadCompanies();
 
@@ -110,7 +115,7 @@ export class UserFormComponent implements OnInit {
         error: () => {
           this.showSnackBar('Error al cargar el usuario', true);
           this.isLoading.set(false);
-          this.router.navigate([ROUTES.USERS]);
+          this.goBack();
         }
       });
   }
@@ -131,7 +136,7 @@ export class UserFormComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showSnackBar(this.isEditMode ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente');
-          this.router.navigate([ROUTES.USERS]);
+          this.goBack();
         },
         error: (err: any) => {
           const msg = err?.error?.error ?? 'Error al guardar el usuario';
@@ -141,7 +146,15 @@ export class UserFormComponent implements OnInit {
       });
   }
 
-  cancel(): void { this.router.navigate([ROUTES.USERS]); }
+  cancel(): void { this.goBack(); }
+
+  private goBack(): void {
+    if (this.returnCompanyId) {
+      this.router.navigate([ROUTES.companyDetail(this.returnCompanyId)]);
+    } else {
+      this.router.navigate([ROUTES.USERS]);
+    }
+  }
 
   private showSnackBar(message: string, isError = false): void {
     this.snackBar.open(message, 'Cerrar', {

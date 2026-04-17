@@ -46,9 +46,11 @@ public class AuthController : ControllerBase
 
     /// <summary>
     /// Devuelve la identidad del usuario autenticado por cookie (para inicialización del cliente).
+    /// No está sujeto a rate limiting — es una lectura sin efecto secundario.
     /// </summary>
     [HttpGet("me")]
     [Authorize]
+    [DisableRateLimiting]
     [ProducesResponseType(typeof(IdentityDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public IActionResult Me()

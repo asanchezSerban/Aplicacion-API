@@ -45,5 +45,41 @@
         </div>
       </mat-card-content>
     </mat-card>
+
+    <div class="users-section">
+      <div class="users-header">
+        <h2>Usuarios</h2>
+        <button mat-raised-button color="primary" (click)="newUser()">
+          <mat-icon>person_add</mat-icon>
+          Nuevo usuario
+        </button>
+      </div>
+
+      @if (usersLoading()) {
+        <div class="spinner-container">
+          <mat-spinner diameter="36"></mat-spinner>
+        </div>
+      } @else if (users().length === 0) {
+        <div class="users-empty">
+          <mat-icon>group_off</mat-icon>
+          <span>Esta empresa no tiene usuarios asignados</span>
+        </div>
+      } @else {
+        <div class="users-list">
+          @for (user of users(); track user.id) {
+            <div class="user-row">
+              <div class="user-avatar">{{ user.name[0].toUpperCase() }}</div>
+              <div class="user-info">
+                <span class="user-name">{{ user.name }}</span>
+                <span class="user-email">{{ user.email }}</span>
+              </div>
+              <button mat-icon-button matTooltip="Editar usuario" (click)="editUser(user.id)">
+                <mat-icon>edit</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
   }
 </div>

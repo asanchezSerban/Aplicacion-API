@@ -57,6 +57,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 function isAuthEndpoint(url: string): boolean {
   return url.includes('/auth/login')
       || url.includes('/auth/refresh')
+      || url.includes('/auth/me')           // fallo en init → no reintentar
       || url.includes('/auth/mfa-verify')
       || url.includes('/auth/forgot-password')
       || url.includes('/auth/reset-password');
