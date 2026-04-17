@@ -64,7 +64,11 @@ public class UserService : IUserService
 
         var email = dto.Email.Trim().ToLowerInvariant();
 
-        // Crear la entidad de negocio
+        // Abrir transacción: si no se llama CommitAsync, el await using la revierte
+        // automáticamente al salir del bloque, sin importar la causa del fallo.
+        await using var tx = await _db.Database.BeginTransactionAsync();
+
+        // Paso 1 — crear la entidad de negocio
         var user = new User
         {
             Name      = dto.Name.Trim(),
@@ -75,25 +79,22 @@ public class UserService : IUserService
         };
 
         _db.CompanyUsers.Add(user);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(); // dentro de la transacción — aún no confirmado en BD
 
-        // Crear la cuenta de acceso (ApplicationUser) vinculada
+        // Paso 2 — crear la cuenta de acceso vinculada al User recién creado
         var appUser = new ApplicationUser
         {
             UserName       = email,
             Email          = email,
             EmailConfirmed = true,
-            UserId         = user.Id,
+            UserId         = user.Id,  // disponible porque SaveChanges generó el ID
             CreatedAt      = DateTime.UtcNow
         };
 
         var result = await _userManager.CreateAsync(appUser, dto.Password);
         if (!result.Succeeded)
         {
-            // Revertir la creación del usuario de negocio si falla la cuenta
-            _db.CompanyUsers.Remove(user);
-            await _db.SaveChangesAsync();
-
+            // Al salir sin CommitAsync, await using revierte automáticamente el Paso 1
             var mensajes = result.Errors.Select(e => e.Code switch
             {
                 "PasswordTooShort"                => "Mínimo 8 caracteres.",
@@ -108,7 +109,12 @@ public class UserService : IUserService
             throw new ArgumentException(string.Join(" ", mensajes));
         }
 
+        // Paso 3 — asignar rol
         await _userManager.AddToRoleAsync(appUser, "Cliente");
+
+        // Todo correcto — confirmar los tres pasos de golpe en la BD
+        await tx.CommitAsync();
+
         _logger.LogInformation("Usuario creado con ID {UserId} y cuenta de acceso vinculada", user.Id);
 
         await _db.Entry(user).Reference(u => u.Company).LoadAsync();

@@ -34,8 +34,8 @@ export const routes: Routes = [
   // Perfil — solo Cliente autenticado
   { path: 'perfil', loadComponent: () => import('./pages/perfil/perfil').then(m => m.PerfilComponent), canActivate: [authGuard] },
 
-  // Configurar TOTP — solo SuperAdmin autenticado
-  { path: 'configurar-totp', loadComponent: () => import('./pages/configurar-totp/configurar-totp').then(m => m.ConfigurarTotpComponent), canActivate: [authGuard, adminGuard] },
+  // Configurar TOTP — cualquier usuario autenticado (adminGuard no aplica aquí porque él mismo redirige a esta ruta)
+  { path: 'configurar-totp', loadComponent: () => import('./pages/configurar-totp/configurar-totp').then(m => m.ConfigurarTotpComponent), canActivate: [authGuard] },
 
   { path: '**', component: NotFoundComponent },
 ];

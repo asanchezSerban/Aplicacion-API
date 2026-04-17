@@ -38,11 +38,12 @@ export interface TokenResponse {
 }
 
 interface JwtPayload {
-  sub: string;
-  email: string;
-  role: string;
-  clientId?: string;
-  exp: number;
+  sub:          string;
+  email:        string;
+  role:         string;
+  totpEnabled?: string;   // 'true' | 'false' — solo presente en SuperAdmin
+  clientId?:    string;
+  exp:          number;
 }
 
 const TOKEN_KEY = 'access_token';
@@ -63,14 +64,20 @@ export class AuthService {
     return payload.exp * 1000 > Date.now();
   });
 
-  readonly userEmail = computed(() => this.decodeToken(this._token())?.email    ?? null);
-  readonly userRole  = computed(() => this.decodeToken(this._token())?.role     ?? null);
-  readonly clientId  = computed(() => this.decodeToken(this._token())?.clientId ?? null);
+  readonly userEmail   = computed(() => this.decodeToken(this._token())?.email       ?? null);
+  readonly userRole    = computed(() => this.decodeToken(this._token())?.role        ?? null);
+  readonly clientId    = computed(() => this.decodeToken(this._token())?.clientId    ?? null);
+  /** true solo cuando el SuperAdmin ya tiene TOTP activado (claim 'totpEnabled' = 'true'). */
+  readonly totpEnabled = computed(() => this.decodeToken(this._token())?.totpEnabled === 'true');
 
   async login(dto: LoginDto): Promise<LoginResponse> {
     const res = await firstValueFrom(
       this.http.post<LoginResponse>(`${this.apiUrl}/login`, dto, { withCredentials: true })
     );
+    // SuperAdmin sin TOTP configurado — el backend devuelve tokens directamente
+    if (!res.requiresMfa && res.accessToken) {
+      this.setToken(res.accessToken);
+    }
     return res;
   }
 
@@ -133,15 +140,19 @@ export class AuthService {
   }
 
   async totpConfirm(code: string): Promise<void> {
-    await firstValueFrom(
-      this.http.post<void>(`${this.apiUrl}/totp/confirm`, { code }, { withCredentials: true })
+    const res = await firstValueFrom(
+      this.http.post<TokenResponse>(`${this.apiUrl}/totp/confirm`, { code }, { withCredentials: true })
     );
+    // El nuevo JWT tiene totpEnabled=true — actualizar inmediatamente para que el guard lo refleje
+    this.setToken(res.accessToken);
   }
 
   async totpDisable(): Promise<void> {
-    await firstValueFrom(
-      this.http.post<void>(`${this.apiUrl}/totp/disable`, {}, { withCredentials: true })
+    const res = await firstValueFrom(
+      this.http.post<TokenResponse>(`${this.apiUrl}/totp/disable`, {}, { withCredentials: true })
     );
+    // El nuevo JWT tiene totpEnabled=false — el adminGuard bloqueará el acceso hasta re-activarlo
+    this.setToken(res.accessToken);
   }
 
   getToken(): string | null {

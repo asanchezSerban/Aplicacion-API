@@ -2,7 +2,6 @@ using ClientManager.API.Data;
 using ClientManager.API.DTOs;
 using ClientManager.API.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace ClientManager.API.Services;
 
@@ -17,20 +16,17 @@ public class CompanyService : ICompanyService
     private readonly ApplicationDbContext _db;
     private readonly IWebHostEnvironment _env;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IMemoryCache _cache;
     private readonly ILogger<CompanyService> _logger;
 
     public CompanyService(
         ApplicationDbContext db,
         IWebHostEnvironment env,
         IHttpContextAccessor httpContextAccessor,
-        IMemoryCache cache,
         ILogger<CompanyService> logger)
     {
         _db = db;
         _env = env;
         _httpContextAccessor = httpContextAccessor;
-        _cache = cache;
         _logger = logger;
     }
 
@@ -164,20 +160,24 @@ public class CompanyService : ICompanyService
     private async Task<string> SaveLogoAsync(IFormFile file)
     {
         if (file.Length > MaxLogoSize)
-        {
             throw new ArgumentException("El archivo de logo no puede superar los 5 MB.");
-        }
 
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!AllowedExtensions.Contains(extension))
-        {
             throw new ArgumentException($"Formato de archivo no permitido. Formatos válidos: {string.Join(", ", AllowedExtensions)}");
-        }
 
         if (!AllowedMimeTypes.Contains(file.ContentType.ToLowerInvariant()))
-        {
             throw new ArgumentException("El tipo MIME del archivo no es válido para una imagen.");
-        }
+
+        // Leer los primeros bytes del fichero real para verificar su firma (magic bytes).
+        // La extensión y el Content-Type los controla el cliente y se pueden falsificar;
+        // la firma binaria del contenido no.
+        await using var readStream = file.OpenReadStream();
+        var header = new byte[12];
+        await readStream.ReadAsync(header.AsMemory(0, 12));
+
+        if (!HasValidMagicBytes(header, extension))
+            throw new ArgumentException("El contenido del archivo no coincide con el formato de imagen declarado.");
 
         var uploadsPath = Path.Combine(_env.WebRootPath, "uploads");
         Directory.CreateDirectory(uploadsPath);
@@ -185,11 +185,26 @@ public class CompanyService : ICompanyService
         var fileName = $"{Guid.NewGuid()}{extension}";
         var filePath = Path.Combine(uploadsPath, fileName);
 
-        await using var stream = new FileStream(filePath, FileMode.Create);
-        await file.CopyToAsync(stream);
+        readStream.Position = 0; // volver al inicio antes de copiar
+        await using var fileStream = new FileStream(filePath, FileMode.Create);
+        await readStream.CopyToAsync(fileStream);
 
         return fileName;
     }
+
+    /// <summary>
+    /// Comprueba los primeros bytes del fichero contra las firmas conocidas de cada formato.
+    /// JPEG: FF D8 FF | PNG: 89 50 4E 47 | GIF: 47 49 46 38 | WebP: RIFF....WEBP
+    /// </summary>
+    private static bool HasValidMagicBytes(byte[] h, string extension) => extension switch
+    {
+        ".jpg" or ".jpeg" => h[0] == 0xFF && h[1] == 0xD8 && h[2] == 0xFF,
+        ".png"  => h[0] == 0x89 && h[1] == 0x50 && h[2] == 0x4E && h[3] == 0x47,
+        ".gif"  => h[0] == 0x47 && h[1] == 0x49 && h[2] == 0x46 && h[3] == 0x38,
+        ".webp" => h[0] == 0x52 && h[1] == 0x49 && h[2] == 0x46 && h[3] == 0x46
+                && h[8] == 0x57 && h[9] == 0x45 && h[10] == 0x42 && h[11] == 0x50,
+        _ => false
+    };
 
     private void DeleteLogoFile(string? logoFileName)
     {

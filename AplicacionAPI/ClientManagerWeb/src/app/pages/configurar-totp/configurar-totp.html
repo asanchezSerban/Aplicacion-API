@@ -11,6 +11,21 @@
       <div class="spinner-center">
         <mat-spinner diameter="40" />
       </div>
+    } @else if (justConfirmed()) {
+
+      <!-- Estado: confirmación exitosa — redirección automática -->
+      <div class="confirmed-screen">
+        <div class="confirmed-icon-wrap">
+          <mat-icon class="confirmed-icon">verified_user</mat-icon>
+        </div>
+        <h2>¡2FA configurado correctamente!</h2>
+        <p>Tu cuenta está protegida con Google Authenticator.<br>A partir de ahora necesitarás el código de la app en cada inicio de sesión.</p>
+        <button mat-flat-button class="btn-full" (click)="goBack()">
+          <mat-icon>arrow_forward</mat-icon>
+          Ir al panel
+        </button>
+      </div>
+
     } @else {
 
       @if (success()) {
@@ -114,8 +129,8 @@
 
     <div class="footer-links">
       <button mat-button (click)="goBack()">
-        <mat-icon>arrow_back</mat-icon>
-        Volver
+        <mat-icon>{{ totpEnabled() ? 'arrow_back' : 'logout' }}</mat-icon>
+        {{ totpEnabled() ? 'Volver' : 'Cerrar sesión' }}
       </button>
     </div>
 

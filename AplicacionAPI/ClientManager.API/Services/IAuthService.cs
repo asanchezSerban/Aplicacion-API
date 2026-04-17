@@ -12,8 +12,8 @@ public interface IAuthService
     Task ResetPasswordAsync(ResetPasswordDto dto);
 
     // TOTP
-    Task<TotpStatusDto>      TotpStatusAsync(string userId);
+    Task<TotpStatusDto>        TotpStatusAsync(string userId);
     Task<TotpSetupResponseDto> TotpSetupAsync(string userId);
-    Task TotpConfirmAsync(string userId, string code);
-    Task TotpDisableAsync(string userId);
+    Task<TokenResponseDto>     TotpConfirmAsync(string userId, string code);
+    Task<TokenResponseDto>     TotpDisableAsync(string userId);
 }

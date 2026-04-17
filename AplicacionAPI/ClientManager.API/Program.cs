@@ -66,8 +66,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// ── Caching & HTTP ────────────────────────────────────────────────────────────
-builder.Services.AddMemoryCache();
+// ── HTTP ──────────────────────────────────────────────────────────────────────
 builder.Services.AddHttpContextAccessor();
 
 // ── Application Services ──────────────────────────────────────────────────────
@@ -160,17 +159,22 @@ app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
-        var exception = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+        var exception  = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+        var handlerLog = context.RequestServices.GetRequiredService<ILogger<Program>>();
 
         var (statusCode, message) = exception switch
         {
-            ArgumentException ex          => (StatusCodes.Status400BadRequest,    ex.Message),
-            KeyNotFoundException ex        => (StatusCodes.Status404NotFound,      ex.Message),
-            AccountLockedException ex      => (StatusCodes.Status423Locked,        ex.Message),
-            UnauthorizedAccessException ex => (StatusCodes.Status401Unauthorized,  ex.Message),
+            ArgumentException ex          => (StatusCodes.Status400BadRequest,   ex.Message),
+            KeyNotFoundException ex        => (StatusCodes.Status404NotFound,     ex.Message),
+            AccountLockedException        => (StatusCodes.Status423Locked,        "Credenciales inválidas o cuenta temporalmente bloqueada."),
+            UnauthorizedAccessException ex => (StatusCodes.Status401Unauthorized, ex.Message),
             _                              => (StatusCodes.Status500InternalServerError,
                                                "Ha ocurrido un error interno en el servidor.")
         };
+
+        // Registrar errores inesperados — los esperados (4xx) no necesitan stack trace
+        if (statusCode == StatusCodes.Status500InternalServerError && exception is not null)
+            handlerLog.LogError(exception, "Error no controlado en {Path}", context.Request.Path);
 
         context.Response.StatusCode  = statusCode;
         context.Response.ContentType = "application/json";

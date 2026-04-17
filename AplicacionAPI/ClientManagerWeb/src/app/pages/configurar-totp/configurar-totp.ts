@@ -20,8 +20,9 @@ export class ConfigurarTotpComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router      = inject(Router);
 
-  loading     = signal(true);
-  totpEnabled = signal(false);
+  loading        = signal(true);
+  totpEnabled    = signal(false);
+  justConfirmed  = signal(false);
   setup       = signal<TotpSetupResponse | null>(null);
   qrDataUrl   = signal<string | null>(null);
   confirmCode = '';
@@ -67,7 +68,7 @@ export class ConfigurarTotpComponent implements OnInit {
       this.setup.set(null);
       this.qrDataUrl.set(null);
       this.confirmCode = '';
-      this.success.set('¡2FA activado! Tu app generará los códigos en cada login.');
+      this.justConfirmed.set(true);
     } catch (err: any) {
       this.error.set(err?.error?.error ?? 'Código incorrecto. Verifica que hayas escaneado el QR correctamente.');
     } finally {
@@ -91,6 +92,12 @@ export class ConfigurarTotpComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate([ROUTES.COMPANIES]);
+    if (this.totpEnabled()) {
+      // TOTP activo → puede volver al panel
+      this.router.navigate([ROUTES.COMPANIES]);
+    } else {
+      // Sin TOTP el adminGuard bloquea todas las rutas — cerrar sesión
+      this.authService.logout();
+    }
   }
 }

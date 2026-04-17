@@ -43,7 +43,10 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException(invalidCredentialsMessage);
 
         if (await _userManager.IsLockedOutAsync(user))
-            throw new AccountLockedException("Tu cuenta está bloqueada durante 15 minutos por demasiados intentos fallidos.");
+        {
+            _logger.LogWarning("Login bloqueado para {Email} — cuenta en lockout", dto.Email);
+            throw new AccountLockedException("Cuenta bloqueada.");
+        }
 
         var passwordValid = await _userManager.CheckPasswordAsync(user, dto.Password);
         if (!passwordValid)
@@ -55,11 +58,30 @@ public class AuthService : IAuthService
 
         await _userManager.ResetAccessFailedCountAsync(user);
 
-        // Si es SuperAdmin con TOTP activo, no enviamos email — el código lo genera la app
         var isSuperAdmin = (await _userManager.GetRolesAsync(user)).Contains("SuperAdmin");
+
         if (isSuperAdmin && user.TotpEnabled)
         {
+            // TOTP configurado → el admin debe verificar con Google Authenticator
             return new LoginResponseDto { RequiresMfa = true, MfaEmail = user.Email, MfaType = "totp" };
+        }
+
+        if (isSuperAdmin && !user.TotpEnabled)
+        {
+            // TOTP aún no configurado → emitir tokens para que el admin pueda acceder a /configurar-totp
+            // El guard del frontend (adminGuard) bloqueará el resto de páginas hasta que lo active.
+            var at = GenerateAccessToken(user, "SuperAdmin", out var exp);
+            var rt = await CreateRefreshTokenAsync(user.Id);
+            _logger.LogInformation("SuperAdmin {Email} sin TOTP — redirigiendo a configuración", user.Email);
+            return new LoginResponseDto
+            {
+                RequiresMfa  = false,
+                AccessToken  = at,
+                RefreshToken = rt.Token,
+                ExpiresAt    = exp,
+                UserEmail    = user.Email!,
+                Role         = "SuperAdmin"
+            };
         }
 
         // Invalidar OTPs anteriores activos del mismo usuario
@@ -204,7 +226,7 @@ public class AuthService : IAuthService
         return new TotpSetupResponseDto { QrUri = qrUri, Secret = secret };
     }
 
-    public async Task TotpConfirmAsync(string userId, string code)
+    public async Task<TokenResponseDto> TotpConfirmAsync(string userId, string code)
     {
         var user = await _userManager.FindByIdAsync(userId)
             ?? throw new KeyNotFoundException("Usuario no encontrado.");
@@ -220,10 +242,25 @@ public class AuthService : IAuthService
         user.TotpEnabled = true;
         await _userManager.UpdateAsync(user);
 
+        // Emitir nuevos tokens con totpEnabled=true en el claim para que el guard lo refleje de inmediato
+        var roles        = await _userManager.GetRolesAsync(user);
+        var role         = roles.FirstOrDefault() ?? string.Empty;
+        var accessToken  = GenerateAccessToken(user, role, out var expiresAt);
+        var refreshToken = await CreateRefreshTokenAsync(user.Id);
+
         _logger.LogInformation("TOTP activado para {Email}", user.Email);
+
+        return new TokenResponseDto
+        {
+            AccessToken  = accessToken,
+            RefreshToken = refreshToken.Token,
+            ExpiresAt    = expiresAt,
+            UserEmail    = user.Email!,
+            Role         = role
+        };
     }
 
-    public async Task TotpDisableAsync(string userId)
+    public async Task<TokenResponseDto> TotpDisableAsync(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId)
             ?? throw new KeyNotFoundException("Usuario no encontrado.");
@@ -232,7 +269,22 @@ public class AuthService : IAuthService
         user.TotpSecret  = null;
         await _userManager.UpdateAsync(user);
 
+        // Emitir nuevos tokens con totpEnabled=false para que el guard bloquee inmediatamente
+        var roles        = await _userManager.GetRolesAsync(user);
+        var role         = roles.FirstOrDefault() ?? string.Empty;
+        var accessToken  = GenerateAccessToken(user, role, out var expiresAt);
+        var refreshToken = await CreateRefreshTokenAsync(user.Id);
+
         _logger.LogInformation("TOTP desactivado para {Email}", user.Email);
+
+        return new TokenResponseDto
+        {
+            AccessToken  = accessToken,
+            RefreshToken = refreshToken.Token,
+            ExpiresAt    = expiresAt,
+            UserEmail    = user.Email!,
+            Role         = role
+        };
     }
 
     public async Task<TokenResponseDto> RefreshAsync(string refreshToken)
@@ -360,6 +412,9 @@ public class AuthService : IAuthService
             new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
             new("role",            role)
         };
+
+        if (role == "SuperAdmin")
+            claims.Add(new Claim("totpEnabled", user.TotpEnabled.ToString().ToLower()));
 
         if (role == "Cliente" && user.UserId.HasValue)
             claims.Add(new Claim("userId", user.UserId.Value.ToString()));

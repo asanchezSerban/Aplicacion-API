@@ -187,6 +187,10 @@ export class LoginComponent {
         }
         if (result.mfaType) queryParams['mfaType'] = result.mfaType;
         this.router.navigate([ROUTES.MFA_VERIFY], { queryParams });
+      } else {
+        // SuperAdmin sin TOTP configurado — el token ya fue guardado en auth.service.login()
+        // El adminGuard redirigirá a /configurar-totp desde cualquier ruta protegida
+        this.router.navigate([ROUTES.CONFIGURAR_TOTP]);
       }
     } catch (err: any) {
       const status = err?.status;

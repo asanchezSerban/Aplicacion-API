@@ -13,13 +13,11 @@ namespace ClientManager.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly IEmailService _emailService;
     private readonly string _frontendBaseUrl;
 
-    public AuthController(IAuthService authService, IEmailService emailService, IConfiguration configuration)
+    public AuthController(IAuthService authService, IConfiguration configuration)
     {
         _authService     = authService;
-        _emailService    = emailService;
         _frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "http://localhost:4200";
     }
 
@@ -34,6 +32,11 @@ public class AuthController : ControllerBase
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
         var result = await _authService.LoginAsync(dto);
+
+        // SuperAdmin sin TOTP configurado — se incluyen tokens directamente
+        if (!result.RequiresMfa && result.RefreshToken is not null)
+            SetRefreshTokenCookie(result.RefreshToken);
+
         return Ok(result);
     }
 
@@ -137,30 +140,32 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Confirma el setup verificando el primer código de la app. Activa TOTP.</summary>
+    /// <summary>Confirma el setup verificando el primer código de la app. Activa TOTP y devuelve nuevos tokens.</summary>
     [HttpPost("totp/confirm")]
     [Authorize(Roles = "SuperAdmin")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> TotpConfirm([FromBody] TotpConfirmDto dto)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
         var userId = User.FindFirst("sub")?.Value;
         if (userId is null) return Unauthorized();
-        await _authService.TotpConfirmAsync(userId, dto.Code);
-        return Ok(new { message = "Autenticación en dos pasos activada correctamente." });
+        var result = await _authService.TotpConfirmAsync(userId, dto.Code);
+        SetRefreshTokenCookie(result.RefreshToken);
+        return Ok(result);
     }
 
-    /// <summary>Desactiva TOTP y elimina la semilla del usuario.</summary>
+    /// <summary>Desactiva TOTP y devuelve nuevos tokens con totpEnabled=false.</summary>
     [HttpPost("totp/disable")]
     [Authorize(Roles = "SuperAdmin")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> TotpDisable()
     {
         var userId = User.FindFirst("sub")?.Value;
         if (userId is null) return Unauthorized();
-        await _authService.TotpDisableAsync(userId);
-        return Ok(new { message = "Autenticación en dos pasos desactivada." });
+        var result = await _authService.TotpDisableAsync(userId);
+        SetRefreshTokenCookie(result.RefreshToken);
+        return Ok(result);
     }
 
     // ── Helper ───────────────────────────────────────────────────────────────
