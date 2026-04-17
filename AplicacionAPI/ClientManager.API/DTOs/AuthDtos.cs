@@ -101,3 +101,10 @@ public class MfaVerifyDto
     [StringLength(6, MinimumLength = 6)]
     public string Code { get; set; } = string.Empty;
 }
+
+public class ResendOtpDto
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+}

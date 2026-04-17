@@ -192,10 +192,11 @@ export class LoginComponent {
         // El adminGuard redirigirá a /configurar-totp desde cualquier ruta protegida
         this.router.navigate([ROUTES.CONFIGURAR_TOTP]);
       }
-    } catch (err: any) {
-      const status = err?.status;
+    } catch (err: unknown) {
+      const e = err as { status?: number; error?: { error?: string } };
+      const status = e?.status;
       const msg =
-        status === 423 ? (err?.error?.error ?? 'Tu cuenta está bloqueada durante 15 minutos por demasiados intentos fallidos.') :
+        status === 423 ? (e?.error?.error ?? 'Tu cuenta está bloqueada durante 15 minutos por demasiados intentos fallidos.') :
         status === 429 ? 'Demasiados intentos. Espera un minuto antes de intentarlo de nuevo.' :
         'Credenciales incorrectas. Inténtalo de nuevo.';
       this.errorMessage.set(msg);

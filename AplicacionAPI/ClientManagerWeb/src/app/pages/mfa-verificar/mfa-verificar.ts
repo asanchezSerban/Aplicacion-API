@@ -34,15 +34,19 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('d4') d4!: ElementRef<HTMLInputElement>;
   @ViewChild('d5') d5!: ElementRef<HTMLInputElement>;
 
-  loading      = signal(false);
-  errorMessage = signal<string | null>(null);
-  codeComplete = signal(false);
-  mfaType      = signal<'email' | 'totp'>('email');
-  private static readonly OTP_TTL = 60; // segundos, debe coincidir con el backend
+  loading        = signal(false);
+  resendLoading  = signal(false);
+  resendCooldown = signal(0);   // segundos restantes antes de poder reenviar de nuevo
+  errorMessage   = signal<string | null>(null);
+  codeComplete   = signal(false);
+  mfaType        = signal<'email' | 'totp'>('email');
+  private static readonly OTP_TTL       = 60;
+  private static readonly RESEND_COOLDOWN = 30;
   timeLeft = signal(MfaVerificarComponent.OTP_TTL);
 
   email = '';
-  private timerInterval: ReturnType<typeof setInterval> | null = null;
+  private timerInterval:   ReturnType<typeof setInterval> | null = null;
+  private cooldownInterval: ReturnType<typeof setInterval> | null = null;
 
   readonly timeDisplay = computed(() => {
     const m = Math.floor(this.timeLeft() / 60).toString().padStart(2, '0');
@@ -75,6 +79,7 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.clearTimer();
+    this.clearCooldown();
   }
 
   onDigitInput(index: number, event: Event): void {
@@ -134,8 +139,9 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
     try {
       await this.authService.mfaVerify(this.email, code);
       sessionStorage.removeItem('mfa_sent_at');
-    } catch (err: any) {
-      const msg = err?.error?.error ?? 'Código incorrecto. Inténtalo de nuevo.';
+    } catch (err: unknown) {
+      const e = err as { error?: { error?: string } };
+      const msg = e?.error?.error ?? 'Código incorrecto. Inténtalo de nuevo.';
       this.errorMessage.set(msg);
       this.clearDigits();
     } finally {
@@ -151,6 +157,25 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
   private refreshCodeComplete(): void {
     const allFilled = [0,1,2,3,4,5].every(i => this.inputAt(i).value !== '');
     this.codeComplete.set(allFilled);
+  }
+
+  async onResend(): Promise<void> {
+    this.resendLoading.set(true);
+    this.errorMessage.set(null);
+    try {
+      await this.authService.resendOtp(this.email);
+      sessionStorage.setItem('mfa_sent_at', Date.now().toString());
+      // Reiniciar el timer de expiración y el cooldown del botón
+      this.clearTimer();
+      this.timeLeft.set(MfaVerificarComponent.OTP_TTL);
+      this.startTimer();
+      this.clearDigits();
+      this.startCooldown();
+    } catch {
+      this.errorMessage.set('No se pudo reenviar el código. Inténtalo de nuevo.');
+    } finally {
+      this.resendLoading.set(false);
+    }
   }
 
   goBack(): void {
@@ -172,6 +197,25 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
+    }
+  }
+
+  private startCooldown(): void {
+    this.resendCooldown.set(MfaVerificarComponent.RESEND_COOLDOWN);
+    this.cooldownInterval = setInterval(() => {
+      if (this.resendCooldown() <= 1) {
+        this.resendCooldown.set(0);
+        this.clearCooldown();
+      } else {
+        this.resendCooldown.update(c => c - 1);
+      }
+    }, 1000);
+  }
+
+  private clearCooldown(): void {
+    if (this.cooldownInterval) {
+      clearInterval(this.cooldownInterval);
+      this.cooldownInterval = null;
     }
   }
 

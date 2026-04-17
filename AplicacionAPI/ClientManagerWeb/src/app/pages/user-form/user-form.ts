@@ -14,19 +14,7 @@ import { Company } from '../../models/company.model';
 import { UserService } from '../../services/user.service';
 import { CompanyService } from '../../services/company.service';
 import { ROUTES } from '../../app.routes.constants';
-
-interface PasswordRule {
-  label: string;
-  test: (p: string) => boolean;
-}
-
-const PASSWORD_RULES: PasswordRule[] = [
-  { label: 'Mínimo 8 caracteres',          test: p => p.length >= 8 },
-  { label: 'Al menos una mayúscula',        test: p => /[A-Z]/.test(p) },
-  { label: 'Al menos una minúscula',        test: p => /[a-z]/.test(p) },
-  { label: 'Al menos un número',            test: p => /[0-9]/.test(p) },
-  { label: 'Al menos un carácter especial', test: p => /[^A-Za-z0-9]/.test(p) },
-];
+import { PASSWORD_RULES } from '../../constants/password-rules';
 
 @Component({
   selector: 'app-user-form',

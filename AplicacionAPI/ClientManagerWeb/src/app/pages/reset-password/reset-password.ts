@@ -7,19 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../services/auth.service';
-
-interface PasswordRule {
-  label: string;
-  test: (p: string) => boolean;
-}
-
-const PASSWORD_RULES: PasswordRule[] = [
-  { label: 'Mínimo 8 caracteres',          test: p => p.length >= 8 },
-  { label: 'Al menos una mayúscula',        test: p => /[A-Z]/.test(p) },
-  { label: 'Al menos una minúscula',        test: p => /[a-z]/.test(p) },
-  { label: 'Al menos un número',            test: p => /[0-9]/.test(p) },
-  { label: 'Al menos un carácter especial', test: p => /[^A-Za-z0-9]/.test(p) },
-];
+import { PASSWORD_RULES } from '../../constants/password-rules';
 
 @Component({
   selector: 'app-reset-password',
@@ -235,8 +223,8 @@ export class ResetPasswordComponent implements OnInit {
     try {
       await this.authService.resetPassword(this.email, this.token, this.password);
       this.done.set(true);
-    } catch (err: any) {
-      const msg = err?.error?.error ?? '';
+    } catch (err: unknown) {
+      const msg = (err as { error?: { error?: string } })?.error?.error ?? '';
       if (msg.toLowerCase().includes('enlace')) {
         this.invalidLink.set(true);
       } else {

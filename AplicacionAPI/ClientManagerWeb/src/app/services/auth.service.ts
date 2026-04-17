@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { ROLES } from '../constants/roles';
 
 export interface LoginDto {
   email: string;
@@ -88,7 +89,7 @@ export class AuthService {
       this.http.post<Identity>(`${this.apiUrl}/mfa-verify`, { email, code }, { withCredentials: true })
     );
     this._identity.set(identity);
-    this.router.navigate([identity.role === 'SuperAdmin' ? '/empresas' : '/perfil']);
+    this.router.navigate([identity.role === ROLES.SUPER_ADMIN ? '/empresas' : '/perfil']);
   }
 
   async logout(): Promise<void> {
@@ -117,6 +118,12 @@ export class AuthService {
       this._identity.set(null);
       return false;
     }
+  }
+
+  async resendOtp(email: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.apiUrl}/resend-otp`, { email })
+    );
   }
 
   async forgotPassword(email: string): Promise<void> {

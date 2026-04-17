@@ -73,7 +73,7 @@
                 <span class="user-name">{{ user.name }}</span>
                 <span class="user-email">{{ user.email }}</span>
               </div>
-              <button mat-icon-button matTooltip="Editar usuario" (click)="editUser(user.id)">
+              <button mat-icon-button matTooltip="Editar usuario" [attr.aria-label]="'Editar usuario ' + user.name" (click)="editUser(user.id)">
                 <mat-icon>edit</mat-icon>
               </button>
             </div>

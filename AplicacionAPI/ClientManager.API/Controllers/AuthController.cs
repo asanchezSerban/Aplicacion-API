@@ -113,6 +113,19 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Reenvía el código OTP al email indicado. Siempre devuelve 200 aunque el email no exista.
+    /// Invalida el OTP anterior si lo hubiera.
+    /// </summary>
+    [HttpPost("resend-otp")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto dto)
+    {
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
+        await _authService.ResendOtpAsync(dto.Email);
+        return Ok(new { message = "Si el email existe y tiene un código pendiente, recibirás uno nuevo." });
+    }
+
+    /// <summary>
     /// Envía un email de recuperación de contraseña. Siempre devuelve 200 aunque el email no exista.
     /// </summary>
     [HttpPost("forgot-password")]

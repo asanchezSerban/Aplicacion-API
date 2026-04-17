@@ -69,13 +69,13 @@
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
             <td mat-cell *matCellDef="let company">
               <div class="actions">
-                <button mat-icon-button matTooltip="Ver detalle" (click)="viewCompany(company.id)">
+                <button mat-icon-button matTooltip="Ver detalle" [attr.aria-label]="'Ver detalle de ' + company.name" (click)="viewCompany(company.id)">
                   <mat-icon>visibility</mat-icon>
                 </button>
-                <button mat-icon-button matTooltip="Editar" (click)="editCompany(company.id)">
+                <button mat-icon-button matTooltip="Editar" [attr.aria-label]="'Editar ' + company.name" (click)="editCompany(company.id)">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button matTooltip="Eliminar" color="warn" (click)="deleteCompany(company)">
+                <button mat-icon-button matTooltip="Eliminar" color="warn" [attr.aria-label]="'Eliminar ' + company.name" (click)="deleteCompany(company)">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>

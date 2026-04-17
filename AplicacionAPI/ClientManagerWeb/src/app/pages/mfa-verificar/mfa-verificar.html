@@ -71,6 +71,21 @@
     </form>
 
     <div class="footer-links">
+      @if (mfaType() === 'email' && timeLeft() > 0) {
+        <button mat-button [disabled]="resendLoading() || resendCooldown() > 0"
+                (click)="onResend()">
+          @if (resendLoading()) {
+            <mat-spinner diameter="16" />
+          } @else if (resendCooldown() > 0) {
+            Reenviar en {{ resendCooldown() }}s
+          } @else {
+            <ng-container>
+              <mat-icon>send</mat-icon>
+              Reenviar código
+            </ng-container>
+          }
+        </button>
+      }
       <button mat-button (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
         Volver al login

@@ -129,6 +129,57 @@ public class AuthService : IAuthService
         return new LoginResponseDto { RequiresMfa = true, MfaEmail = user.Email, MfaType = "email" };
     }
 
+    public async Task ResendOtpAsync(string email)
+    {
+        // Siempre devuelve 200 aunque el email no exista — evita enumeración de cuentas
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user is null) return;
+
+        // SuperAdmin usa TOTP, no Email OTP — no tiene sentido reenviar
+        var isSuperAdmin = (await _userManager.GetRolesAsync(user)).Contains("SuperAdmin");
+        if (isSuperAdmin) return;
+
+        // Invalidar OTPs anteriores activos
+        var previousOtps = await _db.EmailOtpCodes
+            .Where(o => o.UserId == user.Id && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
+            .ToListAsync();
+        foreach (var old in previousOtps)
+            old.IsUsed = true;
+
+        // Generar nuevo OTP
+        var bytes    = new byte[4];
+        RandomNumberGenerator.Fill(bytes);
+        var code     = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
+        var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+
+        _db.EmailOtpCodes.Add(new EmailOtpCode
+        {
+            UserId    = user.Id,
+            CodeHash  = codeHash,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await _db.SaveChangesAsync();
+
+        var html = $"""
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+              <h2 style="color:#1a1a2e">Verificación de acceso</h2>
+              <p>Tu nuevo código de verificación para <strong>ClientManager</strong> es:</p>
+              <div style="font-size:2.5rem;font-weight:700;letter-spacing:0.5rem;
+                          text-align:center;padding:1.5rem;margin:1rem 0;
+                          background:#f0f4ff;border-radius:12px;color:#1a1a2e">
+                {code}
+              </div>
+              <p>Este código expira en <strong>1 minuto</strong>.</p>
+              <p style="color:#888;font-size:0.85rem">Si no intentaste iniciar sesión, ignora este email.</p>
+            </div>
+            """;
+
+        await _emailService.SendAsync(user.Email!, user.UserName!, "Nuevo código de verificación — ClientManager", html);
+        _logger.LogInformation("OTP reenviado para {Email}", user.Email);
+    }
+
     public async Task<TokenResponseDto> MfaVerifyAsync(MfaVerifyDto dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email)

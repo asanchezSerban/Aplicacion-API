@@ -6,6 +6,7 @@ public interface IAuthService
 {
     Task<LoginResponseDto>  LoginAsync(LoginDto dto);
     Task<TokenResponseDto>  MfaVerifyAsync(MfaVerifyDto dto);
+    Task                    ResendOtpAsync(string email);
     Task<TokenResponseDto>  RefreshAsync(string refreshToken);
     Task RevokeAsync(string refreshToken);
     Task ForgotPasswordAsync(ForgotPasswordDto dto, string frontendBaseUrl);

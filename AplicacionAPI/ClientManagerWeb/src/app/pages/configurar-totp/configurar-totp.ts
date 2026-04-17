@@ -69,8 +69,8 @@ export class ConfigurarTotpComponent implements OnInit {
       this.qrDataUrl.set(null);
       this.confirmCode = '';
       this.justConfirmed.set(true);
-    } catch (err: any) {
-      this.error.set(err?.error?.error ?? 'Código incorrecto. Verifica que hayas escaneado el QR correctamente.');
+    } catch (err: unknown) {
+      this.error.set((err as { error?: { error?: string } })?.error?.error ?? 'Código incorrecto. Verifica que hayas escaneado el QR correctamente.');
     } finally {
       this.confirming.set(false);
     }
@@ -84,8 +84,8 @@ export class ConfigurarTotpComponent implements OnInit {
       await this.authService.totpDisable();
       this.totpEnabled.set(false);
       this.success.set('Autenticación en dos pasos desactivada.');
-    } catch (err: any) {
-      this.error.set(err?.error?.error ?? 'Error al desactivar el 2FA.');
+    } catch (err: unknown) {
+      this.error.set((err as { error?: { error?: string } })?.error?.error ?? 'Error al desactivar el 2FA.');
     } finally {
       this.disabling.set(false);
     }

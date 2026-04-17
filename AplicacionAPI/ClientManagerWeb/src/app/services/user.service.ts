@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User, CreateUser, UpdateUser } from '../models/user.model';
@@ -7,9 +7,8 @@ import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
+  private readonly http   = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/users`;
-
-  constructor(private http: HttpClient) {}
 
   getAll(page: number, pageSize: number, name?: string, companyId?: number): Observable<PagedResponse<User>> {
     let params = new HttpParams()
