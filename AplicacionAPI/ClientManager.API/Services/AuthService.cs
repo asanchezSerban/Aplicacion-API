@@ -79,8 +79,9 @@ public class AuthService : IAuthService
                 AccessToken  = at,
                 RefreshToken = rt.Token,
                 ExpiresAt    = exp,
-                UserEmail    = user.Email!,
-                Role         = "SuperAdmin"
+                Email        = user.Email!,
+                Role         = "SuperAdmin",
+                TotpEnabled  = user.TotpEnabled
             };
         }
 
@@ -191,7 +192,8 @@ public class AuthService : IAuthService
             RefreshToken = refreshToken.Token,
             ExpiresAt    = expiresAt,
             UserEmail    = user.Email!,
-            Role         = role
+            Role         = role,
+            TotpEnabled  = user.TotpEnabled
         };
     }
 
@@ -256,7 +258,8 @@ public class AuthService : IAuthService
             RefreshToken = refreshToken.Token,
             ExpiresAt    = expiresAt,
             UserEmail    = user.Email!,
-            Role         = role
+            Role         = role,
+            TotpEnabled  = user.TotpEnabled
         };
     }
 
@@ -283,7 +286,8 @@ public class AuthService : IAuthService
             RefreshToken = refreshToken.Token,
             ExpiresAt    = expiresAt,
             UserEmail    = user.Email!,
-            Role         = role
+            Role         = role,
+            TotpEnabled  = user.TotpEnabled
         };
     }
 
@@ -316,7 +320,8 @@ public class AuthService : IAuthService
             RefreshToken = newRefreshToken.Token,
             ExpiresAt    = expiresAt,
             UserEmail    = user.Email!,
-            Role         = role
+            Role         = role,
+            TotpEnabled  = user.TotpEnabled
         };
     }
 

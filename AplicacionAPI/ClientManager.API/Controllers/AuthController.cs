@@ -22,7 +22,8 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Verifica credenciales y envía un OTP por email. Devuelve requiresMfa=true si las credenciales son correctas.
+    /// Verifica credenciales. Devuelve requiresMfa=true si se necesita un segundo factor,
+    /// o la identidad del usuario directamente si no hay MFA pendiente.
     /// </summary>
     [HttpPost("login")]
     [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
@@ -33,33 +34,53 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
         var result = await _authService.LoginAsync(dto);
 
-        // SuperAdmin sin TOTP configurado — se incluyen tokens directamente
-        if (!result.RequiresMfa && result.RefreshToken is not null)
-            SetRefreshTokenCookie(result.RefreshToken);
+        // SuperAdmin sin TOTP configurado: tokens emitidos directamente, van en cookies.
+        if (!result.RequiresMfa && result.AccessToken is not null)
+        {
+            SetAccessTokenCookie(result.AccessToken);
+            SetRefreshTokenCookie(result.RefreshToken!);
+        }
 
-        return Ok(result);
+        return Ok(result);  // AccessToken/RefreshToken ocultos con [JsonIgnore]
     }
 
     /// <summary>
-    /// Verifica el OTP recibido por email y devuelve los tokens JWT si es correcto.
+    /// Devuelve la identidad del usuario autenticado por cookie (para inicialización del cliente).
+    /// </summary>
+    [HttpGet("me")]
+    [Authorize]
+    [ProducesResponseType(typeof(IdentityDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public IActionResult Me()
+    {
+        return Ok(new IdentityDto
+        {
+            Email       = User.FindFirst("email")?.Value      ?? string.Empty,
+            Role        = User.FindFirst("role")?.Value       ?? string.Empty,
+            TotpEnabled = User.FindFirst("totpEnabled")?.Value == "true",
+            UserId      = User.FindFirst("userId")?.Value
+        });
+    }
+
+    /// <summary>
+    /// Verifica el OTP (email o TOTP). Emite tokens en cookies y devuelve la identidad.
     /// </summary>
     [HttpPost("mfa-verify")]
-    [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IdentityDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> MfaVerify([FromBody] MfaVerifyDto dto)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
         var result = await _authService.MfaVerifyAsync(dto);
-        SetRefreshTokenCookie(result.RefreshToken);
-        return Ok(result);
+        return Ok(ApplyTokens(result));
     }
 
     /// <summary>
-    /// Renueva el access token usando el refresh token de la cookie.
+    /// Renueva el access token usando el refresh token de la cookie. Devuelve la identidad actualizada.
     /// </summary>
     [HttpPost("refresh")]
-    [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IdentityDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Refresh()
     {
@@ -68,12 +89,11 @@ public class AuthController : ControllerBase
             return Unauthorized("Refresh token no encontrado.");
 
         var result = await _authService.RefreshAsync(refreshToken);
-        SetRefreshTokenCookie(result.RefreshToken);
-        return Ok(result);
+        return Ok(ApplyTokens(result));
     }
 
     /// <summary>
-    /// Cierra sesión revocando el refresh token activo.
+    /// Cierra sesión revocando el refresh token y eliminando ambas cookies.
     /// </summary>
     [HttpPost("logout")]
     [Authorize]
@@ -85,6 +105,7 @@ public class AuthController : ControllerBase
         if (!string.IsNullOrEmpty(refreshToken))
             await _authService.RevokeAsync(refreshToken);
 
+        Response.Cookies.Delete("accessToken");
         Response.Cookies.Delete("refreshToken");
         return NoContent();
     }
@@ -140,10 +161,10 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Confirma el setup verificando el primer código de la app. Activa TOTP y devuelve nuevos tokens.</summary>
+    /// <summary>Confirma el setup verificando el primer código de la app. Activa TOTP y devuelve la identidad actualizada.</summary>
     [HttpPost("totp/confirm")]
     [Authorize(Roles = "SuperAdmin")]
-    [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IdentityDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> TotpConfirm([FromBody] TotpConfirmDto dto)
     {
@@ -151,24 +172,46 @@ public class AuthController : ControllerBase
         var userId = User.FindFirst("sub")?.Value;
         if (userId is null) return Unauthorized();
         var result = await _authService.TotpConfirmAsync(userId, dto.Code);
-        SetRefreshTokenCookie(result.RefreshToken);
-        return Ok(result);
+        return Ok(ApplyTokens(result));
     }
 
-    /// <summary>Desactiva TOTP y devuelve nuevos tokens con totpEnabled=false.</summary>
+    /// <summary>Desactiva TOTP y devuelve la identidad actualizada con totpEnabled=false.</summary>
     [HttpPost("totp/disable")]
     [Authorize(Roles = "SuperAdmin")]
-    [ProducesResponseType(typeof(TokenResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IdentityDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> TotpDisable()
     {
         var userId = User.FindFirst("sub")?.Value;
         if (userId is null) return Unauthorized();
         var result = await _authService.TotpDisableAsync(userId);
-        SetRefreshTokenCookie(result.RefreshToken);
-        return Ok(result);
+        return Ok(ApplyTokens(result));
     }
 
-    // ── Helper ───────────────────────────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /// <summary>Coloca tokens en cookies HttpOnly y devuelve solo la identidad al cliente.</summary>
+    private IdentityDto ApplyTokens(TokenResponseDto tokens)
+    {
+        SetAccessTokenCookie(tokens.AccessToken);
+        SetRefreshTokenCookie(tokens.RefreshToken);
+        return new IdentityDto
+        {
+            Email       = tokens.UserEmail,
+            Role        = tokens.Role,
+            TotpEnabled = tokens.TotpEnabled
+        };
+    }
+
+    private void SetAccessTokenCookie(string token)
+    {
+        Response.Cookies.Append("accessToken", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure   = true,
+            SameSite = SameSiteMode.Strict,
+            Expires  = DateTimeOffset.UtcNow.AddMinutes(15)
+        });
+    }
 
     private void SetRefreshTokenCookie(string token)
     {

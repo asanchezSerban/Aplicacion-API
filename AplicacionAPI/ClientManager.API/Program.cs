@@ -62,6 +62,19 @@ builder.Services.AddAuthentication(options =>
         ClockSkew                = TimeSpan.Zero,
         RoleClaimType            = "role"
     };
+    // Leer el access token desde la cookie HttpOnly (Phase C).
+    // Si la cookie no está presente, el handler cae al behavior por defecto
+    // (header Authorization: Bearer ...) para que Swagger siga funcionando.
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnMessageReceived = ctx =>
+        {
+            var cookie = ctx.Request.Cookies["accessToken"];
+            if (!string.IsNullOrEmpty(cookie))
+                ctx.Token = cookie;
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();

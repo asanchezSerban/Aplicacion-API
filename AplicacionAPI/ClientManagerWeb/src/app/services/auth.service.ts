@@ -13,12 +13,10 @@ export interface LoginResponse {
   requiresMfa: boolean;
   mfaEmail?:   string;
   mfaType?:    'email' | 'totp';
-  // Populated when requiresMfa = false (no MFA step — future use)
-  accessToken?:  string;
-  refreshToken?: string;
-  expiresAt?:    string;
-  userEmail?:    string;
-  role?:         string;
+  // Identidad (cuando requiresMfa = false — tokens van en cookies HttpOnly)
+  email?:       string;
+  role?:        string;
+  totpEnabled?: boolean;
 }
 
 export interface TotpSetupResponse {
@@ -30,23 +28,13 @@ export interface TotpStatus {
   enabled: boolean;
 }
 
-export interface TokenResponse {
-  accessToken: string;
-  expiresAt:   string;
-  userEmail:   string;
+/** Identidad del usuario autenticado — se mantiene en memoria, nunca en localStorage. */
+export interface Identity {
+  email:       string;
   role:        string;
+  totpEnabled: boolean;
+  userId?:     string;  // solo rol Cliente
 }
-
-interface JwtPayload {
-  sub:          string;
-  email:        string;
-  role:         string;
-  totpEnabled?: string;   // 'true' | 'false' — solo presente en SuperAdmin
-  clientId?:    string;
-  exp:          number;
-}
-
-const TOKEN_KEY = 'access_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -54,39 +42,53 @@ export class AuthService {
   private readonly http   = inject(HttpClient);
   private readonly router = inject(Router);
 
-  private readonly _token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
+  // Estado en memoria — ningún dato sensible toca localStorage/sessionStorage
+  private readonly _identity = signal<Identity | null>(null);
 
-  readonly isLoggedIn = computed(() => {
-    const token = this._token();
-    if (!token) return false;
-    const payload = this.decodeToken(token);
-    if (!payload) return false;
-    return payload.exp * 1000 > Date.now();
-  });
+  readonly isLoggedIn  = computed(() => this._identity() !== null);
+  readonly userEmail   = computed(() => this._identity()?.email       ?? null);
+  readonly userRole    = computed(() => this._identity()?.role        ?? null);
+  readonly clientId    = computed(() => this._identity()?.userId      ?? null);
+  /** true solo cuando el SuperAdmin ya tiene TOTP activado. */
+  readonly totpEnabled = computed(() => this._identity()?.totpEnabled ?? false);
 
-  readonly userEmail   = computed(() => this.decodeToken(this._token())?.email       ?? null);
-  readonly userRole    = computed(() => this.decodeToken(this._token())?.role        ?? null);
-  readonly clientId    = computed(() => this.decodeToken(this._token())?.clientId    ?? null);
-  /** true solo cuando el SuperAdmin ya tiene TOTP activado (claim 'totpEnabled' = 'true'). */
-  readonly totpEnabled = computed(() => this.decodeToken(this._token())?.totpEnabled === 'true');
+  /**
+   * Llamado una vez al arrancar la app (APP_INITIALIZER).
+   * Si las cookies de sesión son válidas, hidratar el estado en memoria.
+   * Si no, _identity queda null → isLoggedIn = false.
+   */
+  async initializeAuth(): Promise<void> {
+    try {
+      const identity = await firstValueFrom(
+        this.http.get<Identity>(`${this.apiUrl}/me`, { withCredentials: true })
+      );
+      this._identity.set(identity);
+    } catch {
+      this._identity.set(null);
+    }
+  }
 
   async login(dto: LoginDto): Promise<LoginResponse> {
     const res = await firstValueFrom(
       this.http.post<LoginResponse>(`${this.apiUrl}/login`, dto, { withCredentials: true })
     );
-    // SuperAdmin sin TOTP configurado — el backend devuelve tokens directamente
-    if (!res.requiresMfa && res.accessToken) {
-      this.setToken(res.accessToken);
+    // Si no hay MFA pendiente, el servidor ha emitido cookies y devuelto la identidad
+    if (!res.requiresMfa && res.email) {
+      this._identity.set({
+        email:       res.email,
+        role:        res.role!,
+        totpEnabled: res.totpEnabled ?? false
+      });
     }
     return res;
   }
 
   async mfaVerify(email: string, code: string): Promise<void> {
-    const res = await firstValueFrom(
-      this.http.post<TokenResponse>(`${this.apiUrl}/mfa-verify`, { email, code }, { withCredentials: true })
+    const identity = await firstValueFrom(
+      this.http.post<Identity>(`${this.apiUrl}/mfa-verify`, { email, code }, { withCredentials: true })
     );
-    this.setToken(res.accessToken);
-    this.router.navigate([res.role === 'SuperAdmin' ? '/empresas' : '/perfil']);
+    this._identity.set(identity);
+    this.router.navigate([identity.role === 'SuperAdmin' ? '/empresas' : '/perfil']);
   }
 
   async logout(): Promise<void> {
@@ -95,21 +97,25 @@ export class AuthService {
         this.http.post<void>(`${this.apiUrl}/logout`, {}, { withCredentials: true })
       );
     } finally {
-      this.clearToken();
+      this._identity.set(null);
       this.router.navigate(['/login']);
     }
   }
 
-  async refresh(): Promise<string | null> {
+  /**
+   * Solicita un nuevo access token usando el refresh token de la cookie.
+   * Retorna true si tuvo éxito (el interceptor puede reintentar la petición original).
+   */
+  async refresh(): Promise<boolean> {
     try {
-      const res = await firstValueFrom(
-        this.http.post<TokenResponse>(`${this.apiUrl}/refresh`, {}, { withCredentials: true })
+      const identity = await firstValueFrom(
+        this.http.post<Identity>(`${this.apiUrl}/refresh`, {}, { withCredentials: true })
       );
-      this.setToken(res.accessToken);
-      return res.accessToken;
+      this._identity.set(identity);
+      return true;
     } catch {
-      this.clearToken();
-      return null;
+      this._identity.set(null);
+      return false;
     }
   }
 
@@ -140,45 +146,18 @@ export class AuthService {
   }
 
   async totpConfirm(code: string): Promise<void> {
-    const res = await firstValueFrom(
-      this.http.post<TokenResponse>(`${this.apiUrl}/totp/confirm`, { code }, { withCredentials: true })
+    const identity = await firstValueFrom(
+      this.http.post<Identity>(`${this.apiUrl}/totp/confirm`, { code }, { withCredentials: true })
     );
-    // El nuevo JWT tiene totpEnabled=true — actualizar inmediatamente para que el guard lo refleje
-    this.setToken(res.accessToken);
+    // El nuevo JWT (en cookie) tiene totpEnabled=true — actualizar identidad en memoria
+    this._identity.set(identity);
   }
 
   async totpDisable(): Promise<void> {
-    const res = await firstValueFrom(
-      this.http.post<TokenResponse>(`${this.apiUrl}/totp/disable`, {}, { withCredentials: true })
+    const identity = await firstValueFrom(
+      this.http.post<Identity>(`${this.apiUrl}/totp/disable`, {}, { withCredentials: true })
     );
-    // El nuevo JWT tiene totpEnabled=false — el adminGuard bloqueará el acceso hasta re-activarlo
-    this.setToken(res.accessToken);
-  }
-
-  getToken(): string | null {
-    return this._token();
-  }
-
-  private setToken(token: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
-    this._token.set(token);
-  }
-
-  private clearToken(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    this._token.set(null);
-  }
-
-  private decodeToken(token: string | null): JwtPayload | null {
-    if (!token) return null;
-    try {
-      const payload = token.split('.')[1];
-      // JWT usa base64url: reemplazar -_ por +/ y añadir padding = que base64url omite
-      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-      const padded  = base64 + '='.repeat((4 - base64.length % 4) % 4);
-      return JSON.parse(atob(padded)) as JwtPayload;
-    } catch {
-      return null;
-    }
+    // El nuevo JWT (en cookie) tiene totpEnabled=false — el adminGuard bloqueará el acceso
+    this._identity.set(identity);
   }
 }

@@ -12,13 +12,23 @@ public class LoginDto
     public string Password { get; set; } = string.Empty;
 }
 
+/// <summary>Identidad del usuario autenticado — devuelta en respuestas de auth y en GET /auth/me.</summary>
+public class IdentityDto
+{
+    public string  Email       { get; set; } = string.Empty;
+    public string  Role        { get; set; } = string.Empty;
+    public bool    TotpEnabled { get; set; }
+    public string? UserId      { get; set; }  // solo rol Cliente
+}
+
 public class TokenResponseDto
 {
-    public string AccessToken { get; set; } = string.Empty;
-    public string RefreshToken { get; set; } = string.Empty;
-    public DateTime ExpiresAt { get; set; }
-    public string UserEmail { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
+    public string   AccessToken  { get; set; } = string.Empty;
+    public string   RefreshToken { get; set; } = string.Empty;
+    public DateTime ExpiresAt    { get; set; }
+    public string   UserEmail    { get; set; } = string.Empty;
+    public string   Role         { get; set; } = string.Empty;
+    public bool     TotpEnabled  { get; set; }
 }
 
 public class ForgotPasswordDto
@@ -49,12 +59,18 @@ public class LoginResponseDto
     public string? MfaEmail { get; set; }
     public string? MfaType  { get; set; }  // "email" | "totp"
 
-    // Solo cuando RequiresMfa = false
+    // Solo cuando RequiresMfa = false — tokens van en cookie HttpOnly, no en el body
+    [System.Text.Json.Serialization.JsonIgnore]
     public string? AccessToken  { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore]
     public string? RefreshToken { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore]
     public DateTime ExpiresAt   { get; set; }
-    public string? UserEmail    { get; set; }
-    public string? Role         { get; set; }
+
+    // Identidad (cuando RequiresMfa = false)
+    public string? Email       { get; set; }
+    public string? Role        { get; set; }
+    public bool    TotpEnabled { get; set; }
 }
 
 public class TotpSetupResponseDto

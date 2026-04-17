@@ -3,56 +3,56 @@ import { inject } from '@angular/core';
 import { BehaviorSubject, catchError, filter, from, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
-// Estado compartido entre todas las peticiones — vive fuera del interceptor
-// para que sea un único candado global, no uno por petición.
+// Estado compartido entre todas las peticiones — un único candado global.
 let isRefreshing = false;
-const newToken$ = new BehaviorSubject<string | null>(null);
+const refreshResult$ = new BehaviorSubject<boolean | null>(null);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
-  return next(addToken(req, authService.getToken())).pipe(
+  // Adjuntar credenciales (cookies) a todas las peticiones al backend.
+  // El browser envía automáticamente accessToken y refreshToken si están presentes.
+  const reqWithCreds = req.clone({ withCredentials: true });
+
+  return next(reqWithCreds).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Si no es 401 o es una petición de auth (login, refresh...), propagar el error tal cual
+      // Si no es 401 o es un endpoint de auth (login, refresh...), propagar tal cual
       if (error.status !== 401 || isAuthEndpoint(req.url)) {
         return throwError(() => error);
       }
 
       if (isRefreshing) {
         // Otra petición ya está renovando el token — esperar a que termine
-        // filter(token => token !== null): ignorar el null inicial del BehaviorSubject
-        // take(1): desuscribirse tras recibir el primer token válido
-        return newToken$.pipe(
-          filter(token => token !== null),
+        return refreshResult$.pipe(
+          filter(result => result !== null),
           take(1),
-          switchMap(token => next(addToken(req, token!)))
+          switchMap(success =>
+            success ? next(reqWithCreds) : throwError(() => error)
+          )
         );
       }
 
-      // Somos la primera petición en fallar — tomamos el control del refresh
+      // Somos la primera petición en fallar con 401 — tomar el control del refresh
       isRefreshing = true;
-      newToken$.next(null); // resetear el tablón antes de empezar
+      refreshResult$.next(null);  // resetear el tablón antes de empezar
 
       return from(authService.refresh()).pipe(
-        switchMap(token => {
+        switchMap(success => {
           isRefreshing = false;
-          if (!token) return throwError(() => error);
-          newToken$.next(token); // publicar el nuevo token — las peticiones en espera lo reciben
-          return next(addToken(req, token));
+          refreshResult$.next(success);
+          // Si el refresh fue exitoso, el servidor ya emitió nuevas cookies —
+          // reintentar la petición original (el browser enviará las cookies nuevas)
+          return success ? next(reqWithCreds) : throwError(() => error);
         }),
         catchError(err => {
           isRefreshing = false;
+          refreshResult$.next(false);
           return throwError(() => err);
         })
       );
     })
   );
 };
-
-function addToken(req: HttpRequest<unknown>, token: string | null): HttpRequest<unknown> {
-  if (!token) return req;
-  return req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
-}
 
 function isAuthEndpoint(url: string): boolean {
   return url.includes('/auth/login')
