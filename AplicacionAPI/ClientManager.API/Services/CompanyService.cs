@@ -30,7 +30,7 @@ public class CompanyService : ICompanyService
         _logger = logger;
     }
 
-    public async Task<PagedResponseDto<CompanyResponseDto>> GetAllAsync(int page, int pageSize, string? name)
+    public async Task<PagedResponseDto<CompanyResponseDto>> GetAllAsync(int page, int pageSize, string? name, CancellationToken ct = default)
     {
         var query = _db.Companies.AsNoTracking().AsQueryable();
 
@@ -39,14 +39,14 @@ public class CompanyService : ICompanyService
             query = query.Where(c => c.Name.ToLower().Contains(name.ToLower()));
         }
 
-        var totalItems = await query.CountAsync();
+        var totalItems = await query.CountAsync(ct);
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
         var companies = await query
             .OrderByDescending(c => c.UpdatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         return new PagedResponseDto<CompanyResponseDto>
         {
@@ -58,19 +58,19 @@ public class CompanyService : ICompanyService
         };
     }
 
-    public async Task<CompanyResponseDto> GetByIdAsync(int id)
+    public async Task<CompanyResponseDto> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var company = await _db.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id)
+        var company = await _db.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, ct)
             ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
 
         return MapToDto(company);
     }
 
-    public async Task<CompanyResponseDto> CreateAsync(CreateCompanyDto dto, IFormFile? logo)
+    public async Task<CompanyResponseDto> CreateAsync(CreateCompanyDto dto, IFormFile? logo, CancellationToken ct = default)
     {
         var sanitizedName = SanitizeInput(dto.Name);
 
-        if (await _db.Companies.AnyAsync(c => c.Name.ToLower() == sanitizedName.ToLower()))
+        if (await _db.Companies.AnyAsync(c => c.Name.ToLower() == sanitizedName.ToLower(), ct))
             throw new ArgumentException($"Ya existe una empresa con el nombre '{sanitizedName}'.");
 
         var company = new Company
@@ -83,25 +83,25 @@ public class CompanyService : ICompanyService
 
         if (logo is not null && logo.Length > 0)
         {
-            company.LogoFileName = await SaveLogoAsync(logo);
+            company.LogoFileName = await SaveLogoAsync(logo, ct);
         }
 
         _db.Companies.Add(company);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Empresa creada con ID {CompanyId}", company.Id);
 
         return MapToDto(company);
     }
 
-    public async Task<CompanyResponseDto> UpdateAsync(int id, UpdateCompanyDto dto, IFormFile? logo)
+    public async Task<CompanyResponseDto> UpdateAsync(int id, UpdateCompanyDto dto, IFormFile? logo, CancellationToken ct = default)
     {
-        var company = await _db.Companies.FindAsync(id)
+        var company = await _db.Companies.FindAsync(new object?[] { id }, ct)
             ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
 
         var sanitizedName = SanitizeInput(dto.Name);
 
-        if (await _db.Companies.AnyAsync(c => c.Name.ToLower() == sanitizedName.ToLower() && c.Id != id))
+        if (await _db.Companies.AnyAsync(c => c.Name.ToLower() == sanitizedName.ToLower() && c.Id != id, ct))
             throw new ArgumentException($"Ya existe una empresa con el nombre '{sanitizedName}'.");
 
         company.Name = sanitizedName;
@@ -111,25 +111,25 @@ public class CompanyService : ICompanyService
         if (logo is not null && logo.Length > 0)
         {
             DeleteLogoFile(company.LogoFileName);
-            company.LogoFileName = await SaveLogoAsync(logo);
+            company.LogoFileName = await SaveLogoAsync(logo, ct);
         }
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Empresa {CompanyId} actualizada", company.Id);
 
         return MapToDto(company);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var company = await _db.Companies.FindAsync(id)
+        var company = await _db.Companies.FindAsync(new object?[] { id }, ct)
             ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
 
         DeleteLogoFile(company.LogoFileName);
 
         _db.Companies.Remove(company);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Empresa {CompanyId} eliminada", company.Id);
     }
@@ -157,7 +157,7 @@ public class CompanyService : ICompanyService
         return $"{request.Scheme}://{request.Host}/uploads/{logoFileName}";
     }
 
-    private async Task<string> SaveLogoAsync(IFormFile file)
+    private async Task<string> SaveLogoAsync(IFormFile file, CancellationToken ct = default)
     {
         if (file.Length > MaxLogoSize)
             throw new ArgumentException("El archivo de logo no puede superar los 5 MB.");
@@ -174,7 +174,7 @@ public class CompanyService : ICompanyService
         // la firma binaria del contenido no.
         await using var readStream = file.OpenReadStream();
         var header = new byte[12];
-        await readStream.ReadAsync(header.AsMemory(0, 12));
+        await readStream.ReadAsync(header.AsMemory(0, 12), ct);
 
         if (!HasValidMagicBytes(header, extension))
             throw new ArgumentException("El contenido del archivo no coincide con el formato de imagen declarado.");
@@ -187,7 +187,7 @@ public class CompanyService : ICompanyService
 
         readStream.Position = 0; // volver al inicio antes de copiar
         await using var fileStream = new FileStream(filePath, FileMode.Create);
-        await readStream.CopyToAsync(fileStream);
+        await readStream.CopyToAsync(fileStream, ct);
 
         return fileName;
     }

@@ -81,8 +81,22 @@ Al comenzar cualquier conversación sobre este proyecto, DEBES:
 - `UserService.CreateAsync` crea `User` + `ApplicationUser` vinculado con rol "Cliente" en una sola operación atómica
 - Rollback automático si falla la creación de la cuenta de acceso
 
-### Pendiente — Lo único que falta
-- **Fase 7 Frontend**: página `/mfa-verificar` (el backend MFA ya está implementado)
+### Fase C — Cookie HttpOnly ✅
+- Access token en cookie `HttpOnly; Secure; SameSite=Strict`
+- `APP_INITIALIZER` llama `/auth/me` al arrancar para hidratar `_identity` desde la cookie
+- Interceptor usa `withCredentials: true`; `/auth/me` excluido de reintentos de refresh
+
+### Fase G — MFA diferenciado por rol ✅
+- SuperAdmin: TOTP con Google Authenticator (`/configurar-totp`, endpoints `/auth/totp/*`)
+- Clientes: Email OTP con botón de reenvío (30s cooldown) en `/mfa-verificar`
+- Migración Phase9 añade `TotpSecret` y `TotpEnabled` a `ApplicationUser`
+
+### Fase E — Calidad/DX (parcial)
+- `CancellationToken` propagado en todos los endpoints y servicios CRUD
+- `EmailService` Singleton; `inject()` en services/guards; `ROLES`/`PASSWORD_RULES` como constantes
+- Lazy loading en todas las rutas; `aria-label` en botones icono
+- CI con GitHub Actions (`.github/workflows/ci.yml`)
+- Pendiente: guards async (ya resuelto por APP_INITIALIZER), índices BD + purga periódica
 
 ---
 

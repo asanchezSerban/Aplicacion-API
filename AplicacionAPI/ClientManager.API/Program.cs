@@ -89,6 +89,7 @@ builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddHostedService<CleanupHostedService>();
 
 // ── Controllers ───────────────────────────────────────────────────────────────
 builder.Services.AddControllers()

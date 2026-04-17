@@ -26,11 +26,12 @@ public class CompaniesController : ControllerBase
     public async Task<IActionResult> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string? name = null)
+        [FromQuery] string? name = null,
+        CancellationToken ct = default)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
-        var result = await _companyService.GetAllAsync(page, pageSize, name);
+        var result = await _companyService.GetAllAsync(page, pageSize, name, ct);
         return Ok(result);
     }
 
@@ -40,9 +41,9 @@ public class CompaniesController : ControllerBase
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(CompanyResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(int id, CancellationToken ct = default)
     {
-        var result = await _companyService.GetByIdAsync(id);
+        var result = await _companyService.GetByIdAsync(id, ct);
         return Ok(result);
     }
 
@@ -53,10 +54,10 @@ public class CompaniesController : ControllerBase
     [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(CompanyResponseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Create([FromForm] CreateCompanyDto dto, IFormFile? logo)
+    public async Task<IActionResult> Create([FromForm] CreateCompanyDto dto, IFormFile? logo, CancellationToken ct = default)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        var result = await _companyService.CreateAsync(dto, logo);
+        var result = await _companyService.CreateAsync(dto, logo, ct);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -68,10 +69,10 @@ public class CompaniesController : ControllerBase
     [ProducesResponseType(typeof(CompanyResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Update(int id, [FromForm] UpdateCompanyDto dto, IFormFile? logo)
+    public async Task<IActionResult> Update(int id, [FromForm] UpdateCompanyDto dto, IFormFile? logo, CancellationToken ct = default)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        var result = await _companyService.UpdateAsync(id, dto, logo);
+        var result = await _companyService.UpdateAsync(id, dto, logo, ct);
         return Ok(result);
     }
 
@@ -81,9 +82,9 @@ public class CompaniesController : ControllerBase
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
     {
-        await _companyService.DeleteAsync(id);
+        await _companyService.DeleteAsync(id, ct);
         return NoContent();
     }
 }

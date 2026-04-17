@@ -19,7 +19,7 @@ public class UserService : IUserService
         _userManager = userManager;
     }
 
-    public async Task<PagedResponseDto<UserResponseDto>> GetAllAsync(int page, int pageSize, string? name, int? companyId)
+    public async Task<PagedResponseDto<UserResponseDto>> GetAllAsync(int page, int pageSize, string? name, int? companyId, CancellationToken ct = default)
     {
         var query = _db.CompanyUsers.AsNoTracking().Include(u => u.Company).AsQueryable();
 
@@ -29,14 +29,14 @@ public class UserService : IUserService
         if (companyId.HasValue)
             query = query.Where(u => u.CompanyId == companyId.Value);
 
-        var totalItems = await query.CountAsync();
+        var totalItems = await query.CountAsync(ct);
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
         var users = await query
             .OrderByDescending(u => u.UpdatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .ToListAsync();
+            .ToListAsync(ct);
 
         return new PagedResponseDto<UserResponseDto>
         {
@@ -48,17 +48,17 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<UserResponseDto> GetByIdAsync(int id)
+    public async Task<UserResponseDto> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var user = await _db.CompanyUsers.AsNoTracking().Include(u => u.Company).FirstOrDefaultAsync(u => u.Id == id)
+        var user = await _db.CompanyUsers.AsNoTracking().Include(u => u.Company).FirstOrDefaultAsync(u => u.Id == id, ct)
             ?? throw new KeyNotFoundException($"Usuario con ID {id} no encontrado.");
 
         return MapToDto(user);
     }
 
-    public async Task<UserResponseDto> CreateAsync(CreateUserDto dto)
+    public async Task<UserResponseDto> CreateAsync(CreateUserDto dto, CancellationToken ct = default)
     {
-        var companyExists = await _db.Companies.AnyAsync(c => c.Id == dto.CompanyId);
+        var companyExists = await _db.Companies.AnyAsync(c => c.Id == dto.CompanyId, ct);
         if (!companyExists)
             throw new ArgumentException($"La empresa con ID {dto.CompanyId} no existe.");
 
@@ -66,7 +66,7 @@ public class UserService : IUserService
 
         // Abrir transacción: si no se llama CommitAsync, el await using la revierte
         // automáticamente al salir del bloque, sin importar la causa del fallo.
-        await using var tx = await _db.Database.BeginTransactionAsync();
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
         // Paso 1 — crear la entidad de negocio
         var user = new User
@@ -79,7 +79,7 @@ public class UserService : IUserService
         };
 
         _db.CompanyUsers.Add(user);
-        await _db.SaveChangesAsync(); // dentro de la transacción — aún no confirmado en BD
+        await _db.SaveChangesAsync(ct); // dentro de la transacción — aún no confirmado en BD
 
         // Paso 2 — crear la cuenta de acceso vinculada al User recién creado
         var appUser = new ApplicationUser
@@ -113,20 +113,20 @@ public class UserService : IUserService
         await _userManager.AddToRoleAsync(appUser, "Cliente");
 
         // Todo correcto — confirmar los tres pasos de golpe en la BD
-        await tx.CommitAsync();
+        await tx.CommitAsync(ct);
 
         _logger.LogInformation("Usuario creado con ID {UserId} y cuenta de acceso vinculada", user.Id);
 
-        await _db.Entry(user).Reference(u => u.Company).LoadAsync();
+        await _db.Entry(user).Reference(u => u.Company).LoadAsync(ct);
         return MapToDto(user);
     }
 
-    public async Task<UserResponseDto> UpdateAsync(int id, UpdateUserDto dto)
+    public async Task<UserResponseDto> UpdateAsync(int id, UpdateUserDto dto, CancellationToken ct = default)
     {
-        var user = await _db.CompanyUsers.Include(u => u.Company).FirstOrDefaultAsync(u => u.Id == id)
+        var user = await _db.CompanyUsers.Include(u => u.Company).FirstOrDefaultAsync(u => u.Id == id, ct)
             ?? throw new KeyNotFoundException($"Usuario con ID {id} no encontrado.");
 
-        var companyExists = await _db.Companies.AnyAsync(c => c.Id == dto.CompanyId);
+        var companyExists = await _db.Companies.AnyAsync(c => c.Id == dto.CompanyId, ct);
         if (!companyExists)
             throw new ArgumentException($"La empresa con ID {dto.CompanyId} no existe.");
 
@@ -135,21 +135,21 @@ public class UserService : IUserService
         user.CompanyId = dto.CompanyId;
         user.UpdatedAt = DateTime.UtcNow;
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Usuario {UserId} actualizado", user.Id);
 
-        await _db.Entry(user).Reference(u => u.Company).LoadAsync();
+        await _db.Entry(user).Reference(u => u.Company).LoadAsync(ct);
         return MapToDto(user);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var user = await _db.CompanyUsers.FindAsync(id)
+        var user = await _db.CompanyUsers.FindAsync(new object?[] { id }, ct)
             ?? throw new KeyNotFoundException($"Usuario con ID {id} no encontrado.");
 
         _db.CompanyUsers.Remove(user);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Usuario {UserId} eliminado", user.Id);
     }

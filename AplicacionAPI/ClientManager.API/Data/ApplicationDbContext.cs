@@ -89,6 +89,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         otp.Property(o => o.UserId).IsRequired();
         otp.Property(o => o.CodeHash).HasMaxLength(64).IsRequired();
         otp.HasIndex(o => o.UserId);
+        otp.HasIndex(o => o.ExpiresAt);          // limpieza periódica
+        otp.HasIndex(o => new { o.ExpiresAt, o.IsUsed }); // filtro compuesto en purge
         otp.HasOne(o => o.User)
             .WithMany()
             .HasForeignKey(o => o.UserId)
@@ -105,6 +107,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         refreshToken.Property(r => r.ReplacedByToken).HasMaxLength(200);
         refreshToken.HasIndex(r => r.Token).IsUnique();
         refreshToken.HasIndex(r => r.UserId);
+        refreshToken.HasIndex(r => r.ExpiresAt);  // limpieza periódica
         refreshToken.HasOne(r => r.User)
             .WithMany()
             .HasForeignKey(r => r.UserId)
