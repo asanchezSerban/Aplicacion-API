@@ -1,6 +1,6 @@
 import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -164,6 +164,7 @@ import { ROUTES } from '../../app.routes.constants';
 export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router      = inject(Router);
+  private readonly route       = inject(ActivatedRoute);
 
   email    = '';
   password = '';
@@ -179,13 +180,16 @@ export class LoginComponent {
     this.errorMessage.set(null);
 
     try {
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? undefined;
       const result = await this.authService.login({ email: this.email, password: this.password });
+
       if (result.requiresMfa) {
         const queryParams: Record<string, string> = { email: result.mfaEmail ?? '' };
-        if (result.mfaType === 'email') {
-          sessionStorage.setItem('mfa_sent_at', Date.now().toString());
+        if (result.mfaType === 'email' && result.otpExpiresAt) {
+          sessionStorage.setItem('mfa_otp_expires_at', result.otpExpiresAt);
         }
         if (result.mfaType) queryParams['mfaType'] = result.mfaType;
+        if (returnUrl)       queryParams['returnUrl'] = returnUrl;
         this.router.navigate([ROUTES.MFA_VERIFY], { queryParams });
       } else {
         // SuperAdmin sin TOTP configurado — el token ya fue guardado en auth.service.login()

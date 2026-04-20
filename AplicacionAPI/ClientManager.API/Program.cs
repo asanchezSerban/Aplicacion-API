@@ -217,6 +217,13 @@ if (app.Environment.IsDevelopment())
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "ClientManager API v1");
     });
+
+    // Endpoint solo para k6/dev — expone el último OTP generado para un email sin necesitar smtp4dev.
+    app.MapGet("/api/dev/last-otp", (string email) =>
+    {
+        var code = ClientManager.API.Services.DevOtpStore.Get(email);
+        return code is null ? Results.NotFound() : Results.Ok(new { code });
+    });
 }
 
 // ── Auto-migrate + Seed ───────────────────────────────────────────────────────

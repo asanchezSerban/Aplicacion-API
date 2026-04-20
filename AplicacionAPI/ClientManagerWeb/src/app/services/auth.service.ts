@@ -11,9 +11,10 @@ export interface LoginDto {
 }
 
 export interface LoginResponse {
-  requiresMfa: boolean;
-  mfaEmail?:   string;
-  mfaType?:    'email' | 'totp';
+  requiresMfa:   boolean;
+  mfaEmail?:     string;
+  mfaType?:      'email' | 'totp';
+  otpExpiresAt?: string;  // ISO 8601 — solo cuando mfaType === 'email'
   // Identidad (cuando requiresMfa = false — tokens van en cookies HttpOnly)
   email?:       string;
   role?:        string;
@@ -84,12 +85,21 @@ export class AuthService {
     return res;
   }
 
-  async mfaVerify(email: string, code: string): Promise<void> {
+  async mfaVerify(email: string, code: string, returnUrl?: string): Promise<void> {
     const identity = await firstValueFrom(
       this.http.post<Identity>(`${this.apiUrl}/mfa-verify`, { email, code }, { withCredentials: true })
     );
     this._identity.set(identity);
-    this.router.navigate([identity.role === ROLES.SUPER_ADMIN ? '/empresas' : '/perfil']);
+    const defaultRoute = identity.role === ROLES.SUPER_ADMIN ? '/empresas' : '/perfil';
+    const destination  = (returnUrl && this.isSafeReturnUrl(returnUrl)) ? returnUrl : defaultRoute;
+    this.router.navigate([destination]);
+  }
+
+  /** Verifica que la URL es interna y no apunta a páginas de auth (previene open-redirect). */
+  isSafeReturnUrl(url: string): boolean {
+    if (!url.startsWith('/')) return false;
+    const blocked = ['/login', '/mfa-verificar', '/recuperar-password', '/reset-password'];
+    return !blocked.some(b => url.startsWith(b));
   }
 
   async logout(): Promise<void> {
@@ -120,10 +130,11 @@ export class AuthService {
     }
   }
 
-  async resendOtp(email: string): Promise<void> {
-    await firstValueFrom(
-      this.http.post<void>(`${this.apiUrl}/resend-otp`, { email })
+  async resendOtp(email: string): Promise<string> {
+    const res = await firstValueFrom(
+      this.http.post<{ message: string; otpExpiresAt: string }>(`${this.apiUrl}/resend-otp`, { email })
     );
+    return res.otpExpiresAt;
   }
 
   async forgotPassword(email: string): Promise<void> {

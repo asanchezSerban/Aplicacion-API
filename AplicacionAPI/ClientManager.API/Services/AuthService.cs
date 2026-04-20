@@ -19,19 +19,22 @@ public class AuthService : IAuthService
     private readonly ILogger<AuthService> _logger;
     private readonly ApplicationDbContext _db;
     private readonly IEmailService _emailService;
+    private readonly IHostEnvironment _env;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         IConfiguration configuration,
         ILogger<AuthService> logger,
         ApplicationDbContext db,
-        IEmailService emailService)
+        IEmailService emailService,
+        IHostEnvironment env)
     {
         _userManager   = userManager;
         _configuration = configuration;
         _logger        = logger;
         _db            = db;
         _emailService  = emailService;
+        _env           = env;
     }
 
     public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
@@ -95,18 +98,22 @@ public class AuthService : IAuthService
         // Generar OTP de 6 dígitos
         var bytes = new byte[4];
         RandomNumberGenerator.Fill(bytes);
-        var code     = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
-        var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+        var code      = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
+        var codeHash  = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+        var expiresAt = DateTime.UtcNow.AddMinutes(1);
 
         _db.EmailOtpCodes.Add(new EmailOtpCode
         {
             UserId    = user.Id,
             CodeHash  = codeHash,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+            ExpiresAt = expiresAt,
             CreatedAt = DateTime.UtcNow
         });
 
         await _db.SaveChangesAsync();
+
+        if (_env.IsDevelopment())
+            DevOtpStore.Set(user.Email!, code);
 
         // Enviar email con el código
         var html = $"""
@@ -126,18 +133,21 @@ public class AuthService : IAuthService
         await _emailService.SendAsync(user.Email!, user.UserName!, "Código de verificación — ClientManager", html);
         _logger.LogInformation("OTP enviado para {Email}", user.Email);
 
-        return new LoginResponseDto { RequiresMfa = true, MfaEmail = user.Email, MfaType = "email" };
+        return new LoginResponseDto { RequiresMfa = true, MfaEmail = user.Email, MfaType = "email", OtpExpiresAt = expiresAt };
     }
 
-    public async Task ResendOtpAsync(string email)
+    public async Task<DateTime> ResendOtpAsync(string email)
     {
-        // Siempre devuelve 200 aunque el email no exista — evita enumeración de cuentas
+        // Calcular el TTL antes de cualquier comprobación — anti-enumeración:
+        // siempre devolvemos un expiresAt real aunque el email no exista.
+        var expiresAt = DateTime.UtcNow.AddMinutes(1);
+
         var user = await _userManager.FindByEmailAsync(email);
-        if (user is null) return;
+        if (user is null) return expiresAt;
 
         // SuperAdmin usa TOTP, no Email OTP — no tiene sentido reenviar
         var isSuperAdmin = (await _userManager.GetRolesAsync(user)).Contains("SuperAdmin");
-        if (isSuperAdmin) return;
+        if (isSuperAdmin) return expiresAt;
 
         // Invalidar OTPs anteriores activos
         var previousOtps = await _db.EmailOtpCodes
@@ -156,11 +166,14 @@ public class AuthService : IAuthService
         {
             UserId    = user.Id,
             CodeHash  = codeHash,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(1),
+            ExpiresAt = expiresAt,
             CreatedAt = DateTime.UtcNow
         });
 
         await _db.SaveChangesAsync();
+
+        if (_env.IsDevelopment())
+            DevOtpStore.Set(user.Email!, code);
 
         var html = $"""
             <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
@@ -178,6 +191,7 @@ public class AuthService : IAuthService
 
         await _emailService.SendAsync(user.Email!, user.UserName!, "Nuevo código de verificación — ClientManager", html);
         _logger.LogInformation("OTP reenviado para {Email}", user.Email);
+        return expiresAt;
     }
 
     public async Task<TokenResponseDto> MfaVerifyAsync(MfaVerifyDto dto)

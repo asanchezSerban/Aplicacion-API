@@ -59,6 +59,10 @@ public class LoginResponseDto
     public string? MfaEmail { get; set; }
     public string? MfaType  { get; set; }  // "email" | "totp"
 
+    // Solo cuando MfaType = "email" — TTL exacto del OTP para sincronizar el timer del frontend
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public DateTime? OtpExpiresAt { get; set; }
+
     // Solo cuando RequiresMfa = false — tokens van en cookie HttpOnly, no en el body
     [System.Text.Json.Serialization.JsonIgnore]
     public string? AccessToken  { get; set; }

@@ -40,9 +40,9 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
   errorMessage   = signal<string | null>(null);
   codeComplete   = signal(false);
   mfaType        = signal<'email' | 'totp'>('email');
-  private static readonly OTP_TTL       = 60;
-  private static readonly RESEND_COOLDOWN = 30;
-  timeLeft = signal(MfaVerificarComponent.OTP_TTL);
+  private static readonly OTP_TTL_FALLBACK = 60;  // fallback si no hay TTL del servidor
+  private static readonly RESEND_COOLDOWN  = 30;
+  timeLeft = signal(MfaVerificarComponent.OTP_TTL_FALLBACK);
 
   email = '';
   private timerInterval:   ReturnType<typeof setInterval> | null = null;
@@ -66,9 +66,11 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // El timer solo aplica al flujo de Email OTP
     if (this.mfaType() === 'email') {
-      const sentAt  = parseInt(sessionStorage.getItem('mfa_sent_at') ?? '0', 10);
-      const elapsed = sentAt ? Math.floor((Date.now() - sentAt) / 1000) : 0;
-      this.timeLeft.set(Math.max(0, MfaVerificarComponent.OTP_TTL - elapsed));
+      const expiresAt = sessionStorage.getItem('mfa_otp_expires_at');
+      const remaining = expiresAt
+        ? Math.max(0, Math.floor((Date.parse(expiresAt) - Date.now()) / 1000))
+        : MfaVerificarComponent.OTP_TTL_FALLBACK;
+      this.timeLeft.set(remaining);
       this.startTimer();
     }
   }
@@ -136,9 +138,10 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loading.set(true);
     this.errorMessage.set(null);
 
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? undefined;
     try {
-      await this.authService.mfaVerify(this.email, code);
-      sessionStorage.removeItem('mfa_sent_at');
+      await this.authService.mfaVerify(this.email, code, returnUrl);
+      sessionStorage.removeItem('mfa_otp_expires_at');
     } catch (err: unknown) {
       const e = err as { error?: { error?: string } };
       const msg = e?.error?.error ?? 'Código incorrecto. Inténtalo de nuevo.';
@@ -163,11 +166,12 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
     this.resendLoading.set(true);
     this.errorMessage.set(null);
     try {
-      await this.authService.resendOtp(this.email);
-      sessionStorage.setItem('mfa_sent_at', Date.now().toString());
-      // Reiniciar el timer de expiración y el cooldown del botón
+      const otpExpiresAt = await this.authService.resendOtp(this.email);
+      sessionStorage.setItem('mfa_otp_expires_at', otpExpiresAt);
+      // Reiniciar el timer usando el TTL exacto devuelto por el servidor
       this.clearTimer();
-      this.timeLeft.set(MfaVerificarComponent.OTP_TTL);
+      const remaining = Math.max(0, Math.floor((Date.parse(otpExpiresAt) - Date.now()) / 1000));
+      this.timeLeft.set(remaining);
       this.startTimer();
       this.clearDigits();
       this.startCooldown();
@@ -179,7 +183,7 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   goBack(): void {
-    sessionStorage.removeItem('mfa_sent_at');
+    sessionStorage.removeItem('mfa_otp_expires_at');
     this.router.navigate([ROUTES.LOGIN]);
   }
 

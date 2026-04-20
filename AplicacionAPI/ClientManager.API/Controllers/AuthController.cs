@@ -121,8 +121,8 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto dto)
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        await _authService.ResendOtpAsync(dto.Email);
-        return Ok(new { message = "Si el email existe y tiene un código pendiente, recibirás uno nuevo." });
+        var otpExpiresAt = await _authService.ResendOtpAsync(dto.Email);
+        return Ok(new { message = "Si el email existe y tiene un código pendiente, recibirás uno nuevo.", otpExpiresAt });
     }
 
     /// <summary>
