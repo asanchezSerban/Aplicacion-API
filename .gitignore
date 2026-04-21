@@ -38,3 +38,4 @@ DocumentacionBackend_archivos/
 
 # k6 — configuración local con credenciales de desarrollo
 **/k6-tests/local.config.env
+*.pgsql
