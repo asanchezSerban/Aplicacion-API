@@ -323,3 +323,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+// Necesario para que WebApplicationFactory<Program> pueda acceder a esta clase desde el proyecto de tests.
+public partial class Program { }

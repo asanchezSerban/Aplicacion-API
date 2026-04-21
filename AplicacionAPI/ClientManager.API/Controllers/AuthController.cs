@@ -14,11 +14,13 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly string _frontendBaseUrl;
+    private readonly bool _isProduction;
 
-    public AuthController(IAuthService authService, IConfiguration configuration)
+    public AuthController(IAuthService authService, IConfiguration configuration, IHostEnvironment env)
     {
         _authService     = authService;
         _frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "http://localhost:4200";
+        _isProduction    = env.IsProduction();
     }
 
     /// <summary>
@@ -222,7 +224,7 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("accessToken", token, new CookieOptions
         {
             HttpOnly = true,
-            Secure   = true,
+            Secure   = _isProduction,
             SameSite = SameSiteMode.Strict,
             Expires  = DateTimeOffset.UtcNow.AddMinutes(15)
         });
@@ -233,7 +235,7 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("refreshToken", token, new CookieOptions
         {
             HttpOnly = true,
-            Secure   = true,
+            Secure   = _isProduction,
             SameSite = SameSiteMode.Strict,
             Expires  = DateTimeOffset.UtcNow.AddHours(24)
         });
