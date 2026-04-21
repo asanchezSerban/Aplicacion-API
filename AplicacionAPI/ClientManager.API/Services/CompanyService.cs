@@ -174,7 +174,7 @@ public class CompanyService : ICompanyService
         // la firma binaria del contenido no.
         await using var readStream = file.OpenReadStream();
         var header = new byte[12];
-        await readStream.ReadAsync(header.AsMemory(0, 12), ct);
+        await readStream.ReadExactlyAsync(header.AsMemory(0, 12), ct);
 
         if (!HasValidMagicBytes(header, extension))
             throw new ArgumentException("El contenido del archivo no coincide con el formato de imagen declarado.");
@@ -199,8 +199,8 @@ public class CompanyService : ICompanyService
     private static bool HasValidMagicBytes(byte[] h, string extension) => extension switch
     {
         ".jpg" or ".jpeg" => h[0] == 0xFF && h[1] == 0xD8 && h[2] == 0xFF,
-        ".png"  => h[0] == 0x89 && h[1] == 0x50 && h[2] == 0x4E && h[3] == 0x47,
-        ".gif"  => h[0] == 0x47 && h[1] == 0x49 && h[2] == 0x46 && h[3] == 0x38,
+        ".png" => h[0] == 0x89 && h[1] == 0x50 && h[2] == 0x4E && h[3] == 0x47,
+        ".gif" => h[0] == 0x47 && h[1] == 0x49 && h[2] == 0x46 && h[3] == 0x38,
         ".webp" => h[0] == 0x52 && h[1] == 0x49 && h[2] == 0x46 && h[3] == 0x46
                 && h[8] == 0x57 && h[9] == 0x45 && h[10] == 0x42 && h[11] == 0x50,
         _ => false

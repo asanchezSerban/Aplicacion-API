@@ -15,20 +15,20 @@ public class LoginDto
 /// <summary>Identidad del usuario autenticado — devuelta en respuestas de auth y en GET /auth/me.</summary>
 public class IdentityDto
 {
-    public string  Email       { get; set; } = string.Empty;
-    public string  Role        { get; set; } = string.Empty;
-    public bool    TotpEnabled { get; set; }
-    public string? UserId      { get; set; }  // solo rol Cliente
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public bool TotpEnabled { get; set; }
+    public string? UserId { get; set; }  // solo rol Cliente
 }
 
 public class TokenResponseDto
 {
-    public string   AccessToken  { get; set; } = string.Empty;
-    public string   RefreshToken { get; set; } = string.Empty;
-    public DateTime ExpiresAt    { get; set; }
-    public string   UserEmail    { get; set; } = string.Empty;
-    public string   Role         { get; set; } = string.Empty;
-    public bool     TotpEnabled  { get; set; }
+    public string AccessToken { get; set; } = string.Empty;
+    public string RefreshToken { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+    public string UserEmail { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public bool TotpEnabled { get; set; }
 }
 
 public class ForgotPasswordDto
@@ -57,7 +57,7 @@ public class LoginResponseDto
 
     // Solo cuando RequiresMfa = true
     public string? MfaEmail { get; set; }
-    public string? MfaType  { get; set; }  // "email" | "totp"
+    public string? MfaType { get; set; }  // "email" | "totp"
 
     // Solo cuando MfaType = "email" — TTL exacto del OTP para sincronizar el timer del frontend
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
@@ -65,21 +65,21 @@ public class LoginResponseDto
 
     // Solo cuando RequiresMfa = false — tokens van en cookie HttpOnly, no en el body
     [System.Text.Json.Serialization.JsonIgnore]
-    public string? AccessToken  { get; set; }
+    public string? AccessToken { get; set; }
     [System.Text.Json.Serialization.JsonIgnore]
     public string? RefreshToken { get; set; }
     [System.Text.Json.Serialization.JsonIgnore]
-    public DateTime ExpiresAt   { get; set; }
+    public DateTime ExpiresAt { get; set; }
 
     // Identidad (cuando RequiresMfa = false)
-    public string? Email       { get; set; }
-    public string? Role        { get; set; }
-    public bool    TotpEnabled { get; set; }
+    public string? Email { get; set; }
+    public string? Role { get; set; }
+    public bool TotpEnabled { get; set; }
 }
 
 public class TotpSetupResponseDto
 {
-    public string QrUri  { get; set; } = string.Empty;  // otpauth:// URI para el QR
+    public string QrUri { get; set; } = string.Empty;  // otpauth:// URI para el QR
     public string Secret { get; set; } = string.Empty;  // Base32, para entrada manual
 }
 

@@ -29,12 +29,12 @@ public class AuthService : IAuthService
         IEmailService emailService,
         IHostEnvironment env)
     {
-        _userManager   = userManager;
+        _userManager = userManager;
         _configuration = configuration;
-        _logger        = logger;
-        _db            = db;
-        _emailService  = emailService;
-        _env           = env;
+        _logger = logger;
+        _db = db;
+        _emailService = emailService;
+        _env = env;
     }
 
     public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
@@ -78,13 +78,13 @@ public class AuthService : IAuthService
             _logger.LogInformation("SuperAdmin {Email} sin TOTP — redirigiendo a configuración", user.Email);
             return new LoginResponseDto
             {
-                RequiresMfa  = false,
-                AccessToken  = at,
+                RequiresMfa = false,
+                AccessToken = at,
                 RefreshToken = rt.Token,
-                ExpiresAt    = exp,
-                Email        = user.Email!,
-                Role         = "SuperAdmin",
-                TotpEnabled  = user.TotpEnabled
+                ExpiresAt = exp,
+                Email = user.Email!,
+                Role = "SuperAdmin",
+                TotpEnabled = user.TotpEnabled
             };
         }
 
@@ -98,14 +98,14 @@ public class AuthService : IAuthService
         // Generar OTP de 6 dígitos
         var bytes = new byte[4];
         RandomNumberGenerator.Fill(bytes);
-        var code      = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
-        var codeHash  = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+        var code = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
+        var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
         var expiresAt = DateTime.UtcNow.AddMinutes(1);
 
         _db.EmailOtpCodes.Add(new EmailOtpCode
         {
-            UserId    = user.Id,
-            CodeHash  = codeHash,
+            UserId = user.Id,
+            CodeHash = codeHash,
             ExpiresAt = expiresAt,
             CreatedAt = DateTime.UtcNow
         });
@@ -157,15 +157,15 @@ public class AuthService : IAuthService
             old.IsUsed = true;
 
         // Generar nuevo OTP
-        var bytes    = new byte[4];
+        var bytes = new byte[4];
         RandomNumberGenerator.Fill(bytes);
-        var code     = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
+        var code = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
         var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
 
         _db.EmailOtpCodes.Add(new EmailOtpCode
         {
-            UserId    = user.Id,
-            CodeHash  = codeHash,
+            UserId = user.Id,
+            CodeHash = codeHash,
             ExpiresAt = expiresAt,
             CreatedAt = DateTime.UtcNow
         });
@@ -205,7 +205,7 @@ public class AuthService : IAuthService
             if (string.IsNullOrEmpty(user.TotpSecret))
                 throw new UnauthorizedAccessException("TOTP no configurado correctamente.");
 
-            var totp  = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
+            var totp = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
             var valid = totp.VerifyTotp(DateTime.UtcNow, dto.Code, out _, VerificationWindow.RfcSpecifiedNetworkDelay);
             if (!valid)
                 throw new UnauthorizedAccessException("Código incorrecto. Verifica que tu app esté sincronizada.");
@@ -243,9 +243,9 @@ public class AuthService : IAuthService
         }
 
         var roles = await _userManager.GetRolesAsync(user);
-        var role  = roles.FirstOrDefault() ?? string.Empty;
+        var role = roles.FirstOrDefault() ?? string.Empty;
 
-        var accessToken  = GenerateAccessToken(user, role, out var expiresAt);
+        var accessToken = GenerateAccessToken(user, role, out var expiresAt);
         var refreshToken = await CreateRefreshTokenAsync(user.Id);
 
         _logger.LogInformation("{MfaType} verificado correctamente para {Email}",
@@ -253,12 +253,12 @@ public class AuthService : IAuthService
 
         return new TokenResponseDto
         {
-            AccessToken  = accessToken,
+            AccessToken = accessToken,
             RefreshToken = refreshToken.Token,
-            ExpiresAt    = expiresAt,
-            UserEmail    = user.Email!,
-            Role         = role,
-            TotpEnabled  = user.TotpEnabled
+            ExpiresAt = expiresAt,
+            UserEmail = user.Email!,
+            Role = role,
+            TotpEnabled = user.TotpEnabled
         };
     }
 
@@ -278,15 +278,15 @@ public class AuthService : IAuthService
 
         // Generar semilla aleatoria de 160 bits (estándar TOTP)
         var secretBytes = KeyGeneration.GenerateRandomKey(20);
-        var secret      = Base32Encoding.ToString(secretBytes);
+        var secret = Base32Encoding.ToString(secretBytes);
 
         // Guardar la semilla (aún no activada — TotpEnabled sigue false hasta confirmar)
         user.TotpSecret = secret;
         await _userManager.UpdateAsync(user);
 
-        var label  = Uri.EscapeDataString(user.Email!);
+        var label = Uri.EscapeDataString(user.Email!);
         var issuer = Uri.EscapeDataString("ClientManager");
-        var qrUri  = $"otpauth://totp/{issuer}:{label}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30";
+        var qrUri = $"otpauth://totp/{issuer}:{label}?secret={secret}&issuer={issuer}&algorithm=SHA1&digits=6&period=30";
 
         _logger.LogInformation("TOTP setup iniciado para {Email}", user.Email);
 
@@ -301,7 +301,7 @@ public class AuthService : IAuthService
         if (string.IsNullOrEmpty(user.TotpSecret))
             throw new InvalidOperationException("Inicia el setup de TOTP antes de confirmar.");
 
-        var totp  = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
+        var totp = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
         var valid = totp.VerifyTotp(DateTime.UtcNow, code, out _, VerificationWindow.RfcSpecifiedNetworkDelay);
         if (!valid)
             throw new ArgumentException("Código incorrecto. Asegúrate de haber escaneado el QR y de que la hora del dispositivo sea correcta.");
@@ -310,21 +310,21 @@ public class AuthService : IAuthService
         await _userManager.UpdateAsync(user);
 
         // Emitir nuevos tokens con totpEnabled=true en el claim para que el guard lo refleje de inmediato
-        var roles        = await _userManager.GetRolesAsync(user);
-        var role         = roles.FirstOrDefault() ?? string.Empty;
-        var accessToken  = GenerateAccessToken(user, role, out var expiresAt);
+        var roles = await _userManager.GetRolesAsync(user);
+        var role = roles.FirstOrDefault() ?? string.Empty;
+        var accessToken = GenerateAccessToken(user, role, out var expiresAt);
         var refreshToken = await CreateRefreshTokenAsync(user.Id);
 
         _logger.LogInformation("TOTP activado para {Email}", user.Email);
 
         return new TokenResponseDto
         {
-            AccessToken  = accessToken,
+            AccessToken = accessToken,
             RefreshToken = refreshToken.Token,
-            ExpiresAt    = expiresAt,
-            UserEmail    = user.Email!,
-            Role         = role,
-            TotpEnabled  = user.TotpEnabled
+            ExpiresAt = expiresAt,
+            UserEmail = user.Email!,
+            Role = role,
+            TotpEnabled = user.TotpEnabled
         };
     }
 
@@ -334,25 +334,25 @@ public class AuthService : IAuthService
             ?? throw new KeyNotFoundException("Usuario no encontrado.");
 
         user.TotpEnabled = false;
-        user.TotpSecret  = null;
+        user.TotpSecret = null;
         await _userManager.UpdateAsync(user);
 
         // Emitir nuevos tokens con totpEnabled=false para que el guard bloquee inmediatamente
-        var roles        = await _userManager.GetRolesAsync(user);
-        var role         = roles.FirstOrDefault() ?? string.Empty;
-        var accessToken  = GenerateAccessToken(user, role, out var expiresAt);
+        var roles = await _userManager.GetRolesAsync(user);
+        var role = roles.FirstOrDefault() ?? string.Empty;
+        var accessToken = GenerateAccessToken(user, role, out var expiresAt);
         var refreshToken = await CreateRefreshTokenAsync(user.Id);
 
         _logger.LogInformation("TOTP desactivado para {Email}", user.Email);
 
         return new TokenResponseDto
         {
-            AccessToken  = accessToken,
+            AccessToken = accessToken,
             RefreshToken = refreshToken.Token,
-            ExpiresAt    = expiresAt,
-            UserEmail    = user.Email!,
-            Role         = role,
-            TotpEnabled  = user.TotpEnabled
+            ExpiresAt = expiresAt,
+            UserEmail = user.Email!,
+            Role = role,
+            TotpEnabled = user.TotpEnabled
         };
     }
 
@@ -369,24 +369,24 @@ public class AuthService : IAuthService
         var roles = await _userManager.GetRolesAsync(user);
         var role = roles.FirstOrDefault() ?? string.Empty;
 
-        var newAccessToken  = GenerateAccessToken(user, role, out var expiresAt);
+        var newAccessToken = GenerateAccessToken(user, role, out var expiresAt);
         var newRefreshToken = await CreateRefreshTokenAsync(user.Id);
 
         // Revocar el token antiguo y registrar cuál lo reemplaza
-        stored.RevokedAt        = DateTime.UtcNow;
-        stored.ReplacedByToken  = newRefreshToken.Token;
+        stored.RevokedAt = DateTime.UtcNow;
+        stored.ReplacedByToken = newRefreshToken.Token;
         await _db.SaveChangesAsync();
 
         _logger.LogInformation("Refresh token rotado para {Email}", user.Email);
 
         return new TokenResponseDto
         {
-            AccessToken  = newAccessToken,
+            AccessToken = newAccessToken,
             RefreshToken = newRefreshToken.Token,
-            ExpiresAt    = expiresAt,
-            UserEmail    = user.Email!,
-            Role         = role,
-            TotpEnabled  = user.TotpEnabled
+            ExpiresAt = expiresAt,
+            UserEmail = user.Email!,
+            Role = role,
+            TotpEnabled = user.TotpEnabled
         };
     }
 
@@ -452,12 +452,12 @@ public class AuthService : IAuthService
 
             var mensajes = result.Errors.Select(e => e.Code switch
             {
-                "PasswordTooShort"                => "Mínimo 8 caracteres.",
+                "PasswordTooShort" => "Mínimo 8 caracteres.",
                 "PasswordRequiresNonAlphanumeric" => "Debe incluir al menos un carácter especial (!@#$...).",
-                "PasswordRequiresDigit"           => "Debe incluir al menos un número.",
-                "PasswordRequiresLower"           => "Debe incluir al menos una letra minúscula.",
-                "PasswordRequiresUpper"           => "Debe incluir al menos una letra mayúscula.",
-                _                                 => e.Description
+                "PasswordRequiresDigit" => "Debe incluir al menos un número.",
+                "PasswordRequiresLower" => "Debe incluir al menos una letra minúscula.",
+                "PasswordRequiresUpper" => "Debe incluir al menos una letra mayúscula.",
+                _ => e.Description
             });
             throw new ArgumentException(string.Join(" ", mensajes));
         }
@@ -489,20 +489,20 @@ public class AuthService : IAuthService
         if (role == "Cliente" && user.UserId.HasValue)
             claims.Add(new Claim("userId", user.UserId.Value.ToString()));
 
-        var secretKey     = _configuration["Jwt:SecretKey"]       ?? throw new InvalidOperationException("Jwt:SecretKey no configurado.");
-        var issuer        = _configuration["Jwt:Issuer"]          ?? "ClientManagerAPI";
-        var audience      = _configuration["Jwt:Audience"]        ?? "ClientManagerApp";
+        var secretKey = _configuration["Jwt:SecretKey"] ?? throw new InvalidOperationException("Jwt:SecretKey no configurado.");
+        var issuer = _configuration["Jwt:Issuer"] ?? "ClientManagerAPI";
+        var audience = _configuration["Jwt:Audience"] ?? "ClientManagerApp";
         var expiryMinutes = int.Parse(_configuration["Jwt:ExpiryInMinutes"] ?? "15");
 
-        var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         expiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes);
 
         var token = new JwtSecurityToken(
-            issuer:             issuer,
-            audience:           audience,
-            claims:             claims,
-            expires:            expiresAt,
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: expiresAt,
             signingCredentials: creds
         );
 
@@ -513,8 +513,8 @@ public class AuthService : IAuthService
     {
         var refreshToken = new RefreshToken
         {
-            Token     = Guid.NewGuid().ToString(),
-            UserId    = userId,
+            Token = Guid.NewGuid().ToString(),
+            UserId = userId,
             ExpiresAt = DateTime.UtcNow.AddHours(24)
         };
 

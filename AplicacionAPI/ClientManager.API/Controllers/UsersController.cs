@@ -32,7 +32,7 @@ public class UsersController : ControllerBase
         [FromQuery] int? companyId = null,
         CancellationToken ct = default)
     {
-        page     = Math.Max(1, page);
+        page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
         var result = await _userService.GetAllAsync(page, pageSize, name, companyId, ct);
         return Ok(result);
