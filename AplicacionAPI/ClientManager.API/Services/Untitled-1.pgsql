@@ -1,1 +1,0 @@
-SELECT "TotpSecret" FROM "AspNetUsers" WHERE "Email" = 'admin@clientmanager.local';
