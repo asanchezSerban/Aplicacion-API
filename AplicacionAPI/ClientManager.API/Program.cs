@@ -21,15 +21,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // ── Identity ──────────────────────────────────────────────────────────────────
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.Password.RequireDigit           = true;
-    options.Password.RequireLowercase       = true;
-    options.Password.RequireUppercase       = true;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength         = 8;
+    options.Password.RequiredLength = 8;
 
-    options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(15);
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
     options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers      = true;
+    options.Lockout.AllowedForNewUsers = true;
 
     options.User.RequireUniqueEmail = true;
 })
@@ -39,7 +39,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // ── JWT Authentication ────────────────────────────────────────────────────────
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
     ?? throw new InvalidOperationException("Jwt:SecretKey es obligatorio. Configúralo en User Secrets.");
-var jwtIssuer   = builder.Configuration["Jwt:Issuer"]
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
     ?? throw new InvalidOperationException("Jwt:Issuer es obligatorio. Configúralo en appsettings.json.");
 var jwtAudience = builder.Configuration["Jwt:Audience"]
     ?? throw new InvalidOperationException("Jwt:Audience es obligatorio. Configúralo en appsettings.json.");
@@ -47,22 +47,22 @@ var jwtAudience = builder.Configuration["Jwt:Audience"]
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
     options.MapInboundClaims = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer           = true,
-        ValidateAudience         = true,
-        ValidateLifetime         = true,
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer              = jwtIssuer,
-        ValidAudience            = jwtAudience,
-        IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
-        ClockSkew                = TimeSpan.Zero,
-        RoleClaimType            = "role"
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+        ClockSkew = TimeSpan.Zero,
+        RoleClaimType = "role"
     };
     // Leer el access token desde la cookie HttpOnly (Phase C).
     // Si la cookie no está presente, el handler cae al behavior por defecto
@@ -112,12 +112,12 @@ builder.Services.AddSwaggerGen(options =>
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Name         = "Authorization",
-        Type         = SecuritySchemeType.Http,
-        Scheme       = "bearer",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
         BearerFormat = "JWT",
-        In           = ParameterLocation.Header,
-        Description  = "Introduce tu JWT. Ejemplo: eyJhbGci..."
+        In = ParameterLocation.Header,
+        Description = "Introduce tu JWT. Ejemplo: eyJhbGci..."
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -158,10 +158,10 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit        = 5,
-                Window             = TimeSpan.FromMinutes(1),
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit         = 0
+                QueueLimit = 0
             }
         ));
 });
@@ -179,16 +179,16 @@ app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
-        var exception  = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+        var exception = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
         var handlerLog = context.RequestServices.GetRequiredService<ILogger<Program>>();
 
         var (statusCode, message) = exception switch
         {
-            ArgumentException ex          => (StatusCodes.Status400BadRequest,   ex.Message),
-            KeyNotFoundException ex        => (StatusCodes.Status404NotFound,     ex.Message),
-            AccountLockedException        => (StatusCodes.Status423Locked,        "Credenciales inválidas o cuenta temporalmente bloqueada."),
+            ArgumentException ex => (StatusCodes.Status400BadRequest, ex.Message),
+            KeyNotFoundException ex => (StatusCodes.Status404NotFound, ex.Message),
+            AccountLockedException => (StatusCodes.Status423Locked, "Credenciales inválidas o cuenta temporalmente bloqueada."),
             UnauthorizedAccessException ex => (StatusCodes.Status401Unauthorized, ex.Message),
-            _                              => (StatusCodes.Status500InternalServerError,
+            _ => (StatusCodes.Status500InternalServerError,
                                                "Ha ocurrido un error interno en el servidor.")
         };
 
@@ -196,7 +196,7 @@ app.UseExceptionHandler(errorApp =>
         if (statusCode == StatusCodes.Status500InternalServerError && exception is not null)
             handlerLog.LogError(exception, "Error no controlado en {Path}", context.Request.Path);
 
-        context.Response.StatusCode  = statusCode;
+        context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(new { status = statusCode, error = message });
     });
@@ -230,7 +230,7 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var logger    = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
     var conn = dbContext.Database.GetDbConnection();
     await conn.OpenAsync();
@@ -278,7 +278,7 @@ using (var scope = app.Services.CreateScope())
     // ── Seed roles y SuperAdmin ───────────────────────────────────────────────
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    var config      = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
     foreach (var roleName in new[] { "SuperAdmin", "Cliente" })
     {
@@ -289,7 +289,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    var adminEmail    = config["SuperAdmin:Email"]    ?? "admin@clientmanager.local";
+    var adminEmail = config["SuperAdmin:Email"] ?? "admin@clientmanager.local";
     var adminPassword = config["SuperAdmin:Password"]
         ?? throw new InvalidOperationException("SuperAdmin:Password es obligatorio. Configúralo en User Secrets.");
 
@@ -297,10 +297,10 @@ using (var scope = app.Services.CreateScope())
     {
         var adminUser = new ApplicationUser
         {
-            UserName       = adminEmail,
-            Email          = adminEmail,
+            UserName = adminEmail,
+            Email = adminEmail,
             EmailConfirmed = true,
-            CreatedAt      = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
 
         var result = await userManager.CreateAsync(adminUser, adminPassword);

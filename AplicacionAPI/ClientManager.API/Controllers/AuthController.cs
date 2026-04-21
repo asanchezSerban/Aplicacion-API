@@ -18,9 +18,9 @@ public class AuthController : ControllerBase
 
     public AuthController(IAuthService authService, IConfiguration configuration, IHostEnvironment env)
     {
-        _authService     = authService;
+        _authService = authService;
         _frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "http://localhost:4200";
-        _isProduction    = env.IsProduction();
+        _isProduction = env.IsProduction();
     }
 
     /// <summary>
@@ -59,10 +59,10 @@ public class AuthController : ControllerBase
     {
         return Ok(new IdentityDto
         {
-            Email       = User.FindFirst("email")?.Value      ?? string.Empty,
-            Role        = User.FindFirst("role")?.Value       ?? string.Empty,
+            Email = User.FindFirst("email")?.Value ?? string.Empty,
+            Role = User.FindFirst("role")?.Value ?? string.Empty,
             TotpEnabled = User.FindFirst("totpEnabled")?.Value == "true",
-            UserId      = User.FindFirst("userId")?.Value
+            UserId = User.FindFirst("userId")?.Value
         });
     }
 
@@ -213,8 +213,8 @@ public class AuthController : ControllerBase
         SetRefreshTokenCookie(tokens.RefreshToken);
         return new IdentityDto
         {
-            Email       = tokens.UserEmail,
-            Role        = tokens.Role,
+            Email = tokens.UserEmail,
+            Role = tokens.Role,
             TotpEnabled = tokens.TotpEnabled
         };
     }
@@ -224,9 +224,9 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("accessToken", token, new CookieOptions
         {
             HttpOnly = true,
-            Secure   = _isProduction,
+            Secure = _isProduction,
             SameSite = SameSiteMode.Strict,
-            Expires  = DateTimeOffset.UtcNow.AddMinutes(15)
+            Expires = DateTimeOffset.UtcNow.AddMinutes(15)
         });
     }
 
@@ -235,9 +235,9 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("refreshToken", token, new CookieOptions
         {
             HttpOnly = true,
-            Secure   = _isProduction,
+            Secure = _isProduction,
             SameSite = SameSiteMode.Strict,
-            Expires  = DateTimeOffset.UtcNow.AddHours(24)
+            Expires = DateTimeOffset.UtcNow.AddHours(24)
         });
     }
 }

@@ -14,8 +14,8 @@ public class UserService : IUserService
 
     public UserService(ApplicationDbContext db, ILogger<UserService> logger, UserManager<ApplicationUser> userManager)
     {
-        _db          = db;
-        _logger      = logger;
+        _db = db;
+        _logger = logger;
         _userManager = userManager;
     }
 
@@ -40,11 +40,11 @@ public class UserService : IUserService
 
         return new PagedResponseDto<UserResponseDto>
         {
-            Data       = users.Select(MapToDto),
+            Data = users.Select(MapToDto),
             TotalItems = totalItems,
             TotalPages = totalPages,
             CurrentPage = page,
-            PageSize   = pageSize
+            PageSize = pageSize
         };
     }
 
@@ -71,8 +71,8 @@ public class UserService : IUserService
         // Paso 1 — crear la entidad de negocio
         var user = new User
         {
-            Name      = dto.Name.Trim(),
-            Email     = email,
+            Name = dto.Name.Trim(),
+            Email = email,
             CompanyId = dto.CompanyId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -84,11 +84,11 @@ public class UserService : IUserService
         // Paso 2 — crear la cuenta de acceso vinculada al User recién creado
         var appUser = new ApplicationUser
         {
-            UserName       = email,
-            Email          = email,
+            UserName = email,
+            Email = email,
             EmailConfirmed = true,
-            UserId         = user.Id,  // disponible porque SaveChanges generó el ID
-            CreatedAt      = DateTime.UtcNow
+            UserId = user.Id,  // disponible porque SaveChanges generó el ID
+            CreatedAt = DateTime.UtcNow
         };
 
         var result = await _userManager.CreateAsync(appUser, dto.Password);
@@ -97,14 +97,14 @@ public class UserService : IUserService
             // Al salir sin CommitAsync, await using revierte automáticamente el Paso 1
             var mensajes = result.Errors.Select(e => e.Code switch
             {
-                "PasswordTooShort"                => "Mínimo 8 caracteres.",
+                "PasswordTooShort" => "Mínimo 8 caracteres.",
                 "PasswordRequiresNonAlphanumeric" => "Debe incluir al menos un carácter especial (!@#$...).",
-                "PasswordRequiresDigit"           => "Debe incluir al menos un número.",
-                "PasswordRequiresLower"           => "Debe incluir al menos una letra minúscula.",
-                "PasswordRequiresUpper"           => "Debe incluir al menos una letra mayúscula.",
-                "DuplicateEmail"                  => "Ya existe una cuenta con ese email.",
-                "DuplicateUserName"               => "Ya existe una cuenta con ese email.",
-                _                                 => e.Description
+                "PasswordRequiresDigit" => "Debe incluir al menos un número.",
+                "PasswordRequiresLower" => "Debe incluir al menos una letra minúscula.",
+                "PasswordRequiresUpper" => "Debe incluir al menos una letra mayúscula.",
+                "DuplicateEmail" => "Ya existe una cuenta con ese email.",
+                "DuplicateUserName" => "Ya existe una cuenta con ese email.",
+                _ => e.Description
             });
             throw new ArgumentException(string.Join(" ", mensajes));
         }
@@ -130,8 +130,8 @@ public class UserService : IUserService
         if (!companyExists)
             throw new ArgumentException($"La empresa con ID {dto.CompanyId} no existe.");
 
-        user.Name      = dto.Name.Trim();
-        user.Email     = dto.Email.Trim().ToLowerInvariant();
+        user.Name = dto.Name.Trim();
+        user.Email = dto.Email.Trim().ToLowerInvariant();
         user.CompanyId = dto.CompanyId;
         user.UpdatedAt = DateTime.UtcNow;
 
@@ -156,12 +156,12 @@ public class UserService : IUserService
 
     private static UserResponseDto MapToDto(User user) => new()
     {
-        Id          = user.Id,
-        Name        = user.Name,
-        Email       = user.Email,
-        CompanyId   = user.CompanyId,
+        Id = user.Id,
+        Name = user.Name,
+        Email = user.Email,
+        CompanyId = user.CompanyId,
         CompanyName = user.Company?.Name ?? string.Empty,
-        CreatedAt   = user.CreatedAt,
-        UpdatedAt   = user.UpdatedAt
+        CreatedAt = user.CreatedAt,
+        UpdatedAt = user.UpdatedAt
     };
 }

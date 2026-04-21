@@ -18,7 +18,7 @@ public class CleanupHostedService : BackgroundService
     public CleanupHostedService(IServiceScopeFactory scopeFactory, ILogger<CleanupHostedService> logger)
     {
         _scopeFactory = scopeFactory;
-        _logger       = logger;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -47,7 +47,7 @@ public class CleanupHostedService : BackgroundService
         try
         {
             using var scope = _scopeFactory.CreateScope();
-            var db  = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var now = DateTime.UtcNow;
 
             var refreshDeleted = await db.RefreshTokens
