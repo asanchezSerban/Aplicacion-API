@@ -1,92 +1,118 @@
-<div class="company-list-container">
-  <div class="header">
-    <h1>Empresas</h1>
-    <button mat-raised-button color="primary" (click)="newCompany()">
-      <mat-icon>add</mat-icon>
-      Nueva Empresa
-    </button>
-  </div>
+<div class="page">
 
-  <!-- Filters -->
-  <div class="filters">
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Buscar por nombre</mat-label>
-      <input matInput [(ngModel)]="nameFilter" (keyup.enter)="onFilterChange()" placeholder="Nombre...">
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-
-    <button mat-button (click)="clearFilters()" class="clear-btn">
-      <mat-icon>clear</mat-icon>
-      Limpiar
-    </button>
-  </div>
-
-  <!-- Loading -->
-  @if (isLoading()) {
-    <div class="spinner-container">
-      <mat-spinner diameter="48"></mat-spinner>
+  <header class="page-header">
+    <div class="page-header-left">
+      <h1>Empresas</h1>
+      @if (!isLoading()) {
+        <span class="page-subtitle">{{ totalItems() }} empresa{{ totalItems() === 1 ? '' : 's' }}</span>
+      }
     </div>
-  }
+    <button type="button" class="btn-primary" (click)="newCompany()">
+      <mat-icon>add</mat-icon>
+      <span>Nueva empresa</span>
+    </button>
+  </header>
 
-  <!-- Table -->
-  @if (!isLoading()) {
-    @if (companies().length === 0) {
-      <div class="empty-state">
-        <mat-icon class="empty-icon">business_outline</mat-icon>
-        <p>No se encontraron empresas</p>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="Buscar empresa…"
+             [(ngModel)]="nameFilter" (keyup.enter)="onFilterChange()">
+      @if (nameFilter) {
+        <button type="button" class="clear-btn" (click)="clearFilters()" aria-label="Limpiar búsqueda">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="table-wrap">
+      <div class="skeleton-header"></div>
+      @for (row of skeletonRows; track row) {
+        <div class="skeleton-row">
+          <div class="skeleton-cell skeleton-logo"></div>
+          <div class="skeleton-cell skeleton-name"></div>
+          <div class="skeleton-cell skeleton-desc"></div>
+          <div class="skeleton-cell skeleton-actions"></div>
+        </div>
+      }
+    </div>
+  } @else if (companies().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <mat-icon>domain</mat-icon>
       </div>
-    } @else {
-      <div class="table-container">
-        <table mat-table [dataSource]="companies()">
-          <!-- Logo -->
-          <ng-container matColumnDef="logo">
-            <th mat-header-cell *matHeaderCellDef></th>
-            <td mat-cell *matCellDef="let company" class="logo-cell">
-              @if (company.logoUrl) {
-                <img [src]="company.logoUrl" [alt]="company.name" class="logo-thumb">
-              } @else {
-                <div class="logo-placeholder">
-                  <mat-icon>business</mat-icon>
-                </div>
-              }
-            </td>
-          </ng-container>
+      <h2>Sin empresas</h2>
+      <p>{{ nameFilter ? 'No hay resultados para "' + nameFilter + '".' : 'Crea la primera empresa para empezar.' }}</p>
+      @if (nameFilter) {
+        <button type="button" class="btn-ghost" (click)="clearFilters()">Limpiar filtro</button>
+      } @else {
+        <button type="button" class="btn-primary" (click)="newCompany()">
+          <mat-icon>add</mat-icon>
+          <span>Nueva empresa</span>
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table mat-table [dataSource]="companies()" class="data-table">
 
-          <!-- Name -->
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Nombre</th>
-            <td mat-cell *matCellDef="let company">{{ company.name }}</td>
-          </ng-container>
-
-          <!-- Description -->
-          <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef>Descripción</th>
-            <td mat-cell *matCellDef="let company">{{ truncate(company.description) }}</td>
-          </ng-container>
-
-          <!-- Actions -->
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Acciones</th>
-            <td mat-cell *matCellDef="let company">
-              <div class="actions">
-                <button mat-icon-button matTooltip="Ver detalle" [attr.aria-label]="'Ver detalle de ' + company.name" (click)="viewCompany(company.id)">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-                <button mat-icon-button matTooltip="Editar" [attr.aria-label]="'Editar ' + company.name" (click)="editCompany(company.id)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button matTooltip="Eliminar" color="warn" [attr.aria-label]="'Eliminar ' + company.name" (click)="deleteCompany(company)">
-                  <mat-icon>delete</mat-icon>
-                </button>
+        <ng-container matColumnDef="logo">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let c" class="col-logo">
+            @if (c.logoUrl) {
+              <img [src]="c.logoUrl" [alt]="c.name" class="logo-thumb">
+            } @else {
+              <div class="logo-placeholder">
+                <mat-icon>domain</mat-icon>
               </div>
-            </td>
-          </ng-container>
+            }
+          </td>
+        </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      </div>
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Nombre</th>
+          <td mat-cell *matCellDef="let c" class="col-name">{{ c.name }}</td>
+        </ng-container>
 
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef>Descripción</th>
+          <td mat-cell *matCellDef="let c" class="col-desc">{{ truncate(c.description) }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let c" class="col-actions">
+            <div class="row-actions">
+              <button type="button" class="action-btn"
+                      (click)="viewCompany(c.id)"
+                      [attr.aria-label]="'Ver ' + c.name"
+                      matTooltip="Ver detalle">
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+              <button type="button" class="action-btn"
+                      (click)="editCompany(c.id)"
+                      [attr.aria-label]="'Editar ' + c.name"
+                      matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button type="button" class="action-btn action-btn--danger"
+                      (click)="deleteCompany(c)"
+                      [attr.aria-label]="'Eliminar ' + c.name"
+                      matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
+      </table>
+    </div>
+
+    <div class="pagination-wrap">
       <mat-paginator
         [length]="totalItems()"
         [pageSize]="pageSize"
@@ -95,6 +121,7 @@
         (page)="onPageChange($event)"
         showFirstLastButtons>
       </mat-paginator>
-    }
+    </div>
   }
+
 </div>

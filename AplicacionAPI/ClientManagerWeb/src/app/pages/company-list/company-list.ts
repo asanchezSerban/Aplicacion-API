@@ -4,13 +4,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltip } from '@angular/material/tooltip';
 import { Company, PagedResponse } from '../../models/company.model';
 import { CompanyService } from '../../services/company.service';
@@ -22,9 +18,8 @@ import { ROUTES } from '../../app.routes.constants';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
-    MatTableModule, MatPaginatorModule, MatProgressSpinner,
-    MatButton, MatIconButton, MatIcon,
-    MatInputModule, MatFormFieldModule, MatTooltip
+    MatTableModule, MatPaginatorModule,
+    MatIcon, MatTooltip
   ],
   templateUrl: './company-list.html',
   styleUrl: './company-list.scss'
@@ -47,6 +42,7 @@ export class CompanyListComponent implements OnInit {
   nameFilter      = '';
 
   displayedColumns = ['logo', 'name', 'description', 'actions'];
+  skeletonRows     = [1, 2, 3, 4, 5];
 
   ngOnInit(): void {
     this.loadCompanies();

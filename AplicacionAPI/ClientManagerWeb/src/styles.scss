@@ -40,6 +40,13 @@ body.dark-mode {
   );
 }
 
+// Ocultar los iconos nativos de revelado/limpiado de contraseña (Edge/IE).
+// Usamos nuestro propio toggle de visibilidad en cada formulario.
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
 // Global snackbar styles
 .snackbar-success {
   --mdc-snackbar-container-color: #2e7d32;
