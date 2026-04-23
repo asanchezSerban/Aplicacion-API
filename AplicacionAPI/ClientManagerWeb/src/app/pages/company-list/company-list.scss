@@ -114,6 +114,26 @@
 
 .search-icon { font-size: 17px; width: 17px; height: 17px; color: var(--ink-300); flex-shrink: 0; }
 
+.search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  border: none;
+  background: var(--ink-100);
+  color: var(--ink-500);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 120ms ease;
+
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+
+  &:hover { background: var(--ink-200); }
+}
+
 .search-input {
   flex: 1;
   border: none;
@@ -525,7 +545,7 @@ $shimmer: linear-gradient(90deg, var(--ink-100) 25%, var(--ink-50) 50%, var(--in
   margin-left: 1rem;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 80px);
+  height: calc(100vh - 160px);
   overflow: hidden;
   position: sticky;
   top: 1rem;

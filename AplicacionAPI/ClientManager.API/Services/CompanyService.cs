@@ -36,7 +36,7 @@ public class CompanyService : ICompanyService
 
         if (!string.IsNullOrWhiteSpace(name))
         {
-            query = query.Where(c => c.Name.ToLower().Contains(name.ToLower()));
+            query = query.Where(c => c.Name.ToLower().StartsWith(name.ToLower()));
         }
 
         var totalItems = await query.CountAsync(ct);

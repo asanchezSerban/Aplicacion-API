@@ -14,6 +14,11 @@
       <mat-icon class="search-icon">search</mat-icon>
       <input class="search-input" type="text" placeholder="Buscar empresas..."
              [(ngModel)]="nameFilter" (keyup.enter)="onFilterChange()">
+      @if (nameFilter) {
+        <button type="button" class="search-clear" (click)="clearFilters()" aria-label="Limpiar búsqueda">
+          ×
+        </button>
+      }
     </label>
     <button type="button" class="btn-ghost">
       <mat-icon>filter_list</mat-icon>

@@ -190,6 +190,21 @@ const FULLSCREEN_ROUTES = [
 
       body.dark-mode .mobile-nav-bar { background: #131826; border-bottom-color: #1E2638; }
     }
+
+    /* ── Teléfono pequeño (≤640px) ─────────────────────────────── */
+
+    @media (max-width: 640px) {
+      /* Reducir content-header: solo campana + avatar, sin texto ni separador */
+      .topbar-user-info,
+      .topbar-chevron,
+      .topbar-sep { display: none; }
+
+      /* Reservar espacio a la derecha para campana (34px) + avatar (30px) + gaps */
+      .mobile-nav-bar {
+        justify-content: flex-start;
+        padding-right: 88px;
+      }
+    }
   `],
   template: `
     @if (isFullscreen()) {
