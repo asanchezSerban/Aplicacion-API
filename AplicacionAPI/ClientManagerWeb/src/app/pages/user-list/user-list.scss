@@ -1,3 +1,4 @@
+@use 'sass:list';
 :host {
   --ink-900: #0B0F1A;
   --ink-700: #1E2638;
@@ -297,10 +298,10 @@ $avatar-palettes: (
 }
 
 @for $i from 0 through 7 {
-  $pair: nth($avatar-palettes, $i + 1);
+  $pair: list.nth($avatar-palettes, $i + 1);
   .user-avatar--#{$i} {
-    background: nth($pair, 1);
-    color: nth($pair, 2);
+    background: list.nth($pair, 1);
+    color: list.nth($pair, 2);
   }
 }
 

@@ -153,6 +153,13 @@ const FULLSCREEN_ROUTES = [
     body.dark-mode .topbar-user:hover { background: #0B0F1A; }
     body.dark-mode .topbar-name    { color: #F5F6FA; }
 
+    /* ── Tablet+ overrides: hide sidebar (1200px down) ────────── */
+
+    @media (max-width: 1200px) {
+      app-sidebar { display: none; }
+      .topbar-brand-name { display: block; }
+    }
+
     /* ── Mobile overrides ──────────────────────────────────── */
 
     @media (max-width: 767px) {
@@ -206,6 +213,7 @@ const FULLSCREEN_ROUTES = [
         <div class="admin-content">
           <!-- Header: solo bell + usuario, sin brand (el brand está en el sidebar) -->
           <header class="content-header">
+            <div class="topbar-brand-name" aria-hidden="true">ClientManager</div>
             <button class="topbar-notif" type="button" aria-label="Notificaciones">
               <mat-icon>notifications</mat-icon>
               <span class="notif-badge">3</span>

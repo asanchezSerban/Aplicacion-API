@@ -120,7 +120,7 @@
                 <button class="kebab-btn"
                         [matMenuTriggerFor]="rowMenu"
                         [attr.aria-label]="'Acciones para ' + c.name">
-                  <mat-icon>more_vert</mat-icon>
+                  <mat-icon>more_horiz</mat-icon>
                 </button>
                 <mat-menu #rowMenu="matMenu">
                   <button mat-menu-item (click)="viewCompany(c.id)">
@@ -165,7 +165,8 @@
 
     <!-- ── Detail panel ── -->
     @if (selectedCompany(); as c) {
-      <aside class="detail-panel">
+      <div class="mobile-backdrop" (click)="closePanel()"></div>
+      <aside class="detail-panel" [class.detail-panel--closing]="isPanelClosing()">
 
         <!-- Panel header -->
         <div class="panel-header">
