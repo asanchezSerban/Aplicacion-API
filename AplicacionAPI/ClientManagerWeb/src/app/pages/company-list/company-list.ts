@@ -38,7 +38,9 @@ export class CompanyListComponent implements OnInit {
   isLoading        = signal(false);
   selectedCompany  = signal<Company | null>(null);
   activeTab        = signal<PanelTab>('resumen');
-  isPanelClosing   = signal(false);
+  isClosing        = signal(false);
+
+  private closingTimeout?: ReturnType<typeof setTimeout>;
 
   currentPage     = 1;
   pageSize        = 10;
@@ -87,10 +89,11 @@ export class CompanyListComponent implements OnInit {
   }
 
   selectCompany(company: Company): void {
-    // reset any closing state when opening/selecting
-    this.isPanelClosing.set(false);
+    clearTimeout(this.closingTimeout);
+    this.isClosing.set(false);
+
     if (this.selectedCompany()?.id === company.id) {
-      this.selectedCompany.set(null);
+      this.closePanel();
     } else {
       this.selectedCompany.set(company);
       this.activeTab.set('resumen');
@@ -98,22 +101,11 @@ export class CompanyListComponent implements OnInit {
   }
 
   closePanel(): void {
-    // On small screens run a slide-out animation before clearing the panel
-    try {
-      const small = window.matchMedia('(max-width: 1200px)').matches;
-      if (small) {
-        this.isPanelClosing.set(true);
-        // duration must match CSS animation (220-300ms)
-        setTimeout(() => {
-          this.selectedCompany.set(null);
-          this.isPanelClosing.set(false);
-        }, 300);
-        return;
-      }
-    } catch (e) {
-      // If window is not available (SSR/tests), fallback to immediate close
-    }
-    this.selectedCompany.set(null);
+    this.isClosing.set(true);
+    this.closingTimeout = setTimeout(() => {
+      this.selectedCompany.set(null);
+      this.isClosing.set(false);
+    }, 280);
   }
 
   setTab(tab: PanelTab): void {

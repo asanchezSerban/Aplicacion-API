@@ -145,7 +145,6 @@ const FULLSCREEN_ROUTES = [
 
     body.dark-mode .admin-shell    { background: #0B0F1A; }
     body.dark-mode .admin-topbar   { background: #131826; border-bottom-color: #1E2638; }
-    body.dark-mode .topbar-brand-name { color: #F5F6FA; }
     body.dark-mode .topbar-notif   { border-color: #1E2638; color: #8A93A6; }
     body.dark-mode .topbar-notif:hover { background: #0B0F1A; }
     body.dark-mode .notif-badge    { border-color: #131826; }
@@ -153,18 +152,9 @@ const FULLSCREEN_ROUTES = [
     body.dark-mode .topbar-user:hover { background: #0B0F1A; }
     body.dark-mode .topbar-name    { color: #F5F6FA; }
 
-    /* ── Tablet+ overrides: hide sidebar (1200px down) ────────── */
+    /* ── Tablet: sidebar se oculta, nav móvil aparece (1024px) ── */
 
-    @media (max-width: 1200px) {
-      app-sidebar { display: none; }
-      .topbar-brand-name { display: block; }
-    }
-
-    /* ── Mobile overrides ──────────────────────────────────── */
-
-    @media (max-width: 767px) {
-      .admin-topbar { padding: 0 1rem; }
-      .topbar-brand-name { display: none; }
+    @media (max-width: 1024px) {
 
       .mobile-nav-bar {
         display: flex;
@@ -213,7 +203,6 @@ const FULLSCREEN_ROUTES = [
         <div class="admin-content">
           <!-- Header: solo bell + usuario, sin brand (el brand está en el sidebar) -->
           <header class="content-header">
-            <div class="topbar-brand-name" aria-hidden="true">ClientManager</div>
             <button class="topbar-notif" type="button" aria-label="Notificaciones">
               <mat-icon>notifications</mat-icon>
               <span class="notif-badge">3</span>

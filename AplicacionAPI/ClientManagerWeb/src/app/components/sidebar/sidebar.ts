@@ -15,7 +15,6 @@ import { ROUTES } from '../../app.routes.constants';
         <div class="brand-icon">
           <mat-icon>grid_view</mat-icon>
         </div>
-        <span class="brand-name">ClientManager</span>
       </div>
 
       <!-- Nav items -->
@@ -86,11 +85,15 @@ import { ROUTES } from '../../app.routes.constants';
 
     .sidebar {
       width: 220px;
+      height: 100vh;
+      position: sticky;
+      top: 0;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
       background: #fff;
       border-right: 1px solid #E8EAED;
+      overflow: hidden;
     }
 
     /* ── Brand ─────────────────────────────────────────────────── */
@@ -117,12 +120,6 @@ import { ROUTES } from '../../app.routes.constants';
       mat-icon { font-size: 18px; width: 18px; height: 18px; }
     }
 
-    .brand-name {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #111827;
-      letter-spacing: -0.02em;
-    }
 
     /* ── Nav list ──────────────────────────────────────────────── */
 
@@ -223,7 +220,7 @@ import { ROUTES } from '../../app.routes.constants';
 
     /* ── Mobile ─────────────────────────────────────────────────── */
 
-    @media (max-width: 767px) {
+    @media (max-width: 1024px) {
       .sidebar { display: none; }
     }
   `]

@@ -166,7 +166,7 @@
     <!-- ── Detail panel ── -->
     @if (selectedCompany(); as c) {
       <div class="mobile-backdrop" (click)="closePanel()"></div>
-      <aside class="detail-panel" [class.detail-panel--closing]="isPanelClosing()">
+      <aside class="detail-panel" [class.detail-panel--closing]="isClosing()">
 
         <!-- Panel header -->
         <div class="panel-header">
