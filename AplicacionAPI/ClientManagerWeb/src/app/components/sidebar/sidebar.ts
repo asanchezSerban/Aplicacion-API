@@ -1,104 +1,79 @@
-import { Component, signal, inject, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { AuthService } from '../../services/auth.service';
 import { ROUTES } from '../../app.routes.constants';
 
 @Component({
   selector: 'app-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RouterLinkActive, MatIconModule, MatTooltipModule],
+  imports: [RouterLink, RouterLinkActive, MatIconModule],
   template: `
-    <nav class="sidebar" [class.sidebar--expanded]="expanded()">
+    <nav class="sidebar">
 
       <!-- Brand -->
-      <div class="sidebar-brand">
-        <div class="brand-mark">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M4 7.5L12 3L20 7.5V16.5L12 21L4 16.5V7.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M12 12L20 7.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M12 12V21" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-            <path d="M12 12L4 7.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-          </svg>
+      <div class="brand">
+        <div class="brand-icon">
+          <mat-icon>grid_view</mat-icon>
         </div>
-        @if (expanded()) {
-          <span class="brand-name">ClientManager</span>
-        }
+        <span class="brand-name">ClientManager</span>
       </div>
 
       <!-- Nav items -->
       <ul class="nav-list">
-
-        <!-- Toggle (primer item de la lista) -->
         <li>
-          <button class="nav-item nav-toggle" type="button"
-                  (click)="expanded.update(v => !v)"
-                  [attr.aria-label]="expanded() ? 'Colapsar menú' : 'Expandir menú'"
-                  [matTooltip]="'Expandir'"
-                  [matTooltipDisabled]="expanded()"
-                  matTooltipPosition="right">
-            <mat-icon class="toggle-icon">chevron_right</mat-icon>
-            <span class="nav-label">Minimizar</span>
-          </button>
-        </li>
-
-        <li class="nav-divider"></li>
-
-        <li>
-          <a class="nav-item"
-             [routerLink]="ROUTES.COMPANIES"
-             routerLinkActive="nav-item--active"
-             [routerLinkActiveOptions]="{exact: false}"
-             [matTooltip]="'Empresas'"
-             [matTooltipDisabled]="expanded()"
-             matTooltipPosition="right">
-            <mat-icon>domain</mat-icon>
-            <span class="nav-label">Empresas</span>
+          <a class="nav-item" routerLink="/dashboard"
+             routerLinkActive="nav-item--active">
+            <mat-icon>home</mat-icon>
+            <span>Dashboard</span>
           </a>
         </li>
         <li>
-          <a class="nav-item"
-             [routerLink]="ROUTES.USERS"
+          <a class="nav-item" [routerLink]="ROUTES.COMPANIES"
              routerLinkActive="nav-item--active"
-             [routerLinkActiveOptions]="{exact: false}"
-             [matTooltip]="'Usuarios'"
-             [matTooltipDisabled]="expanded()"
-             matTooltipPosition="right">
-            <mat-icon>people</mat-icon>
-            <span class="nav-label">Usuarios</span>
+             [routerLinkActiveOptions]="{exact: false}">
+            <mat-icon>grid_view</mat-icon>
+            <span>Empresas</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" [routerLink]="ROUTES.USERS"
+             routerLinkActive="nav-item--active"
+             [routerLinkActiveOptions]="{exact: false}">
+            <mat-icon>group</mat-icon>
+            <span>Usuarios</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" routerLink="/roles"
+             routerLinkActive="nav-item--active">
+            <mat-icon>manage_accounts</mat-icon>
+            <span>Roles</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" routerLink="/configuracion"
+             routerLinkActive="nav-item--active">
+            <mat-icon>settings</mat-icon>
+            <span>Configuración</span>
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" routerLink="/auditoria"
+             routerLinkActive="nav-item--active">
+            <mat-icon>receipt_long</mat-icon>
+            <span>Auditoría</span>
           </a>
         </li>
       </ul>
 
-      <!-- Footer -->
-      <div class="sidebar-footer">
-        <div class="user-row"
-             [matTooltip]="authService.userEmail() ?? ''"
-             [matTooltipDisabled]="expanded()"
-             matTooltipPosition="right">
-          <div class="avatar">{{ userInitials() }}</div>
-          @if (expanded()) {
-            <span class="user-email">{{ authService.userEmail() }}</span>
-          }
-        </div>
-
-        <div class="footer-actions">
-          <button class="icon-btn" type="button"
-                  (click)="toggleDarkMode()"
-                  [attr.aria-label]="isDarkMode() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
-                  [matTooltip]="isDarkMode() ? 'Modo claro' : 'Modo oscuro'"
-                  matTooltipPosition="right">
-            <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-          </button>
-          <button class="icon-btn icon-btn--danger" type="button"
-                  (click)="authService.logout()"
-                  aria-label="Cerrar sesión"
-                  matTooltip="Cerrar sesión"
-                  matTooltipPosition="right">
-            <mat-icon>logout</mat-icon>
-          </button>
-        </div>
+      <!-- Help section -->
+      <div class="help-section">
+        <mat-icon class="help-icon">help_outline</mat-icon>
+        <strong class="help-title">¿Necesitas ayuda?</strong>
+        <p class="help-desc">Consulta nuestra documentación</p>
+        <a class="help-link" href="#" (click)="$event.preventDefault()">
+          Ver documentación →
+        </a>
       </div>
 
     </nav>
@@ -110,255 +85,149 @@ import { ROUTES } from '../../app.routes.constants';
     }
 
     .sidebar {
-      width: 64px;
-      height: 100vh;
-      position: sticky;
-      top: 0;
+      width: 220px;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      background: #0B0F1A;
-      border-right: 1px solid rgba(255,255,255,0.06);
-      overflow: hidden;
-      transition: width 250ms cubic-bezier(0.32, 0.72, 0, 1);
-      z-index: 100;
+      background: #fff;
+      border-right: 1px solid #E8EAED;
     }
-
-    .sidebar--expanded { width: 240px; }
 
     /* ── Brand ─────────────────────────────────────────────────── */
 
-    .sidebar-brand {
+    .brand {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 0.65rem;
-      padding: 1rem 0.75rem;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      gap: 0.625rem;
+      padding: 0 1.25rem;
+      height: 60px;
+      flex-shrink: 0;
+      border-bottom: 1px solid #E8EAED;
     }
 
-    .sidebar--expanded .sidebar-brand {
-      justify-content: flex-start;
-    }
-
-    .brand-mark {
-      width: 32px;
-      height: 32px;
+    .brand-icon {
+      width: 34px; height: 34px;
       border-radius: 8px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: #4F46E5;
       display: grid;
       place-items: center;
       flex-shrink: 0;
       color: #fff;
+
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
     }
 
     .brand-name {
-      font-weight: 600;
-      font-size: 0.9375rem;
-      letter-spacing: -0.01em;
-      color: #fff;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 180ms ease;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.02em;
     }
 
-    .sidebar--expanded .brand-name { opacity: 1; }
-
-    /* ── Nav ───────────────────────────────────────────────────── */
+    /* ── Nav list ──────────────────────────────────────────────── */
 
     .nav-list {
       list-style: none;
-      padding: 0.5rem 0.625rem;
       margin: 0;
+      padding: 0.5rem 0.75rem;
       display: flex;
       flex-direction: column;
       gap: 0.125rem;
       flex: 1;
     }
 
-    .nav-divider {
-      height: 1px;
-      background: rgba(255,255,255,0.06);
-      margin: 0.25rem 0.375rem;
-    }
-
     .nav-item {
       display: flex;
       align-items: center;
       gap: 0.75rem;
-      padding: 0 0.75rem;
-      height: 40px;
+      padding: 0.625rem 0.75rem;
       border-radius: 8px;
       text-decoration: none;
-      color: rgba(255,255,255,0.5);
-      white-space: nowrap;
-      overflow: hidden;
-      width: 100%;
+      color: #374151;
+      font-size: 0.875rem;
+      font-weight: 500;
       transition: background-color 150ms ease, color 150ms ease;
 
       mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
+        font-size: 20px; width: 20px; height: 20px;
+        color: #6B7280;
         flex-shrink: 0;
+        transition: color 150ms ease;
       }
 
       &:hover {
-        background: rgba(255,255,255,0.06);
-        color: rgba(255,255,255,0.85);
+        background: #F3F4F6;
+        color: #111827;
+
+        mat-icon { color: #374151; }
       }
     }
 
     .nav-item--active {
-      background: rgba(255,255,255,0.08);
-      color: #fff;
-    }
-
-    /* Toggle button */
-    .nav-toggle {
-      border: none;
-      cursor: pointer;
-      background: transparent;
-      color: rgba(255,255,255,0.3);
-
-      &:hover {
-        background: rgba(255,255,255,0.04);
-        color: rgba(255,255,255,0.6);
-      }
-    }
-
-    .toggle-icon {
-      transition: transform 250ms cubic-bezier(0.32, 0.72, 0, 1);
-    }
-
-    .sidebar--expanded .toggle-icon {
-      transform: rotate(180deg);
-    }
-
-    .nav-label {
-      font-size: 0.875rem;
-      font-weight: 500;
-      opacity: 0;
-      transform: translateX(-4px);
-      transition: opacity 200ms ease, transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
-    }
-
-    .sidebar--expanded .nav-label {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    /* ── Footer ────────────────────────────────────────────────── */
-
-    .sidebar-footer {
-      padding: 0.75rem 0 1rem;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    .sidebar--expanded .sidebar-footer {
-      align-items: stretch;
-      padding: 0.75rem 0.625rem 1rem;
-    }
-
-    .user-row {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      padding: 0.375rem 0.375rem;
-      border-radius: 8px;
-      cursor: default;
-      overflow: hidden;
-      min-height: 40px;
-    }
-
-    .avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: rgba(79, 70, 229, 0.4);
-      border: 1px solid rgba(79, 70, 229, 0.6);
-      color: #A5B4FC;
-      font-size: 0.6875rem;
+      background: #EEF2FF;
+      color: #4F46E5;
       font-weight: 600;
-      letter-spacing: 0.02em;
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
+
+      mat-icon { color: #4F46E5; }
+
+      &:hover {
+        background: #EEF2FF;
+        color: #4F46E5;
+        mat-icon { color: #4F46E5; }
+      }
     }
 
-    .user-email {
-      font-size: 0.8125rem;
-      color: rgba(255,255,255,0.6);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
+    /* ── Help section ──────────────────────────────────────────── */
 
-    .footer-actions {
+    .help-section {
+      margin: 0 0.75rem 1.25rem;
+      padding: 1rem;
+      border-radius: 10px;
+      background: #F9FAFB;
+      border: 1px solid #E8EAED;
       display: flex;
       flex-direction: column;
-      align-items: center;
       gap: 0.25rem;
     }
 
-    .sidebar--expanded .footer-actions {
-      align-items: flex-start;
-      padding-left: 0.375rem;
+    .help-icon {
+      font-size: 22px; width: 22px; height: 22px;
+      color: #6B7280;
+      margin-bottom: 0.25rem;
     }
 
-    .icon-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 7px;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.4);
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      transition: background-color 150ms ease, color 150ms ease;
-
-      mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-      }
-
-      &:hover {
-        background: rgba(255,255,255,0.06);
-        color: rgba(255,255,255,0.85);
-      }
+    .help-title {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: #111827;
+      display: block;
     }
 
-    .icon-btn--danger:hover {
-      background: rgba(220, 38, 38, 0.12);
-      color: #FCA5A5;
+    .help-desc {
+      font-size: 0.75rem;
+      color: #6B7280;
+      margin: 0;
+      line-height: 1.4;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .sidebar, .toggle-icon, .nav-label, .brand-name, .user-email { transition: none; }
+    .help-link {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #4F46E5;
+      text-decoration: none;
+      margin-top: 0.25rem;
+      display: inline-block;
+
+      &:hover { text-decoration: underline; }
+    }
+
+    /* ── Mobile ─────────────────────────────────────────────────── */
+
+    @media (max-width: 767px) {
+      .sidebar { display: none; }
     }
   `]
 })
 export class SidebarComponent {
-  protected readonly authService = inject(AuthService);
   protected readonly ROUTES = ROUTES;
-
-  expanded   = signal(false);
-  isDarkMode = signal(false);
-
-  readonly userInitials = computed(() => {
-    const email = this.authService.userEmail() ?? '';
-    return email.split('@')[0].slice(0, 2).toUpperCase();
-  });
-
-  toggleDarkMode(): void {
-    this.isDarkMode.update(v => !v);
-    document.body.classList.toggle('dark-mode', this.isDarkMode());
-  }
 }

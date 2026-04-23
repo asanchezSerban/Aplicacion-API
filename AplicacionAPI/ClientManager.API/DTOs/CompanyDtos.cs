@@ -32,6 +32,7 @@ public class CompanyResponseDto
     public string? LogoUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public int UsersCount { get; set; }
 }
 
 public class PagedResponseDto<T>

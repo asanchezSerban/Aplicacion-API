@@ -42,15 +42,25 @@ public class CompanyService : ICompanyService
         var totalItems = await query.CountAsync(ct);
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
 
-        var companies = await query
+        var data = await query
             .OrderByDescending(c => c.UpdatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
+            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
             .ToListAsync(ct);
 
         return new PagedResponseDto<CompanyResponseDto>
         {
-            Data = companies.Select(MapToDto),
+            Data = data.Select(c => new CompanyResponseDto
+            {
+                Id         = c.Id,
+                Name       = c.Name,
+                Description = c.Description,
+                LogoUrl    = BuildLogoUrl(c.LogoFileName),
+                CreatedAt  = c.CreatedAt,
+                UpdatedAt  = c.UpdatedAt,
+                UsersCount = c.UsersCount
+            }),
             TotalItems = totalItems,
             TotalPages = totalPages,
             CurrentPage = page,
@@ -60,10 +70,23 @@ public class CompanyService : ICompanyService
 
     public async Task<CompanyResponseDto> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var company = await _db.Companies.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id, ct)
+        var data = await _db.Companies
+            .AsNoTracking()
+            .Where(c => c.Id == id)
+            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
+            .FirstOrDefaultAsync(ct)
             ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
 
-        return MapToDto(company);
+        return new CompanyResponseDto
+        {
+            Id          = data.Id,
+            Name        = data.Name,
+            Description = data.Description,
+            LogoUrl     = BuildLogoUrl(data.LogoFileName),
+            CreatedAt   = data.CreatedAt,
+            UpdatedAt   = data.UpdatedAt,
+            UsersCount  = data.UsersCount
+        };
     }
 
     public async Task<CompanyResponseDto> CreateAsync(CreateCompanyDto dto, IFormFile? logo, CancellationToken ct = default)

@@ -2,16 +2,10 @@ import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy 
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltip } from '@angular/material/tooltip';
 import { User } from '../../models/user.model';
 import { Company, PagedResponse } from '../../models/company.model';
@@ -25,10 +19,8 @@ import { ROUTES } from '../../app.routes.constants';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
-    MatTableModule, MatPaginatorModule, MatProgressSpinner,
-    MatButton, MatIconButton, MatIcon,
-    MatSelectModule, MatInputModule,
-    MatFormFieldModule, MatTooltip
+    MatPaginatorModule,
+    MatIcon, MatTooltip
   ],
   templateUrl: './user-list.html',
   styleUrl: './user-list.scss'
@@ -52,8 +44,7 @@ export class UserListComponent implements OnInit {
   pageSizeOptions       = [5, 10, 25];
   nameFilter            = '';
   companyFilter: number | null = null;
-
-  displayedColumns = ['name', 'email', 'company', 'actions'];
+  skeletonRows          = [1, 2, 3, 4, 5];
 
   ngOnInit(): void {
     this.loadCompanies();

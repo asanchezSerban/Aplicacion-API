@@ -224,6 +224,112 @@ if (app.Environment.IsDevelopment())
         var code = ClientManager.API.Services.DevOtpStore.Get(email);
         return code is null ? Results.NotFound() : Results.Ok(new { code });
     });
+
+    // Inserta N empresas con datos aleatorios para probar la UI. Solo disponible en desarrollo.
+    app.MapPost("/api/dev/seed-companies", async (int count, ClientManager.API.Data.ApplicationDbContext db) =>
+    {
+        if (count is < 1 or > 200) return Results.BadRequest("count debe estar entre 1 y 200.");
+
+        string[] prefixes  = ["Tech", "Global", "Smart", "Next", "Alpha", "Blue", "Prime", "Nova", "Core", "Apex", "Bright", "Swift", "Open", "Meta", "Vega", "Flux", "Zero", "Orbit", "Pulse", "Agile"];
+        string[] suffixes  = ["Solutions", "Systems", "Ventures", "Group", "Labs", "Works", "Tech", "Digital", "Hub", "Net", "Soft", "Data", "Cloud", "AI", "Partners", "Studio", "Forge", "Dynamics", "Corp", "Industries"];
+        string[] locations = ["Barcelona", "Madrid", "Valencia", "Sevilla", "Bilbao", "Zaragoza", "Málaga", "Alicante", "Murcia", "Valladolid", "Lisboa", "Porto", "Berlin", "München", "Hamburg", "Lyon", "Paris", "Toulouse", "Milano", "Roma"];
+        string[] sectors   = ["tecnología", "consultoría", "logística", "e-commerce", "fintech", "salud digital", "edtech", "manufactura", "retail", "marketing digital", "ciberseguridad", "inteligencia artificial", "automatización", "energía renovable", "biotecnología"];
+
+        var rng       = new Random();
+        var now       = DateTime.UtcNow;
+        var companies = new List<ClientManager.API.Models.Company>(count);
+
+        var usedNames = new HashSet<string>(
+            db.Companies.Select(c => c.Name).ToHashSet()
+        );
+
+        for (var i = 0; i < count; i++)
+        {
+            string name;
+            var attempts = 0;
+            do
+            {
+                name = $"{prefixes[rng.Next(prefixes.Length)]} {suffixes[rng.Next(suffixes.Length)]}";
+                if (rng.Next(3) == 0) name += $" {rng.Next(2, 30)}";
+                attempts++;
+            } while (usedNames.Contains(name) && attempts < 50);
+
+            usedNames.Add(name);
+
+            var city   = locations[rng.Next(locations.Length)];
+            var sector = sectors[rng.Next(sectors.Length)];
+            var years  = rng.Next(1, 25);
+            var employees = rng.Next(2, 500);
+
+            companies.Add(new ClientManager.API.Models.Company
+            {
+                Name        = name,
+                Description = $"Empresa especializada en {sector} con sede en {city}. Fundada hace {years} año{(years == 1 ? "" : "s")}, cuenta con un equipo de {employees} profesionales dedicados a ofrecer soluciones innovadoras para sus clientes.",
+                CreatedAt   = now.AddDays(-rng.Next(0, 365 * years)),
+                UpdatedAt   = now
+            });
+        }
+
+        db.Companies.AddRange(companies);
+        await db.SaveChangesAsync();
+
+        return Results.Ok(new { inserted = companies.Count });
+    });
+
+    // Inserta N usuarios aleatorios repartidos entre las empresas existentes.
+    app.MapPost("/api/dev/seed-users", async (int count, ClientManager.API.Data.ApplicationDbContext db) =>
+    {
+        if (count is < 1 or > 500) return Results.BadRequest("count debe estar entre 1 y 500.");
+
+        var companyIds = db.Companies.Select(c => c.Id).ToList();
+        if (companyIds.Count == 0) return Results.BadRequest("No hay empresas. Crea empresas primero.");
+
+        string[] firstNames = ["Alejandro", "María", "Carlos", "Laura", "Javier", "Ana", "Pablo", "Sofía", "Miguel", "Elena", "Sergio", "Lucía", "David", "Carmen", "Andrés", "Isabel", "Roberto", "Natalia", "Fernando", "Marta", "Jorge", "Cristina", "Álvaro", "Raquel", "Diego", "Pilar", "Adrián", "Sandra", "Rubén", "Patricia", "James", "Emma", "Liam", "Olivia", "Noah", "Ava", "William", "Sophia", "Benjamin", "Isabella", "Lucas", "Mia", "Henry", "Charlotte", "Alexander", "Amelia", "Sebastian", "Harper", "Jack", "Evelyn"];
+        string[] lastNames  = ["García", "Martínez", "López", "Sánchez", "González", "Rodríguez", "Fernández", "Pérez", "Gómez", "Álvarez", "Díaz", "Moreno", "Muñoz", "Jiménez", "Ruiz", "Hernández", "Torres", "Navarro", "Domínguez", "Ramos", "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Moore", "Taylor", "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson", "Young", "Walker", "Hall"];
+        string[] domains    = ["gmail.com", "outlook.com", "empresa.es", "corp.com", "work.io", "business.net", "mail.com", "company.org", "pro.es", "digital.com"];
+
+        var rng      = new Random();
+        var now      = DateTime.UtcNow;
+        var users    = new List<ClientManager.API.Models.User>(count);
+        var usedEmails = new HashSet<string>(db.CompanyUsers.Select(u => u.Email).ToList());
+
+        for (var i = 0; i < count; i++)
+        {
+            var first = firstNames[rng.Next(firstNames.Length)];
+            var last  = lastNames[rng.Next(lastNames.Length)];
+            var name  = $"{first} {last}";
+
+            string email;
+            var attempts = 0;
+            do
+            {
+                static string Slugify(string s) => new string(
+                    s.ToLower().Normalize(System.Text.NormalizationForm.FormD)
+                     .Where(c => c is >= 'a' and <= 'z').ToArray());
+                var slug = $"{Slugify(first)}.{Slugify(last.Replace(" ", ""))}";
+                var suffix = attempts > 0 ? $"{rng.Next(10, 999)}" : "";
+                var domain = domains[rng.Next(domains.Length)];
+                email      = $"{slug}{suffix}@{domain}";
+                attempts++;
+            } while (usedEmails.Contains(email) && attempts < 50);
+
+            usedEmails.Add(email);
+
+            users.Add(new ClientManager.API.Models.User
+            {
+                Name      = name,
+                Email     = email,
+                CompanyId = companyIds[rng.Next(companyIds.Count)],
+                CreatedAt = now.AddDays(-rng.Next(0, 730)),
+                UpdatedAt = now
+            });
+        }
+
+        db.CompanyUsers.AddRange(users);
+        await db.SaveChangesAsync();
+
+        return Results.Ok(new { inserted = users.Count });
+    });
 }
 
 // ── Auto-migrate + Seed ───────────────────────────────────────────────────────

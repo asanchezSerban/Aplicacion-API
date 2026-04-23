@@ -5,6 +5,7 @@ export interface Company {
   logoUrl: string | null;
   createdAt: string;
   updatedAt: string;
+  usersCount: number;
 }
 
 export interface CreateCompany {

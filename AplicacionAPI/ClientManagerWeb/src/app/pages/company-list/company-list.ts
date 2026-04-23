@@ -2,24 +2,25 @@ import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy 
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { MatTooltip } from '@angular/material/tooltip';
 import { Company, PagedResponse } from '../../models/company.model';
 import { CompanyService } from '../../services/company.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { ROUTES } from '../../app.routes.constants';
+
+type PanelTab = 'resumen' | 'usuarios' | 'info' | 'config';
 
 @Component({
   selector: 'app-company-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
-    MatTableModule, MatPaginatorModule,
-    MatIcon, MatTooltip
+    MatPaginatorModule, MatMenuModule,
+    MatIcon
   ],
   templateUrl: './company-list.html',
   styleUrl: './company-list.scss'
@@ -31,18 +32,18 @@ export class CompanyListComponent implements OnInit {
   private snackBar       = inject(MatSnackBar);
   private dialog         = inject(MatDialog);
 
-  companies  = signal<Company[]>([]);
-  totalItems = signal(0);
-  totalPages = signal(0);
-  isLoading  = signal(false);
+  companies        = signal<Company[]>([]);
+  totalItems       = signal(0);
+  totalPages       = signal(0);
+  isLoading        = signal(false);
+  selectedCompany  = signal<Company | null>(null);
+  activeTab        = signal<PanelTab>('resumen');
 
   currentPage     = 1;
   pageSize        = 10;
   pageSizeOptions = [5, 10, 25];
   nameFilter      = '';
-
-  displayedColumns = ['logo', 'name', 'description', 'actions'];
-  skeletonRows     = [1, 2, 3, 4, 5];
+  skeletonRows    = [1, 2, 3, 4, 5];
 
   ngOnInit(): void {
     this.loadCompanies();
@@ -84,9 +85,26 @@ export class CompanyListComponent implements OnInit {
     this.loadCompanies();
   }
 
-  viewCompany(id: number): void { this.router.navigate([ROUTES.companyDetail(id)]); }
-  editCompany(id: number): void { this.router.navigate([ROUTES.companyEdit(id)]); }
-  newCompany(): void             { this.router.navigate([ROUTES.COMPANY_NEW]); }
+  selectCompany(company: Company): void {
+    if (this.selectedCompany()?.id === company.id) {
+      this.selectedCompany.set(null);
+    } else {
+      this.selectedCompany.set(company);
+      this.activeTab.set('resumen');
+    }
+  }
+
+  closePanel(): void {
+    this.selectedCompany.set(null);
+  }
+
+  setTab(tab: PanelTab): void {
+    this.activeTab.set(tab);
+  }
+
+  viewCompany(id: number): void  { this.router.navigate([ROUTES.companyDetail(id)]); }
+  editCompany(id: number): void  { this.router.navigate([ROUTES.companyEdit(id)]); }
+  newCompany(): void              { this.router.navigate([ROUTES.COMPANY_NEW]); }
 
   deleteCompany(company: Company): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
@@ -101,15 +119,33 @@ export class CompanyListComponent implements OnInit {
           this.companyService.delete(company.id)
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe({
-              next:  () => { this.showSnackBar('Empresa eliminada correctamente'); this.loadCompanies(); },
-              error: () =>   this.showSnackBar('Error al eliminar la empresa', true)
+              next: () => {
+                if (this.selectedCompany()?.id === company.id) this.selectedCompany.set(null);
+                this.showSnackBar('Empresa eliminada correctamente');
+                this.loadCompanies();
+              },
+              error: () => this.showSnackBar('Error al eliminar la empresa', true)
             });
         }
       });
   }
 
-  truncate(text: string, length = 80): string {
-    return text.length > length ? text.substring(0, length) + '...' : text;
+  generateDomain(name: string): string {
+    return name.toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, 20) + '.com';
+  }
+
+  formatDate(dateStr: string, style: 'short' | 'long' = 'short'): string {
+    const opts: Intl.DateTimeFormatOptions = style === 'long'
+      ? { day: 'numeric', month: 'long', year: 'numeric' }
+      : { day: '2-digit', month: '2-digit', year: 'numeric' };
+    return new Date(dateStr).toLocaleDateString('es-ES', opts);
+  }
+
+  initials(name: string): string {
+    return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
   }
 
   private showSnackBar(message: string, isError = false): void {

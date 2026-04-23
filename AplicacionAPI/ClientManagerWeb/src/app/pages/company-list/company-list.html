@@ -1,127 +1,324 @@
 <div class="page">
 
+  <!-- ── Page header ── -->
   <header class="page-header">
-    <div class="page-header-left">
+    <div>
       <h1>Empresas</h1>
-      @if (!isLoading()) {
-        <span class="page-subtitle">{{ totalItems() }} empresa{{ totalItems() === 1 ? '' : 's' }}</span>
-      }
+      <p class="page-subtitle">Gestiona todas las empresas registradas en el sistema.</p>
     </div>
+  </header>
+
+  <!-- ── Toolbar ── -->
+  <div class="toolbar">
+    <label class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input" type="text" placeholder="Buscar empresas..."
+             [(ngModel)]="nameFilter" (keyup.enter)="onFilterChange()">
+    </label>
+    <button type="button" class="btn-ghost">
+      <mat-icon>filter_list</mat-icon>
+      <span>Filtrar</span>
+    </button>
     <button type="button" class="btn-primary" (click)="newCompany()">
       <mat-icon>add</mat-icon>
       <span>Nueva empresa</span>
     </button>
-  </header>
-
-  <div class="toolbar">
-    <div class="search-wrap">
-      <mat-icon class="search-icon">search</mat-icon>
-      <input class="search-input" type="text" placeholder="Buscar empresa…"
-             [(ngModel)]="nameFilter" (keyup.enter)="onFilterChange()">
-      @if (nameFilter) {
-        <button type="button" class="clear-btn" (click)="clearFilters()" aria-label="Limpiar búsqueda">
-          <mat-icon>close</mat-icon>
-        </button>
-      }
-    </div>
   </div>
 
-  @if (isLoading()) {
-    <div class="table-wrap">
-      <div class="skeleton-header"></div>
-      @for (row of skeletonRows; track row) {
-        <div class="skeleton-row">
-          <div class="skeleton-cell skeleton-logo"></div>
-          <div class="skeleton-cell skeleton-name"></div>
-          <div class="skeleton-cell skeleton-desc"></div>
-          <div class="skeleton-cell skeleton-actions"></div>
+  <!-- ── Content: table + optional detail panel ── -->
+  <div class="content-wrap" [class.content-wrap--split]="selectedCompany()">
+
+    <!-- ── Table section ── -->
+    <div class="table-section">
+      <div class="table-shell">
+
+        <!-- Table head -->
+        <div class="table-head">
+          <div class="th th-empresa">Empresa</div>
+          <div class="th th-usuarios">Usuarios</div>
+          <div class="th th-estado">Estado</div>
+          <div class="th th-creacion">
+            <span>Creación</span>
+            <mat-icon class="sort-icon">unfold_more</mat-icon>
+          </div>
+          <div class="th th-acciones">Acciones</div>
+        </div>
+
+        <!-- Loading skeleton -->
+        @if (isLoading()) {
+          @for (row of skeletonRows; track row) {
+            <div class="table-row table-row--ghost">
+              <div class="td td-empresa">
+                <div class="ghost-avatar"></div>
+                <div class="ghost-lines">
+                  <div class="ghost-line ghost-name"></div>
+                  <div class="ghost-line ghost-domain"></div>
+                </div>
+              </div>
+              <div class="td td-usuarios"><div class="ghost-line" style="width:40px;height:13px"></div></div>
+              <div class="td td-estado"><div class="ghost-line" style="width:60px;height:22px;border-radius:11px"></div></div>
+              <div class="td td-creacion"><div class="ghost-line" style="width:80px;height:13px"></div></div>
+              <div class="td td-acciones"><div class="ghost-line" style="width:24px;height:24px;border-radius:6px"></div></div>
+            </div>
+          }
+        }
+
+        <!-- Empty state -->
+        @else if (companies().length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon"><mat-icon>domain</mat-icon></div>
+            <h2>{{ nameFilter ? 'Sin resultados' : 'Sin empresas' }}</h2>
+            <p>{{ nameFilter ? 'No hay coincidencias para "' + nameFilter + '".' : 'Crea la primera empresa para empezar.' }}</p>
+            @if (nameFilter) {
+              <button type="button" class="btn-ghost" (click)="clearFilters()">Limpiar búsqueda</button>
+            } @else {
+              <button type="button" class="btn-primary" (click)="newCompany()">
+                <mat-icon>add</mat-icon><span>Nueva empresa</span>
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Rows -->
+        @else {
+          @for (c of companies(); track c.id) {
+            <div class="table-row"
+                 [class.table-row--selected]="selectedCompany()?.id === c.id"
+                 (click)="selectCompany(c)">
+
+              <!-- Empresa -->
+              <div class="td td-empresa">
+                <div class="co-avatar" [class]="'co-avatar--' + (c.id % 8)">
+                  @if (c.logoUrl) {
+                    <img [src]="c.logoUrl" [alt]="c.name" class="co-avatar-img">
+                  } @else {
+                    {{ initials(c.name) }}
+                  }
+                </div>
+                <div class="co-info">
+                  <span class="co-name">{{ c.name }}</span>
+                  <span class="co-domain">{{ generateDomain(c.name) }}</span>
+                </div>
+              </div>
+
+              <!-- Usuarios -->
+              <div class="td td-usuarios">
+                <mat-icon class="users-icon">group</mat-icon>
+                <span>{{ c.usersCount }}</span>
+              </div>
+
+              <!-- Estado -->
+              <div class="td td-estado">
+                <span class="status-badge status-badge--active">Activa</span>
+              </div>
+
+              <!-- Creación -->
+              <div class="td td-creacion">{{ formatDate(c.createdAt) }}</div>
+
+              <!-- Acciones kebab -->
+              <div class="td td-acciones" (click)="$event.stopPropagation()">
+                <button class="kebab-btn"
+                        [matMenuTriggerFor]="rowMenu"
+                        [attr.aria-label]="'Acciones para ' + c.name">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #rowMenu="matMenu">
+                  <button mat-menu-item (click)="viewCompany(c.id)">
+                    <mat-icon>open_in_new</mat-icon>
+                    <span>Ver detalle</span>
+                  </button>
+                  <button mat-menu-item (click)="editCompany(c.id)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Editar</span>
+                  </button>
+                  <button mat-menu-item class="menu-item--danger" (click)="deleteCompany(c)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Eliminar</span>
+                  </button>
+                </mat-menu>
+              </div>
+
+            </div>
+          }
+        }
+
+      </div><!-- /table-shell -->
+
+      <!-- Pagination -->
+      @if (!isLoading() && companies().length > 0) {
+        <div class="pagination-wrap">
+          <span class="pagination-info">
+            Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ [currentPage * pageSize, totalItems()].at(-1) === totalItems() ? totalItems() : currentPage * pageSize }} de {{ totalItems() }} empresas
+          </span>
+          <mat-paginator
+            [length]="totalItems()"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            [pageIndex]="currentPage - 1"
+            (page)="onPageChange($event)"
+            showFirstLastButtons
+            [hidePageSize]="true">
+          </mat-paginator>
         </div>
       }
-    </div>
-  } @else if (companies().length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">
-        <mat-icon>domain</mat-icon>
-      </div>
-      <h2>Sin empresas</h2>
-      <p>{{ nameFilter ? 'No hay resultados para "' + nameFilter + '".' : 'Crea la primera empresa para empezar.' }}</p>
-      @if (nameFilter) {
-        <button type="button" class="btn-ghost" (click)="clearFilters()">Limpiar filtro</button>
-      } @else {
-        <button type="button" class="btn-primary" (click)="newCompany()">
-          <mat-icon>add</mat-icon>
-          <span>Nueva empresa</span>
-        </button>
-      }
-    </div>
-  } @else {
-    <div class="table-wrap">
-      <table mat-table [dataSource]="companies()" class="data-table">
+    </div><!-- /table-section -->
 
-        <ng-container matColumnDef="logo">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let c" class="col-logo">
+    <!-- ── Detail panel ── -->
+    @if (selectedCompany(); as c) {
+      <aside class="detail-panel">
+
+        <!-- Panel header -->
+        <div class="panel-header">
+          <div class="panel-co-avatar" [class]="'co-avatar--' + (c.id % 8)">
             @if (c.logoUrl) {
-              <img [src]="c.logoUrl" [alt]="c.name" class="logo-thumb">
+              <img [src]="c.logoUrl" [alt]="c.name" class="co-avatar-img">
             } @else {
-              <div class="logo-placeholder">
-                <mat-icon>domain</mat-icon>
-              </div>
+              {{ initials(c.name) }}
             }
-          </td>
-        </ng-container>
+          </div>
+          <div class="panel-co-info">
+            <span class="panel-co-name">{{ c.name }}</span>
+            <span class="panel-co-domain">{{ generateDomain(c.name) }}</span>
+            <span class="status-badge status-badge--active panel-status">Activa</span>
+          </div>
+          <button class="panel-close" type="button" (click)="closePanel()" aria-label="Cerrar panel">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
 
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Nombre</th>
-          <td mat-cell *matCellDef="let c" class="col-name">{{ c.name }}</td>
-        </ng-container>
+        <!-- Tabs -->
+        <nav class="panel-tabs">
+          <button class="panel-tab" [class.panel-tab--active]="activeTab() === 'resumen'"
+                  (click)="setTab('resumen')">Resumen</button>
+          <button class="panel-tab" [class.panel-tab--active]="activeTab() === 'usuarios'"
+                  (click)="setTab('usuarios')">Usuarios</button>
+          <button class="panel-tab" [class.panel-tab--active]="activeTab() === 'info'"
+                  (click)="setTab('info')">Información</button>
+          <button class="panel-tab" [class.panel-tab--active]="activeTab() === 'config'"
+                  (click)="setTab('config')">Configuración</button>
+        </nav>
 
-        <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Descripción</th>
-          <td mat-cell *matCellDef="let c" class="col-desc">{{ truncate(c.description) }}</td>
-        </ng-container>
+        <!-- Tab: Resumen -->
+        @if (activeTab() === 'resumen') {
+          <div class="panel-body">
 
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let c" class="col-actions">
-            <div class="row-actions">
-              <button type="button" class="action-btn"
-                      (click)="viewCompany(c.id)"
-                      [attr.aria-label]="'Ver ' + c.name"
-                      matTooltip="Ver detalle">
-                <mat-icon>arrow_forward</mat-icon>
+            <!-- Información general -->
+            <section class="panel-section">
+              <h3 class="section-title">Información general</h3>
+              <div class="info-grid">
+                <div class="info-field">
+                  <span class="info-label">Email de contacto</span>
+                  <a class="info-value info-value--link" href="mailto:contacto&#64;{{ generateDomain(c.name) }}">
+                    contacto&#64;{{ generateDomain(c.name) }}
+                  </a>
+                </div>
+                <div class="info-field">
+                  <span class="info-label">Teléfono</span>
+                  <span class="info-value info-value--phone">+34 912 345 678</span>
+                </div>
+                <div class="info-field">
+                  <span class="info-label">Fecha de creación</span>
+                  <span class="info-value">{{ formatDate(c.createdAt, 'long') }}</span>
+                </div>
+                <div class="info-field">
+                  <span class="info-label">Plan</span>
+                  <span class="info-value">Profesional</span>
+                </div>
+                <div class="info-field info-field--full">
+                  <span class="info-label">Dirección</span>
+                  <span class="info-value">Calle Gran Vía, 123<br>28013 Madrid, España</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Estadísticas -->
+            <section class="panel-section">
+              <h3 class="section-title">Estadísticas</h3>
+              <div class="stats-grid">
+                <div class="stat-card stat-card--blue">
+                  <mat-icon>person</mat-icon>
+                  <span class="stat-value">{{ c.usersCount }}</span>
+                  <span class="stat-label">Usuarios</span>
+                  <span class="stat-sub">Total de usuarios</span>
+                </div>
+                <div class="stat-card stat-card--green">
+                  <mat-icon>shield</mat-icon>
+                  <span class="stat-value">5</span>
+                  <span class="stat-label">Roles</span>
+                  <span class="stat-sub">Roles definidos</span>
+                </div>
+                <div class="stat-card stat-card--purple">
+                  <mat-icon>folder</mat-icon>
+                  <span class="stat-value">12</span>
+                  <span class="stat-label">Proyectos</span>
+                  <span class="stat-sub">Proyectos activos</span>
+                </div>
+                <div class="stat-card stat-card--orange">
+                  <mat-icon>storage</mat-icon>
+                  <span class="stat-value">2.4 GB</span>
+                  <span class="stat-label">Almacenamiento</span>
+                  <span class="stat-sub">Utilizado</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Actividad reciente -->
+            <section class="panel-section">
+              <h3 class="section-title">Actividad reciente</h3>
+              <ul class="activity-list">
+                <li class="activity-item">
+                  <mat-icon class="activity-icon">person_add</mat-icon>
+                  <span class="activity-text">Juan Pérez se unió a la empresa</span>
+                  <span class="activity-time">Hace 2 días</span>
+                </li>
+                <li class="activity-item">
+                  <mat-icon class="activity-icon">edit</mat-icon>
+                  <span class="activity-text">María García actualizó la información de la empresa</span>
+                  <span class="activity-time">Hace 5 días</span>
+                </li>
+                <li class="activity-item">
+                  <mat-icon class="activity-icon">code</mat-icon>
+                  <span class="activity-text">Se creó el proyecto "Nueva Web"</span>
+                  <span class="activity-time">Hace 1 semana</span>
+                </li>
+              </ul>
+              <button type="button" class="activity-more" (click)="viewCompany(c.id)">
+                Ver toda la actividad →
               </button>
-              <button type="button" class="action-btn"
-                      (click)="editCompany(c.id)"
-                      [attr.aria-label]="'Editar ' + c.name"
-                      matTooltip="Editar">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button type="button" class="action-btn action-btn--danger"
-                      (click)="deleteCompany(c)"
-                      [attr.aria-label]="'Eliminar ' + c.name"
-                      matTooltip="Eliminar">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </div>
-          </td>
-        </ng-container>
+            </section>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="data-row"></tr>
-      </table>
-    </div>
+          </div>
+        }
 
-    <div class="pagination-wrap">
-      <mat-paginator
-        [length]="totalItems()"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="pageSizeOptions"
-        [pageIndex]="currentPage - 1"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
-    </div>
-  }
+        <!-- Tab: Usuarios -->
+        @if (activeTab() === 'usuarios') {
+          <div class="panel-body panel-body--center">
+            <mat-icon class="placeholder-icon">people</mat-icon>
+            <p class="placeholder-text">Vista de usuarios próximamente</p>
+            <button type="button" class="btn-ghost" (click)="viewCompany(c.id)">Ver empresa completa</button>
+          </div>
+        }
+
+        <!-- Tab: Información -->
+        @if (activeTab() === 'info') {
+          <div class="panel-body panel-body--center">
+            <mat-icon class="placeholder-icon">info</mat-icon>
+            <p class="placeholder-text">Información ampliada próximamente</p>
+            <button type="button" class="btn-ghost" (click)="editCompany(c.id)">Editar empresa</button>
+          </div>
+        }
+
+        <!-- Tab: Configuración -->
+        @if (activeTab() === 'config') {
+          <div class="panel-body panel-body--center">
+            <mat-icon class="placeholder-icon">settings</mat-icon>
+            <p class="placeholder-text">Configuración próximamente</p>
+          </div>
+        }
+
+      </aside>
+    }
+
+  </div><!-- /content-wrap -->
 
 </div>

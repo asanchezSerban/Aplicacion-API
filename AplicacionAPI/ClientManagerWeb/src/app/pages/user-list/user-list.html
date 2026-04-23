@@ -1,88 +1,127 @@
-<div class="user-list-container">
-  <div class="header">
-    <h1>Usuarios</h1>
-    <button mat-raised-button color="primary" (click)="newUser()">
-      <mat-icon>add</mat-icon>
-      Nuevo Usuario
-    </button>
-  </div>
+<div class="page">
 
-  <div class="filters">
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Buscar por nombre</mat-label>
-      <input matInput [(ngModel)]="nameFilter" (keyup.enter)="onFilterChange()" placeholder="Nombre...">
-      <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Empresa</mat-label>
-      <mat-select [(ngModel)]="companyFilter" (selectionChange)="onFilterChange()">
-        <mat-option [value]="null">Todas</mat-option>
-        @for (company of companies(); track company.id) {
-          <mat-option [value]="company.id">{{ company.name }}</mat-option>
+  <header class="page-header">
+    <div class="header-left">
+      <div class="title-row">
+        <h1>Usuarios</h1>
+        @if (!isLoading()) {
+          <span class="count-pill">{{ totalItems() }}</span>
         }
-      </mat-select>
-    </mat-form-field>
-
-    <button mat-button (click)="clearFilters()" class="clear-btn">
-      <mat-icon>clear</mat-icon>
-      Limpiar
+      </div>
+      <p class="header-desc">Contactos asignados a las empresas cliente</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="newUser()">
+      <mat-icon>add</mat-icon>
+      <span>Nuevo usuario</span>
     </button>
+  </header>
+
+  <div class="toolbar">
+    <label class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input class="search-input"
+             type="text"
+             placeholder="Buscar por nombre…"
+             [(ngModel)]="nameFilter"
+             (keyup.enter)="onFilterChange()">
+    </label>
+
+    <div class="select-wrap">
+      <mat-icon class="select-icon">domain</mat-icon>
+      <select class="company-select"
+              [(ngModel)]="companyFilter"
+              (change)="onFilterChange()">
+        <option [ngValue]="null">Todas las empresas</option>
+        @for (c of companies(); track c.id) {
+          <option [ngValue]="c.id">{{ c.name }}</option>
+        }
+      </select>
+      <mat-icon class="select-chevron">expand_more</mat-icon>
+    </div>
+
+    @if (nameFilter || companyFilter) {
+      <button type="button" class="btn-ghost" (click)="clearFilters()">
+        <mat-icon>close</mat-icon>
+        <span>Limpiar</span>
+      </button>
+    }
   </div>
 
   @if (isLoading()) {
-    <div class="spinner-container">
-      <mat-spinner diameter="48"></mat-spinner>
+    <div class="list-shell">
+      @for (row of skeletonRows; track row) {
+        <div class="user-row user-row--ghost">
+          <div class="ghost-avatar"></div>
+          <div class="ghost-body">
+            <div class="ghost-line ghost-name"></div>
+            <div class="ghost-line ghost-meta"></div>
+          </div>
+          <div class="ghost-actions"></div>
+        </div>
+      }
     </div>
-  }
-
-  @if (!isLoading()) {
-    @if (users().length === 0) {
-      <div class="empty-state">
-        <mat-icon class="empty-icon">person_outline</mat-icon>
-        <p>No se encontraron usuarios</p>
+  } @else if (users().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <mat-icon>person_outline</mat-icon>
       </div>
-    } @else {
-      <div class="table-container">
-        <table mat-table [dataSource]="users()">
+      <h2>{{ nameFilter || companyFilter ? 'Sin resultados' : 'Sin usuarios' }}</h2>
+      <p>{{ nameFilter || companyFilter ? 'No hay coincidencias para los filtros aplicados.' : 'Añade el primer usuario para empezar.' }}</p>
+      @if (nameFilter || companyFilter) {
+        <button type="button" class="btn-ghost" (click)="clearFilters()">Limpiar filtros</button>
+      } @else {
+        <button type="button" class="btn-primary" (click)="newUser()">
+          <mat-icon>add</mat-icon>
+          <span>Nuevo usuario</span>
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="list-shell">
+      @for (u of users(); track u.id) {
+        <div class="user-row"
+             role="link"
+             tabindex="0"
+             (click)="viewUser(u.id)"
+             (keydown.enter)="viewUser(u.id)">
+          <div class="user-avatar" [class]="'user-avatar--' + (u.id % 8)">
+            {{ u.name.charAt(0).toUpperCase() }}
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ u.name }}</span>
+            <span class="user-meta">
+              <span class="user-email">{{ u.email }}</span>
+              @if (u.companyName) {
+                <span class="meta-sep">·</span>
+                <span class="user-company">{{ u.companyName }}</span>
+              }
+            </span>
+          </div>
+          <div class="row-actions" (click)="$event.stopPropagation()">
+            <button type="button" class="action-btn"
+                    (click)="viewUser(u.id)"
+                    [attr.aria-label]="'Ver ' + u.name"
+                    matTooltip="Ver detalle">
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+            <button type="button" class="action-btn"
+                    (click)="editUser(u.id)"
+                    [attr.aria-label]="'Editar ' + u.name"
+                    matTooltip="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button type="button" class="action-btn action-btn--danger"
+                    (click)="deleteUser(u)"
+                    [attr.aria-label]="'Eliminar ' + u.name"
+                    matTooltip="Eliminar">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
 
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef>Nombre</th>
-            <td mat-cell *matCellDef="let user">{{ user.name }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="email">
-            <th mat-header-cell *matHeaderCellDef>Email</th>
-            <td mat-cell *matCellDef="let user">{{ user.email }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="company">
-            <th mat-header-cell *matHeaderCellDef>Empresa</th>
-            <td mat-cell *matCellDef="let user">{{ user.companyName }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Acciones</th>
-            <td mat-cell *matCellDef="let user">
-              <div class="actions">
-                <button mat-icon-button matTooltip="Ver detalle" [attr.aria-label]="'Ver detalle de ' + user.name" (click)="viewUser(user.id)">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-                <button mat-icon-button matTooltip="Editar" [attr.aria-label]="'Editar ' + user.name" (click)="editUser(user.id)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button matTooltip="Eliminar" color="warn" [attr.aria-label]="'Eliminar ' + user.name" (click)="deleteUser(user)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </div>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-      </div>
-
+    <div class="pagination-wrap">
       <mat-paginator
         [length]="totalItems()"
         [pageSize]="pageSize"
@@ -91,6 +130,7 @@
         (page)="onPageChange($event)"
         showFirstLastButtons>
       </mat-paginator>
-    }
+    </div>
   }
+
 </div>
