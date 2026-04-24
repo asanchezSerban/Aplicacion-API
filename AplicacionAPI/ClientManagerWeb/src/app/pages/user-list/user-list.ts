@@ -39,7 +39,8 @@ export class UserListComponent implements OnInit {
   totalItems = signal(0);
   totalPages = signal(0);
   isLoading  = signal(false);
-  companyFilter = signal<number | null>(null);
+  companyFilter           = signal<number | null>(null);
+  isCompanyDropdownOpen   = signal(false);
 
   pageTitle = computed(() => {
     const compId = this.companyFilter();
@@ -47,6 +48,18 @@ export class UserListComponent implements OnInit {
     const company = this.companies().find(c => c.id === compId);
     return company ? `Usuarios de ${company.name}` : 'Usuarios';
   });
+
+  selectedCompanyName = computed(() => {
+    const id = this.companyFilter();
+    if (!id) return 'Todas las empresas';
+    return this.companies().find(c => c.id === id)?.name ?? 'Todas las empresas';
+  });
+
+  selectCompany(id: number | null): void {
+    this.companyFilter.set(id);
+    this.isCompanyDropdownOpen.set(false);
+    this.onFilterChange();
+  }
 
   currentPage           = 1;
   pageSize              = 9;

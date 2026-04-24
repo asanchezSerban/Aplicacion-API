@@ -382,6 +382,7 @@ export class SidebarComponent {
 
   setTheme(t: Theme): void {
     this.theme.set(t);
+    this.isConfigOpen.set(false);
     document.body.classList.toggle('dark-mode', t === 'dark');
   }
 }

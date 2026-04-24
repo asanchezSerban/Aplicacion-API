@@ -250,6 +250,12 @@
                   <span class="info-label">Última actualización</span>
                   <span class="info-value">{{ formatDate(c.updatedAt, 'long') }}</span>
                 </div>
+                @if (c.address) {
+                  <div class="info-field info-field--full">
+                    <span class="info-label">Dirección</span>
+                    <span class="info-value">{{ c.address }}</span>
+                  </div>
+                }
                 <div class="info-field info-field--full">
                   <span class="info-label">Descripción</span>
                   <span class="info-value">{{ c.description }}</span>
@@ -268,22 +274,16 @@
                   <span class="stat-sub">Total de usuarios</span>
                 </div>
                 <div class="stat-card stat-card--green">
-                  <mat-icon>shield</mat-icon>
-                  <span class="stat-value">5</span>
-                  <span class="stat-label">Roles</span>
-                  <span class="stat-sub">Roles definidos</span>
+                  <mat-icon>calendar_today</mat-icon>
+                  <span class="stat-value">{{ yearsActive(c.createdAt) }}</span>
+                  <span class="stat-label">Antigüedad</span>
+                  <span class="stat-sub">Como cliente</span>
                 </div>
                 <div class="stat-card stat-card--purple">
-                  <mat-icon>folder</mat-icon>
-                  <span class="stat-value">12</span>
-                  <span class="stat-label">Proyectos</span>
-                  <span class="stat-sub">Proyectos activos</span>
-                </div>
-                <div class="stat-card stat-card--orange">
-                  <mat-icon>storage</mat-icon>
-                  <span class="stat-value">2.4 GB</span>
-                  <span class="stat-label">Almacenamiento</span>
-                  <span class="stat-sub">Utilizado</span>
+                  <mat-icon>update</mat-icon>
+                  <span class="stat-value stat-value--sm">{{ daysSinceUpdate(c.updatedAt) }}</span>
+                  <span class="stat-label">Actividad</span>
+                  <span class="stat-sub">Última actualización</span>
                 </div>
               </div>
             </section>
@@ -291,26 +291,36 @@
             <!-- Actividad reciente -->
             <section class="panel-section">
               <h3 class="section-title">Actividad reciente</h3>
-              <ul class="activity-list">
-                <li class="activity-item">
-                  <mat-icon class="activity-icon">person_add</mat-icon>
-                  <span class="activity-text">Juan Pérez se unió a la empresa</span>
-                  <span class="activity-time">Hace 2 días</span>
-                </li>
-                <li class="activity-item">
-                  <mat-icon class="activity-icon">edit</mat-icon>
-                  <span class="activity-text">María García actualizó la información de la empresa</span>
-                  <span class="activity-time">Hace 5 días</span>
-                </li>
-                <li class="activity-item">
-                  <mat-icon class="activity-icon">code</mat-icon>
-                  <span class="activity-text">Se creó el proyecto "Nueva Web"</span>
-                  <span class="activity-time">Hace 1 semana</span>
-                </li>
-              </ul>
-              <button type="button" class="activity-more" (click)="viewCompany(c.id)">
-                Ver toda la actividad →
-              </button>
+
+              @if (isActivityLoading()) {
+                <ul class="activity-list">
+                  @for (r of [1,2,3]; track r) {
+                    <li class="activity-item">
+                      <div class="ghost-avatar" style="width:18px;height:18px;border-radius:4px;flex-shrink:0"></div>
+                      <div class="ghost-line" style="flex:1;height:12px;border-radius:4px"></div>
+                    </li>
+                  }
+                </ul>
+              } @else if (recentActivity().length === 0) {
+                <p class="activity-empty">Sin actividad registrada aún.</p>
+              } @else {
+                <ul class="activity-list">
+                  @for (u of recentActivity(); track u.id) {
+                    <li class="activity-item">
+                      <mat-icon class="activity-icon">person_add</mat-icon>
+                      <span class="activity-text">
+                        <strong>{{ u.name }}</strong> se unió a la empresa
+                      </span>
+                      <span class="activity-time">{{ daysSinceUpdate(u.createdAt) }}</span>
+                    </li>
+                  }
+                </ul>
+                @if (c.usersCount > 5) {
+                  <button type="button" class="activity-more" (click)="viewCompanyUsers(c.id)">
+                    Ver todos los usuarios →
+                  </button>
+                }
+              }
             </section>
 
           </div>

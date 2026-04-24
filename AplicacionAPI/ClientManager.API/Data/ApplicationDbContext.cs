@@ -44,6 +44,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .IsRequired();
         company.Property(c => c.ContactEmail).HasMaxLength(200);
         company.Property(c => c.ContactPhone).HasMaxLength(30);
+        company.Property(c => c.Address).HasMaxLength(300);
         company.Property(c => c.CreatedAt).HasDefaultValueSql("NOW()");
         company.Property(c => c.UpdatedAt).HasDefaultValueSql("NOW()");
         company.HasIndex(c => c.UpdatedAt);

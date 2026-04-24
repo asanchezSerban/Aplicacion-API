@@ -67,6 +67,14 @@
             }
           </mat-form-field>
 
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Dirección</mat-label>
+            <input matInput formControlName="address" placeholder="Calle, número, ciudad, CP">
+            @if (address.hasError('maxlength')) {
+              <mat-error>Máximo 300 caracteres</mat-error>
+            }
+          </mat-form-field>
+
           <div class="file-upload">
             <label>Logo</label>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onFileSelected($event)">

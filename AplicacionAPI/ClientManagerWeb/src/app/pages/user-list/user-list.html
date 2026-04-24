@@ -26,17 +26,33 @@
              (keyup.enter)="onFilterChange()">
     </label>
 
-    <div class="select-wrap">
-      <mat-icon class="select-icon">domain</mat-icon>
-      <select class="company-select"
-              [ngModel]="companyFilter()"
-              (ngModelChange)="companyFilter.set($event); onFilterChange()">
-        <option [ngValue]="null">Todas las empresas</option>
-        @for (c of companies(); track c.id) {
-          <option [ngValue]="c.id">{{ c.name }}</option>
-        }
-      </select>
-      <mat-icon class="select-chevron">expand_more</mat-icon>
+    <div class="company-dropdown" [class.company-dropdown--open]="isCompanyDropdownOpen()">
+      <button type="button" class="dropdown-trigger"
+              (click)="isCompanyDropdownOpen.update(v => !v)">
+        <mat-icon class="select-icon">domain</mat-icon>
+        <span class="dropdown-label">{{ selectedCompanyName() }}</span>
+        <mat-icon class="select-chevron" [class.select-chevron--open]="isCompanyDropdownOpen()">
+          expand_more
+        </mat-icon>
+      </button>
+
+      @if (isCompanyDropdownOpen()) {
+        <div class="dropdown-backdrop" (click)="isCompanyDropdownOpen.set(false)"></div>
+        <div class="dropdown-panel">
+          <button type="button" class="dropdown-option"
+                  [class.dropdown-option--active]="companyFilter() === null"
+                  (click)="selectCompany(null)">
+            Todas las empresas
+          </button>
+          @for (c of companies(); track c.id) {
+            <button type="button" class="dropdown-option"
+                    [class.dropdown-option--active]="companyFilter() === c.id"
+                    (click)="selectCompany(c.id)">
+              {{ c.name }}
+            </button>
+          }
+        </div>
+      }
     </div>
 
     @if (nameFilter || companyFilter()) {

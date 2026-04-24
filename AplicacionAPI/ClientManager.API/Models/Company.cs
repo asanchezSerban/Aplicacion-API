@@ -27,6 +27,9 @@ public class Company
     [MaxLength(30)]
     public string? ContactPhone { get; set; }
 
+    [MaxLength(300)]
+    public string? Address { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }

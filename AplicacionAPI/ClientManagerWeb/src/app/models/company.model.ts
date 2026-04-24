@@ -15,6 +15,7 @@ export interface Company {
   status: CompanyStatus;
   contactEmail: string | null;
   contactPhone: string | null;
+  address: string | null;
   createdAt: string;
   updatedAt: string;
   usersCount: number;

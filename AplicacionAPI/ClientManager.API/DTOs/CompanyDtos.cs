@@ -22,6 +22,9 @@ public class CreateCompanyDto
     [Phone]
     [StringLength(30)]
     public string? ContactPhone { get; set; }
+
+    [StringLength(300)]
+    public string? Address { get; set; }
 }
 
 public class UpdateCompanyDto
@@ -43,6 +46,9 @@ public class UpdateCompanyDto
     [Phone]
     [StringLength(30)]
     public string? ContactPhone { get; set; }
+
+    [StringLength(300)]
+    public string? Address { get; set; }
 }
 
 public class CompanyResponseDto
@@ -54,6 +60,7 @@ public class CompanyResponseDto
     public CompanyStatus Status { get; set; }
     public string? ContactEmail { get; set; }
     public string? ContactPhone { get; set; }
+    public string? Address { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public int UsersCount { get; set; }

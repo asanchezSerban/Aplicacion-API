@@ -42,8 +42,10 @@ export class CompanyListComponent implements OnInit {
   selectedCompany     = signal<Company | null>(null);
   activeTab           = signal<PanelTab>('resumen');
   isClosing           = signal(false);
-  panelUsers          = signal<User[]>([]);
-  isPanelUsersLoading = signal(false);
+  panelUsers           = signal<User[]>([]);
+  isPanelUsersLoading  = signal(false);
+  recentActivity       = signal<User[]>([]);
+  isActivityLoading    = signal(false);
 
   private closingTimeout?: ReturnType<typeof setTimeout>;
 
@@ -103,6 +105,7 @@ export class CompanyListComponent implements OnInit {
       this.selectedCompany.set(company);
       this.activeTab.set('resumen');
       this.panelUsers.set([]);
+      this.loadRecentActivity(company.id);
     }
   }
 
@@ -117,6 +120,22 @@ export class CompanyListComponent implements OnInit {
   setTab(tab: PanelTab): void {
     this.activeTab.set(tab);
     if (tab === 'usuarios') this.loadPanelUsers();
+  }
+
+  loadRecentActivity(companyId: number): void {
+    this.isActivityLoading.set(true);
+    this.userService.getAll(1, 5, undefined, companyId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: r => {
+          const sorted = [...r.data].sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          this.recentActivity.set(sorted.slice(0, 5));
+          this.isActivityLoading.set(false);
+        },
+        error: () => this.isActivityLoading.set(false)
+      });
   }
 
   loadPanelUsers(): void {
@@ -178,6 +197,24 @@ export class CompanyListComponent implements OnInit {
       ? { day: 'numeric', month: 'long', year: 'numeric' }
       : { day: '2-digit', month: '2-digit', year: 'numeric' };
     return new Date(dateStr).toLocaleDateString('es-ES', opts);
+  }
+
+  yearsActive(createdAt: string): string {
+    const ms = Date.now() - new Date(createdAt).getTime();
+    const years = Math.floor(ms / (1000 * 60 * 60 * 24 * 365));
+    const months = Math.floor(ms / (1000 * 60 * 60 * 24 * 30));
+    if (years >= 1) return `${years} año${years > 1 ? 's' : ''}`;
+    if (months >= 1) return `${months} mes${months > 1 ? 'es' : ''}`;
+    return '< 1 mes';
+  }
+
+  daysSinceUpdate(updatedAt: string): string {
+    const days = Math.floor((Date.now() - new Date(updatedAt).getTime()) / (1000 * 60 * 60 * 24));
+    if (days === 0) return 'Hoy';
+    if (days === 1) return 'Ayer';
+    if (days < 30) return `Hace ${days} días`;
+    const months = Math.floor(days / 30);
+    return `Hace ${months} mes${months > 1 ? 'es' : ''}`;
   }
 
   statusLabel(status: CompanyStatus): string {

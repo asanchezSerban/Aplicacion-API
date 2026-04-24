@@ -46,7 +46,7 @@ public class CompanyService : ICompanyService
             .OrderByDescending(c => c.UpdatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.Status, c.ContactEmail, c.ContactPhone, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
+            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.Status, c.ContactEmail, c.ContactPhone, c.Address, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
             .ToListAsync(ct);
 
         return new PagedResponseDto<CompanyResponseDto>
@@ -60,6 +60,7 @@ public class CompanyService : ICompanyService
                 Status       = c.Status,
                 ContactEmail = c.ContactEmail,
                 ContactPhone = c.ContactPhone,
+                Address      = c.Address,
                 CreatedAt    = c.CreatedAt,
                 UpdatedAt    = c.UpdatedAt,
                 UsersCount   = c.UsersCount
@@ -76,7 +77,7 @@ public class CompanyService : ICompanyService
         var data = await _db.Companies
             .AsNoTracking()
             .Where(c => c.Id == id)
-            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.Status, c.ContactEmail, c.ContactPhone, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
+            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.Status, c.ContactEmail, c.ContactPhone, c.Address, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
             .FirstOrDefaultAsync(ct)
             ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
 
@@ -109,6 +110,7 @@ public class CompanyService : ICompanyService
             Status       = dto.Status,
             ContactEmail = dto.ContactEmail is null ? null : SanitizeInput(dto.ContactEmail),
             ContactPhone = dto.ContactPhone is null ? null : SanitizeInput(dto.ContactPhone),
+            Address      = dto.Address      is null ? null : SanitizeInput(dto.Address),
             CreatedAt    = DateTime.UtcNow,
             UpdatedAt    = DateTime.UtcNow
         };
@@ -141,6 +143,7 @@ public class CompanyService : ICompanyService
         company.Status       = dto.Status;
         company.ContactEmail = dto.ContactEmail is null ? null : SanitizeInput(dto.ContactEmail);
         company.ContactPhone = dto.ContactPhone is null ? null : SanitizeInput(dto.ContactPhone);
+        company.Address      = dto.Address      is null ? null : SanitizeInput(dto.Address);
         company.UpdatedAt    = DateTime.UtcNow;
 
         if (logo is not null && logo.Length > 0)

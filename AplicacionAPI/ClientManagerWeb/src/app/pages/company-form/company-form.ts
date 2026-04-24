@@ -51,6 +51,7 @@ export class CompanyFormComponent implements OnInit {
   get status()       { return this.form.controls['status']; }
   get contactEmail() { return this.form.controls['contactEmail']; }
   get contactPhone() { return this.form.controls['contactPhone']; }
+  get address()      { return this.form.controls['address']; }
 
   ngOnInit(): void {
     this.form = this.fb.nonNullable.group({
@@ -58,7 +59,8 @@ export class CompanyFormComponent implements OnInit {
       description:  ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
       status:       ['Active' as CompanyStatus],
       contactEmail: ['', [Validators.email, Validators.maxLength(200)]],
-      contactPhone: ['', [Validators.maxLength(30)]]
+      contactPhone: ['', [Validators.maxLength(30)]],
+      address:      ['', [Validators.maxLength(300)]]
     });
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -80,7 +82,8 @@ export class CompanyFormComponent implements OnInit {
             description:  company.description,
             status:       company.status,
             contactEmail: company.contactEmail ?? '',
-            contactPhone: company.contactPhone ?? ''
+            contactPhone: company.contactPhone ?? '',
+            address:      company.address      ?? ''
           });
           this.currentLogoUrl.set(company.logoUrl);
           this.isLoading.set(false);
@@ -104,11 +107,12 @@ export class CompanyFormComponent implements OnInit {
     if (this.form.invalid) return;
 
     this.isLoading.set(true);
-    const { name, description, status, contactEmail, contactPhone } = this.form.getRawValue();
+    const { name, description, status, contactEmail, contactPhone, address } = this.form.getRawValue();
     const dto = {
       name, description, status,
       contactEmail: contactEmail || undefined,
       contactPhone: contactPhone || undefined,
+      address:      address      || undefined,
       logo: this.selectedFile || undefined
     };
 
