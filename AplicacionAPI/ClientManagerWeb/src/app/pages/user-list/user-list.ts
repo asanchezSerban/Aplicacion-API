@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -39,17 +39,24 @@ export class UserListComponent implements OnInit {
   totalItems = signal(0);
   totalPages = signal(0);
   isLoading  = signal(false);
+  companyFilter = signal<number | null>(null);
+
+  pageTitle = computed(() => {
+    const compId = this.companyFilter();
+    if (!compId) return 'Usuarios totales';
+    const company = this.companies().find(c => c.id === compId);
+    return company ? `Usuarios de ${company.name}` : 'Usuarios';
+  });
 
   currentPage           = 1;
   pageSize              = 9;
   pageSizeOptions       = [5, 9, 25];
   nameFilter            = '';
-  companyFilter: number | null = null;
   skeletonRows          = [1, 2, 3, 4, 5];
 
   ngOnInit(): void {
     const companyId = this.route.snapshot.queryParamMap.get('companyId');
-    if (companyId) this.companyFilter = Number(companyId);
+    if (companyId) this.companyFilter.set(Number(companyId));
     this.loadCompanies();
     this.loadUsers();
   }
@@ -62,7 +69,7 @@ export class UserListComponent implements OnInit {
 
   loadUsers(): void {
     this.isLoading.set(true);
-    this.userService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.companyFilter || undefined)
+    this.userService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.companyFilter() || undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: PagedResponse<User>) => {
@@ -92,7 +99,7 @@ export class UserListComponent implements OnInit {
 
   clearFilters(): void {
     this.nameFilter    = '';
-    this.companyFilter = null;
+    this.companyFilter.set(null);
     this.currentPage   = 1;
     this.loadUsers();
   }

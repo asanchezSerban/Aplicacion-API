@@ -3,7 +3,7 @@
   <header class="page-header">
     <div class="header-left">
       <div class="title-row">
-        <h1>Usuarios</h1>
+        <h1>{{ pageTitle() }}</h1>
         @if (!isLoading()) {
           <span class="count-pill">{{ totalItems() }}</span>
         }
@@ -29,8 +29,8 @@
     <div class="select-wrap">
       <mat-icon class="select-icon">domain</mat-icon>
       <select class="company-select"
-              [(ngModel)]="companyFilter"
-              (change)="onFilterChange()">
+              [ngModel]="companyFilter()"
+              (ngModelChange)="companyFilter.set($event); onFilterChange()">
         <option [ngValue]="null">Todas las empresas</option>
         @for (c of companies(); track c.id) {
           <option [ngValue]="c.id">{{ c.name }}</option>
@@ -39,7 +39,7 @@
       <mat-icon class="select-chevron">expand_more</mat-icon>
     </div>
 
-    @if (nameFilter || companyFilter) {
+    @if (nameFilter || companyFilter()) {
       <button type="button" class="btn-ghost" (click)="clearFilters()">
         <mat-icon>close</mat-icon>
         <span>Limpiar</span>
@@ -66,9 +66,9 @@
         <div class="empty-icon">
           <mat-icon>person_outline</mat-icon>
         </div>
-        <h2>{{ nameFilter || companyFilter ? 'Sin resultados' : 'Sin usuarios' }}</h2>
-        <p>{{ nameFilter || companyFilter ? 'No hay coincidencias para los filtros aplicados.' : 'Añade el primer usuario para empezar.' }}</p>
-        @if (nameFilter || companyFilter) {
+        <h2>{{ nameFilter || companyFilter() ? 'Sin resultados' : 'Sin usuarios' }}</h2>
+        <p>{{ nameFilter || companyFilter() ? 'No hay coincidencias para los filtros aplicados.' : 'Añade el primer usuario para empezar.' }}</p>
+        @if (nameFilter || companyFilter()) {
           <button type="button" class="btn-ghost" (click)="clearFilters()">Limpiar filtros</button>
         } @else {
           <button type="button" class="btn-primary" (click)="newUser()">
