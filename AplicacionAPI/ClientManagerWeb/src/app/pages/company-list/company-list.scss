@@ -315,7 +315,7 @@
   border-bottom: 1px solid var(--ink-100);
   cursor: pointer;
   transition: background-color 100ms ease;
-  animation: rowIn 220ms ease both;
+  animation: rowIn 350ms ease both;
 
   &:last-child { border-bottom: none; }
 
@@ -326,7 +326,7 @@
 }
 
 @for $i from 1 through 15 {
-  .table-row:nth-child(#{$i + 1}) { animation-delay: #{$i * 25}ms; }
+  .table-row:nth-child(#{$i + 1}) { animation-delay: #{$i * 45}ms; }
 }
 
 .td {
@@ -854,6 +854,91 @@ $shimmer: linear-gradient(90deg, var(--ink-100) 25%, var(--ink-50) 50%, var(--in
   flex-shrink: 0;
 }
 
+/* ── Panel usuarios (tab real) ─────────────────────────────────── */
+
+.panel-user-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.panel-user-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--ink-100);
+
+  &:last-child { border-bottom: none; }
+
+  &--ghost { cursor: default; }
+}
+
+.panel-users-skeleton { display: flex; flex-direction: column; }
+
+.ghost-avatar--round {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+}
+
+.panel-user-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.panel-user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.panel-user-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel-user-email {
+  font-size: 0.75rem;
+  color: var(--ink-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.panel-users-more {
+  font-size: 0.75rem;
+  color: var(--ink-500);
+  margin: 0.75rem 0 0;
+  text-align: center;
+}
+
+.panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--ink-500);
+
+  mat-icon { font-size: 36px; width: 36px; height: 36px; color: var(--ink-300); }
+  p { font-size: 0.875rem; margin: 0; }
+}
+
 .activity-more {
   background: none;
   border: none;
@@ -864,6 +949,45 @@ $shimmer: linear-gradient(90deg, var(--ink-100) 25%, var(--ink-50) 50%, var(--in
   cursor: pointer;
   font-weight: 500;
   &:hover { text-decoration: underline; }
+}
+
+/* ── Responsive móvil (≤640px) ─────────────────────────────────── */
+
+@media (max-width: 640px) {
+
+  /* Ocultar columnas que no caben: solo EMPRESA + ACCIONES */
+  .th-usuarios, .td-usuarios,
+  .th-estado,   .td-estado,
+  .th-creacion, .td-creacion { display: none; }
+
+  /* Ocultar cabecera de la tabla (solo queda EMPRESA, ya es obvio) */
+  .table-head { display: none; }
+
+  /* Reducir padding de filas en móvil */
+  .table-row { padding: 0 0.75rem; }
+
+  /* Nueva empresa no empuja con auto-margin en pantallas pequeñas */
+  .btn-primary { margin-left: 0; }
+  .toolbar { flex-wrap: wrap; }
+
+  /* Tabs del panel: scroll horizontal para que no se corten */
+  .panel-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .panel-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Panel cuerpo: sin padding lateral extra */
+  .panel-body { padding: 0.75rem; }
+
+  /* Info grid: una sola columna en móvil */
+  .info-grid { grid-template-columns: 1fr; }
+  .info-field--full { grid-column: 1; }
 }
 
 /* ── Dark mode ─────────────────────────────────────────────────── */
@@ -878,9 +1002,36 @@ $shimmer: linear-gradient(90deg, var(--ink-100) 25%, var(--ink-50) 50%, var(--in
   --ink-50:  #0B0F1A;
 }
 
-:host-context(body.dark-mode) .table-shell  { background: #131826; }
-:host-context(body.dark-mode) .search-wrap  { background: #131826; }
-:host-context(body.dark-mode) .btn-ghost    { background: #131826; }
-:host-context(body.dark-mode) .detail-panel { background: #131826; }
+/* Fondo general de la página */
+:host-context(body.dark-mode) :host         { background: #0B0F1A; }
+
+/* Elementos con fondo explícito */
+:host-context(body.dark-mode) .table-shell  { background: #131826; border-color: #1E2638; }
+:host-context(body.dark-mode) .table-head   { background: #0B0F1A; border-bottom-color: #1E2638; }
+:host-context(body.dark-mode) .table-row    { border-bottom-color: #1E2638; }
+:host-context(body.dark-mode) .table-row:hover { background: #131826; }
+:host-context(body.dark-mode) .search-wrap  { background: #131826; border-color: #1E2638; }
+:host-context(body.dark-mode) .btn-ghost    { background: #131826; border-color: #1E2638; color: #C3C9D6; }
+:host-context(body.dark-mode) .btn-primary  { background: #4F46E5; }
+:host-context(body.dark-mode) .detail-panel { background: #131826; border-color: #1E2638; }
+:host-context(body.dark-mode) .panel-body    { background: #131826; }
+:host-context(body.dark-mode) .panel-section { background: #1C2333; border-color: #2A3550; }
+:host-context(body.dark-mode) .panel-tabs   { border-bottom-color: transparent; }
+:host-context(body.dark-mode) .panel-header { border-bottom-color: #1E2638; }
+:host-context(body.dark-mode) .pagination-wrap { background: transparent; }
+:host-context(body.dark-mode) .panel-user-row { border-bottom-color: #1E2638; }
+
+/* Textos hardcodeados en el panel */
+:host-context(body.dark-mode) .section-title   { color: #F5F6FA; }
+:host-context(body.dark-mode) .panel-co-name   { color: #F5F6FA; }
+:host-context(body.dark-mode) .info-value      { color: #C3C9D6; }
+:host-context(body.dark-mode) .activity-item   { border-bottom-color: #1E2638; }
+:host-context(body.dark-mode) .activity-text   { color: #C3C9D6; }
+
+/* Tarjetas de estadísticas: pasteles → versiones oscuras */
+:host-context(body.dark-mode) .stat-card--blue   { background: rgba(79,70,229,0.15); }
+:host-context(body.dark-mode) .stat-card--green  { background: rgba(5,150,105,0.15); }
+:host-context(body.dark-mode) .stat-card--purple { background: rgba(124,58,237,0.15); }
+:host-context(body.dark-mode) .stat-card--orange { background: rgba(217,119,6,0.15); }
 :host-context(body.dark-mode) .table-row--selected { background: rgba(79,70,229,0.15) !important; }
 :host-context(body.dark-mode) .status-badge--active { background: rgba(22,163,74,0.15); color: #4ADE80; }

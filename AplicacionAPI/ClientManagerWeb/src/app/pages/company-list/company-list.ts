@@ -8,7 +8,9 @@ import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Company, PagedResponse } from '../../models/company.model';
+import { User } from '../../models/user.model';
 import { CompanyService } from '../../services/company.service';
+import { UserService } from '../../services/user.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { ROUTES } from '../../app.routes.constants';
 
@@ -28,17 +30,20 @@ type PanelTab = 'resumen' | 'usuarios' | 'info' | 'config';
 export class CompanyListComponent implements OnInit {
   private destroyRef     = inject(DestroyRef);
   private companyService = inject(CompanyService);
+  private userService    = inject(UserService);
   private router         = inject(Router);
   private snackBar       = inject(MatSnackBar);
   private dialog         = inject(MatDialog);
 
-  companies        = signal<Company[]>([]);
-  totalItems       = signal(0);
-  totalPages       = signal(0);
-  isLoading        = signal(false);
-  selectedCompany  = signal<Company | null>(null);
-  activeTab        = signal<PanelTab>('resumen');
-  isClosing        = signal(false);
+  companies           = signal<Company[]>([]);
+  totalItems          = signal(0);
+  totalPages          = signal(0);
+  isLoading           = signal(false);
+  selectedCompany     = signal<Company | null>(null);
+  activeTab           = signal<PanelTab>('resumen');
+  isClosing           = signal(false);
+  panelUsers          = signal<User[]>([]);
+  isPanelUsersLoading = signal(false);
 
   private closingTimeout?: ReturnType<typeof setTimeout>;
 
@@ -97,6 +102,7 @@ export class CompanyListComponent implements OnInit {
     } else {
       this.selectedCompany.set(company);
       this.activeTab.set('resumen');
+      this.panelUsers.set([]);
     }
   }
 
@@ -110,6 +116,20 @@ export class CompanyListComponent implements OnInit {
 
   setTab(tab: PanelTab): void {
     this.activeTab.set(tab);
+    if (tab === 'usuarios') this.loadPanelUsers();
+  }
+
+  loadPanelUsers(): void {
+    const company = this.selectedCompany();
+    if (!company) return;
+    this.isPanelUsersLoading.set(true);
+    this.panelUsers.set([]);
+    this.userService.getAll(1, 50, undefined, company.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: r => { this.panelUsers.set(r.data); this.isPanelUsersLoading.set(false); },
+        error: () => this.isPanelUsersLoading.set(false)
+      });
   }
 
   viewCompany(id: number): void  { this.router.navigate([ROUTES.companyDetail(id)]); }

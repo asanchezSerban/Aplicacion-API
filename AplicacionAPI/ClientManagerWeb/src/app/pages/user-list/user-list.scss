@@ -494,9 +494,13 @@ $shimmer: linear-gradient(90deg, var(--ink-100) 25%, var(--ink-50) 50%, var(--in
   --ink-50:  #0B0F1A;
 }
 
+:host-context(body.dark-mode) :host        { background: #0B0F1A; }
 :host-context(body.dark-mode) .list-shell  { background: #131826; border-color: #1E2638; }
-:host-context(body.dark-mode) .search-wrap { background: #131826; }
-:host-context(body.dark-mode) .select-wrap { background: #131826; }
+:host-context(body.dark-mode) .user-row    { border-bottom-color: #1E2638; }
+:host-context(body.dark-mode) .user-row:hover { background: #131826; }
+:host-context(body.dark-mode) .search-wrap { background: #131826; border-color: #1E2638; }
+:host-context(body.dark-mode) .select-wrap { background: #131826; border-color: #1E2638; }
+:host-context(body.dark-mode) .btn-ghost   { background: #131826; border-color: #1E2638; color: #C3C9D6; }
 
 :host-context(body.dark-mode) .btn-primary {
   background: #fff;

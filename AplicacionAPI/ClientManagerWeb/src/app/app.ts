@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
@@ -143,14 +143,17 @@ const FULLSCREEN_ROUTES = [
 
     /* ── Dark mode ─────────────────────────────────────────── */
 
-    body.dark-mode .admin-shell    { background: #0B0F1A; }
-    body.dark-mode .admin-topbar   { background: #131826; border-bottom-color: #1E2638; }
-    body.dark-mode .topbar-notif   { border-color: #1E2638; color: #8A93A6; }
-    body.dark-mode .topbar-notif:hover { background: #0B0F1A; }
-    body.dark-mode .notif-badge    { border-color: #131826; }
-    body.dark-mode .topbar-sep     { background: #1E2638; }
-    body.dark-mode .topbar-user:hover { background: #0B0F1A; }
-    body.dark-mode .topbar-name    { color: #F5F6FA; }
+    :host-context(body.dark-mode) .admin-shell    { background: #0B0F1A; }
+    :host-context(body.dark-mode) .admin-content  { background: #0B0F1A; }
+    :host-context(body.dark-mode) .content-header { background: #0B0F1A; }
+    :host-context(body.dark-mode) .topbar-notif   { border-color: #1E2638; color: #8A93A6; }
+    :host-context(body.dark-mode) .topbar-notif:hover { background: #131826; }
+    :host-context(body.dark-mode) .notif-badge    { border-color: #0B0F1A; }
+    :host-context(body.dark-mode) .topbar-sep     { background: #1E2638; }
+    :host-context(body.dark-mode) .topbar-user:hover { background: #131826; }
+    :host-context(body.dark-mode) .topbar-name    { color: #F5F6FA; }
+    :host-context(body.dark-mode) .topbar-role    { color: #4B5468; }
+    :host-context(body.dark-mode) .topbar-avatar  { background: rgba(79,70,229,0.35); }
 
     /* ── Tablet: sidebar se oculta, nav móvil aparece (1024px) ── */
 
@@ -188,7 +191,9 @@ const FULLSCREEN_ROUTES = [
         &.active { background: #EEF0FF; color: #4F46E5; font-weight: 600; }
       }
 
-      body.dark-mode .mobile-nav-bar { background: #131826; border-bottom-color: #1E2638; }
+      :host-context(body.dark-mode) .mobile-nav-bar { background: #131826; border-bottom-color: #1E2638; }
+      :host-context(body.dark-mode) .mobile-nav-item { color: rgba(255,255,255,0.6); }
+      :host-context(body.dark-mode) .mobile-nav-item.active { background: rgba(79,70,229,0.2); color: #A5B4FC; }
     }
 
     /* ── Teléfono pequeño (≤640px) ─────────────────────────────── */
@@ -265,8 +270,6 @@ export class App {
   protected readonly authService = inject(AuthService);
   protected readonly ROUTES      = ROUTES;
 
-  isDarkMode = signal(false);
-
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
@@ -294,8 +297,4 @@ export class App {
     return name.charAt(0).toUpperCase() + name.slice(1);
   });
 
-  toggleDarkMode(): void {
-    this.isDarkMode.update(v => !v);
-    document.body.classList.toggle('dark-mode', this.isDarkMode());
-  }
 }

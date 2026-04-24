@@ -230,9 +230,13 @@
                   <span class="info-label">Plan</span>
                   <span class="info-value">Profesional</span>
                 </div>
+                <div class="info-field">
+                  <span class="info-label">Última actualización</span>
+                  <span class="info-value">{{ formatDate(c.updatedAt, 'long') }}</span>
+                </div>
                 <div class="info-field info-field--full">
-                  <span class="info-label">Dirección</span>
-                  <span class="info-value">Calle Gran Vía, 123<br>28013 Madrid, España</span>
+                  <span class="info-label">Descripción</span>
+                  <span class="info-value">{{ c.description }}</span>
                 </div>
               </div>
             </section>
@@ -298,10 +302,46 @@
 
         <!-- Tab: Usuarios -->
         @if (activeTab() === 'usuarios') {
-          <div class="panel-body panel-body--center">
-            <mat-icon class="placeholder-icon">people</mat-icon>
-            <p class="placeholder-text">Vista de usuarios próximamente</p>
-            <button type="button" class="btn-ghost" (click)="viewCompany(c.id)">Ver empresa completa</button>
+          <div class="panel-body">
+            @if (isPanelUsersLoading()) {
+              <div class="panel-users-skeleton">
+                @for (r of [1,2,3]; track r) {
+                  <div class="panel-user-row panel-user-row--ghost">
+                    <div class="ghost-avatar ghost-avatar--round"></div>
+                    <div class="ghost-lines">
+                      <div class="ghost-line ghost-name"></div>
+                      <div class="ghost-line ghost-domain"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else if (panelUsers().length === 0) {
+              <div class="panel-empty">
+                <mat-icon>person_outline</mat-icon>
+                <p>Esta empresa no tiene usuarios asignados.</p>
+                <button type="button" class="btn-ghost" (click)="viewCompany(c.id)">Ir a empresa</button>
+              </div>
+            } @else {
+              <ul class="panel-user-list">
+                @for (u of panelUsers(); track u.id) {
+                  <li class="panel-user-row">
+                    <div class="panel-user-avatar" [class]="'co-avatar--' + (u.id % 8)">
+                      {{ u.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="panel-user-info">
+                      <span class="panel-user-name">{{ u.name }}</span>
+                      <span class="panel-user-email">{{ u.email }}</span>
+                    </div>
+                  </li>
+                }
+              </ul>
+              @if (c.usersCount > panelUsers().length) {
+                <p class="panel-users-more">
+                  Mostrando {{ panelUsers().length }} de {{ c.usersCount }} usuarios.
+                  <button type="button" class="activity-more" (click)="viewCompany(c.id)">Ver todos →</button>
+                </p>
+              }
+            }
           </div>
         }
 

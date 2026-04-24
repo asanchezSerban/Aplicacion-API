@@ -218,14 +218,15 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "ClientManager API v1");
     });
 
-    // Endpoint solo para k6/dev — expone el último OTP generado para un email sin necesitar smtp4dev.
     app.MapGet("/api/dev/last-otp", (string email) =>
     {
         var code = ClientManager.API.Services.DevOtpStore.Get(email);
         return code is null ? Results.NotFound() : Results.Ok(new { code });
-    });
+    })
+    .WithTags("Dev")
+    .WithSummary("Último OTP generado")
+    .WithDescription("Devuelve el código OTP más reciente generado para el email indicado, sin necesitar acceso a smtp4dev. Solo disponible en Development.");
 
-    // Inserta N empresas con datos aleatorios para probar la UI. Solo disponible en desarrollo.
     app.MapPost("/api/dev/seed-companies", async (int count, ClientManager.API.Data.ApplicationDbContext db) =>
     {
         if (count is < 1 or > 200) return Results.BadRequest("count debe estar entre 1 y 200.");
@@ -274,10 +275,17 @@ if (app.Environment.IsDevelopment())
         await db.SaveChangesAsync();
 
         return Results.Ok(new { inserted = companies.Count });
-    });
+    })
+    .WithTags("Dev")
+    .WithSummary("Seed de empresas")
+    .WithDescription("Inserta N empresas con nombres, descripciones y fechas aleatorias. Rango permitido: 1–200. Solo disponible en Development.");
 
     // Inserta N usuarios aleatorios repartidos entre las empresas existentes.
-    app.MapPost("/api/dev/seed-users", async (int count, ClientManager.API.Data.ApplicationDbContext db) =>
+    // Crea también el ApplicationUser para que cada usuario pueda hacer login con:
+    //   email: el generado aleatoriamente
+    //   contraseña: Temporal@2026!
+    app.MapPost("/api/dev/seed-users", async (int count, ClientManager.API.Data.ApplicationDbContext db,
+        Microsoft.AspNetCore.Identity.UserManager<ClientManager.API.Models.ApplicationUser> userManager) =>
     {
         if (count is < 1 or > 500) return Results.BadRequest("count debe estar entre 1 y 500.");
 
@@ -326,10 +334,82 @@ if (app.Environment.IsDevelopment())
         }
 
         db.CompanyUsers.AddRange(users);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(); // genera los IDs de los User
 
-        return Results.Ok(new { inserted = users.Count });
-    });
+        // Crear ApplicationUser para cada usuario (login funcional con rol "Cliente")
+        const string defaultPassword = "Temporal@2026!";
+        var created = 0;
+        var skipped = new List<string>();
+
+        foreach (var user in users)
+        {
+            // Evitar duplicados si el ApplicationUser ya existe
+            if (await userManager.FindByEmailAsync(user.Email) is not null)
+            {
+                skipped.Add(user.Email);
+                continue;
+            }
+
+            var appUser = new ClientManager.API.Models.ApplicationUser
+            {
+                UserName       = user.Email,
+                Email          = user.Email,
+                EmailConfirmed = true,
+                UserId         = user.Id,
+                CreatedAt      = user.CreatedAt
+            };
+
+            var result = await userManager.CreateAsync(appUser, defaultPassword);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(appUser, "Cliente");
+                created++;
+            }
+        }
+
+        return Results.Ok(new
+        {
+            inserted = users.Count,
+            accountsCreated = created,
+            skipped = skipped.Count,
+            defaultPassword
+        });
+    })
+    .WithTags("Dev")
+    .WithSummary("Seed de usuarios")
+    .WithDescription("""
+        Inserta N usuarios aleatorios repartidos entre las empresas existentes y crea su cuenta de acceso (ApplicationUser + rol Cliente).
+        Contraseña por defecto: Temporal@2026!
+        Los usuarios pueden hacer login con su email generado y esa contraseña.
+        Rango permitido: 1–500. Requiere al menos una empresa creada previamente.
+        Solo disponible en Development.
+        """);
+
+    app.MapDelete("/api/dev/delete-all-users",
+        async (ClientManager.API.Data.ApplicationDbContext db,
+               Microsoft.AspNetCore.Identity.UserManager<ClientManager.API.Models.ApplicationUser> userManager) =>
+    {
+        // Eliminar ApplicationUsers con rol "Cliente" (no tocar el SuperAdmin)
+        var clientAppUsers = await userManager.GetUsersInRoleAsync("Cliente");
+        var appUsersDeleted = 0;
+        foreach (var appUser in clientAppUsers)
+        {
+            await userManager.DeleteAsync(appUser);
+            appUsersDeleted++;
+        }
+
+        // Eliminar todos los Users de la tabla Companies (en cascada elimina también OTPs y RefreshTokens vinculados)
+        var usersDeleted = await db.CompanyUsers.ExecuteDeleteAsync();
+
+        return Results.Ok(new { usersDeleted, appUsersDeleted });
+    })
+    .WithTags("Dev")
+    .WithSummary("Eliminar todos los usuarios")
+    .WithDescription("""
+        Elimina TODOS los usuarios de la tabla Users y sus ApplicationUser de Identity (rol Cliente).
+        El SuperAdmin NO se elimina. También se eliminan en cascada sus OTPs y RefreshTokens.
+        ⚠ Acción irreversible. Solo disponible en Development.
+        """);
 }
 
 // ── Auto-migrate + Seed ───────────────────────────────────────────────────────
