@@ -129,21 +129,20 @@
               <!-- Acciones kebab -->
               <div class="td td-acciones" (click)="$event.stopPropagation()">
                 <button class="kebab-btn"
-                        #rowMenuTrigger="matMenuTrigger"
                         [matMenuTriggerFor]="rowMenu"
                         [attr.aria-label]="'Acciones para ' + c.name">
                   <mat-icon>more_horiz</mat-icon>
                 </button>
                 <mat-menu #rowMenu="matMenu">
-                  <button mat-menu-item (click)="rowMenuTrigger.closeMenu(); viewCompany(c.id)">
+                  <button mat-menu-item (click)="viewCompany(c.id)">
                     <mat-icon>open_in_new</mat-icon>
                     <span>Ver detalle</span>
                   </button>
-                  <button mat-menu-item (click)="rowMenuTrigger.closeMenu(); editCompany(c.id)">
+                  <button mat-menu-item (click)="editCompany(c.id)">
                     <mat-icon>edit</mat-icon>
                     <span>Editar</span>
                   </button>
-                  <button mat-menu-item class="menu-item--danger" (click)="rowMenuTrigger.closeMenu(); deleteCompany(c)">
+                  <button mat-menu-item class="menu-item--danger" (click)="deleteCompany(c)">
                     <mat-icon>delete</mat-icon>
                     <span>Eliminar</span>
                   </button>
