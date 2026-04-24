@@ -2,14 +2,8 @@ import { Component, OnInit, DestroyRef, inject, signal, computed, ChangeDetectio
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Company } from '../../models/company.model';
 import { UserService } from '../../services/user.service';
 import { CompanyService } from '../../services/company.service';
@@ -21,8 +15,7 @@ import { PASSWORD_RULES } from '../../constants/password-rules';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatButton, MatIconButton, MatProgressSpinner, MatCardModule, MatIconModule
+    MatIconModule
   ],
   templateUrl: './user-form.html',
   styleUrl: './user-form.scss'

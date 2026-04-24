@@ -2,13 +2,8 @@ import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy 
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButton } from '@angular/material/button';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatCardModule } from '@angular/material/card';
 import { CompanyService } from '../../services/company.service';
 import { CompanyStatus, COMPANY_STATUS_LABELS } from '../../models/company.model';
 import { ROUTES } from '../../app.routes.constants';
@@ -18,8 +13,7 @@ import { ROUTES } from '../../app.routes.constants';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatButton, MatProgressSpinner, MatCardModule
+    MatIconModule
   ],
   templateUrl: './company-form.html',
   styleUrl: './company-form.scss'

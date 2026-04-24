@@ -1,95 +1,116 @@
-<div class="form-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>{{ isEditMode ? 'Editar Usuario' : 'Nuevo Usuario' }}</mat-card-title>
-    </mat-card-header>
+<div class="page">
 
-    <mat-card-content>
-      @if (isLoading() && isEditMode) {
-        <div class="spinner-container">
-          <mat-spinner diameter="48"></mat-spinner>
-        </div>
-      } @else {
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nombre</mat-label>
-            <input matInput formControlName="name" placeholder="Nombre del usuario">
+  <header class="form-header">
+    <button type="button" class="btn-back" (click)="cancel()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Volver</span>
+    </button>
+    <h1>{{ isEditMode ? 'Editar usuario' : 'Nuevo usuario' }}</h1>
+  </header>
+
+  @if (isLoading() && isEditMode) {
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-body">
+
+      <!-- Datos personales -->
+      <section class="form-section">
+        <h2 class="section-title">Datos del usuario</h2>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label" for="name">Nombre <span class="required">*</span></label>
+            <input id="name" class="field-input" type="text"
+                   formControlName="name" placeholder="Nombre completo"
+                   [class.field-input--error]="name.invalid && name.touched">
             @if (name.hasError('required') && name.touched) {
-              <mat-error>El nombre es obligatorio</mat-error>
+              <span class="field-error">El nombre es obligatorio</span>
             }
-            @if (name.hasError('minlength')) {
-              <mat-error>Mínimo 2 caracteres</mat-error>
-            }
-            @if (name.hasError('maxlength')) {
-              <mat-error>Máximo 200 caracteres</mat-error>
-            }
-          </mat-form-field>
+          </div>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email" placeholder="email@ejemplo.com" type="email">
+          <div class="field-group">
+            <label class="field-label" for="email">Email <span class="required">*</span></label>
+            <input id="email" class="field-input" type="email"
+                   formControlName="email" placeholder="usuario@empresa.com"
+                   [class.field-input--error]="email.invalid && email.touched"
+                   [attr.readonly]="isEditMode ? true : null">
             @if (email.hasError('required') && email.touched) {
-              <mat-error>El email es obligatorio</mat-error>
+              <span class="field-error">El email es obligatorio</span>
             }
-            @if (email.hasError('email')) {
-              <mat-error>Introduce un email válido</mat-error>
+            @if (email.hasError('email') && email.touched) {
+              <span class="field-error">Introduce un email válido</span>
             }
-          </mat-form-field>
+          </div>
+        </div>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Empresa</mat-label>
-            <mat-select formControlName="companyId">
-              @for (company of companies(); track company.id) {
-                <mat-option [value]="company.id">{{ company.name }}</mat-option>
+        <div class="field-group">
+          <label class="field-label" for="companyId">Empresa <span class="required">*</span></label>
+          <div class="field-select-wrap">
+            <select id="companyId" class="field-select" formControlName="companyId"
+                    [class.field-input--error]="companyId.invalid && companyId.touched">
+              <option [ngValue]="null" disabled>Selecciona una empresa</option>
+              @for (c of companies(); track c.id) {
+                <option [ngValue]="c.id">{{ c.name }}</option>
               }
-            </mat-select>
-            @if (companyId.hasError('required') && companyId.touched) {
-              <mat-error>Selecciona una empresa</mat-error>
-            }
-          </mat-form-field>
+            </select>
+            <mat-icon class="select-chevron">expand_more</mat-icon>
+          </div>
+          @if (companyId.hasError('required') && companyId.touched) {
+            <span class="field-error">Selecciona una empresa</span>
+          }
+        </div>
+      </section>
 
-          @if (!isEditMode) {
-            <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Contraseña</mat-label>
-              <input matInput formControlName="password"
+      <!-- Contraseña (solo en creación) -->
+      @if (!isEditMode) {
+        <section class="form-section">
+          <h2 class="section-title">Contraseña</h2>
+
+          <div class="field-group">
+            <label class="field-label" for="password">Contraseña <span class="required">*</span></label>
+            <div class="password-wrap">
+              <input id="password" class="field-input"
                      [type]="showPassword() ? 'text' : 'password'"
-                     placeholder="Contraseña del usuario"
-                     (input)="onPasswordInput($event)">
-              <button mat-icon-button matSuffix type="button"
+                     formControlName="password"
+                     placeholder="Mínimo 8 caracteres"
+                     (input)="onPasswordInput($event)"
+                     [class.field-input--error]="password.invalid && password.touched">
+              <button type="button" class="password-toggle"
                       (click)="showPassword.set(!showPassword())"
                       [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
                 <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
               </button>
-              @if (password.hasError('required') && password.touched) {
-                <mat-error>La contraseña es obligatoria</mat-error>
-              }
-            </mat-form-field>
-
-            @if (password.value.length > 0) {
-              <div class="password-rules">
-                @for (rule of passwordRules(); track rule.label) {
-                  <div class="rule" [class.ok]="rule.ok" [class.fail]="!rule.ok">
-                    <mat-icon>{{ rule.ok ? 'check_circle' : 'cancel' }}</mat-icon>
-                    <span>{{ rule.label }}</span>
-                  </div>
-                }
-              </div>
-            }
-          }
-
-          <div class="form-actions">
-            <button mat-button type="button" (click)="cancel()">Cancelar</button>
-            <button mat-raised-button color="primary" type="submit"
-                    [disabled]="form.invalid || isLoading() || (!isEditMode && !allPasswordValid())">
-              @if (isLoading()) {
-                <mat-spinner diameter="20"></mat-spinner>
-              } @else {
-                {{ isEditMode ? 'Actualizar' : 'Crear' }}
-              }
-            </button>
+            </div>
           </div>
-        </form>
+
+          @if (password.value.length > 0) {
+            <div class="password-rules">
+              @for (rule of passwordRules(); track rule.label) {
+                <div class="rule" [class.rule--ok]="rule.ok">
+                  <mat-icon>{{ rule.ok ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+                  <span>{{ rule.label }}</span>
+                </div>
+              }
+            </div>
+          }
+        </section>
       }
-    </mat-card-content>
-  </mat-card>
+
+      <!-- Acciones -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-submit"
+                [disabled]="form.invalid || isLoading() || (!isEditMode && !allPasswordValid())">
+          @if (isLoading()) {
+            <span class="spinner-sm"></span>
+          }
+          {{ isEditMode ? 'Guardar cambios' : 'Crear usuario' }}
+        </button>
+      </div>
+
+    </form>
+  }
+
 </div>

@@ -1,104 +1,129 @@
-<div class="form-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>{{ isEditMode ? 'Editar Empresa' : 'Nueva Empresa' }}</mat-card-title>
-    </mat-card-header>
+<div class="page">
 
-    <mat-card-content>
-      @if (isLoading() && isEditMode) {
-        <div class="spinner-container">
-          <mat-spinner diameter="48"></mat-spinner>
+  <header class="form-header">
+    <button type="button" class="btn-back" (click)="cancel()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Volver</span>
+    </button>
+    <h1>{{ isEditMode ? 'Editar empresa' : 'Nueva empresa' }}</h1>
+  </header>
+
+  @if (isLoading() && isEditMode) {
+    <div class="loading-wrap">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-body">
+
+      <!-- Información básica -->
+      <section class="form-section">
+        <h2 class="section-title">Información básica</h2>
+
+        <div class="field-group">
+          <label class="field-label" for="name">Nombre <span class="required">*</span></label>
+          <input id="name" class="field-input" type="text"
+                 formControlName="name" placeholder="Nombre de la empresa"
+                 [class.field-input--error]="name.invalid && name.touched">
+          @if (name.hasError('required') && name.touched) {
+            <span class="field-error">El nombre es obligatorio</span>
+          }
+          @if (name.hasError('minlength')) {
+            <span class="field-error">Mínimo 2 caracteres</span>
+          }
         </div>
-      } @else {
-        <form [formGroup]="form" (ngSubmit)="onSubmit()">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Nombre</mat-label>
-            <input matInput formControlName="name" placeholder="Nombre de la empresa">
-            @if (name.hasError('required') && name.touched) {
-              <mat-error>El nombre es obligatorio</mat-error>
-            }
-            @if (name.hasError('minlength')) {
-              <mat-error>Mínimo 2 caracteres</mat-error>
-            }
-            @if (name.hasError('maxlength')) {
-              <mat-error>Máximo 200 caracteres</mat-error>
-            }
-          </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Descripción</mat-label>
-            <textarea matInput formControlName="description" rows="4" placeholder="Descripción de la empresa"></textarea>
-            @if (description.hasError('required') && description.touched) {
-              <mat-error>La descripción es obligatoria</mat-error>
-            }
-            @if (description.hasError('minlength')) {
-              <mat-error>Mínimo 10 caracteres</mat-error>
-            }
-            @if (description.hasError('maxlength')) {
-              <mat-error>Máximo 2000 caracteres</mat-error>
-            }
-          </mat-form-field>
+        <div class="field-group">
+          <label class="field-label" for="description">Descripción <span class="required">*</span></label>
+          <textarea id="description" class="field-input field-textarea"
+                    formControlName="description" rows="4"
+                    placeholder="Describe la actividad de la empresa"
+                    [class.field-input--error]="description.invalid && description.touched"></textarea>
+          @if (description.hasError('required') && description.touched) {
+            <span class="field-error">La descripción es obligatoria</span>
+          }
+          @if (description.hasError('minlength')) {
+            <span class="field-error">Mínimo 10 caracteres</span>
+          }
+        </div>
+      </section>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Estado</mat-label>
-            <mat-select formControlName="status">
-              @for (opt of statusOptions; track opt.value) {
-                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+      <!-- Estado y contacto -->
+      <section class="form-section">
+        <h2 class="section-title">Estado y contacto</h2>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email de contacto</mat-label>
-            <input matInput formControlName="contactEmail" type="email" placeholder="contacto@empresa.com">
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label" for="status">Estado</label>
+            <div class="field-select-wrap">
+              <select id="status" class="field-select" formControlName="status">
+                @for (opt of statusOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+              <mat-icon class="select-chevron">expand_more</mat-icon>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label" for="contactEmail">Email de contacto</label>
+            <input id="contactEmail" class="field-input" type="email"
+                   formControlName="contactEmail" placeholder="contacto@empresa.com"
+                   [class.field-input--error]="contactEmail.invalid && contactEmail.touched">
             @if (contactEmail.hasError('email') && contactEmail.touched) {
-              <mat-error>Introduce un email válido</mat-error>
-            }
-            @if (contactEmail.hasError('maxlength')) {
-              <mat-error>Máximo 200 caracteres</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Teléfono de contacto</mat-label>
-            <input matInput formControlName="contactPhone" type="tel" placeholder="+34 912 345 678">
-            @if (contactPhone.hasError('maxlength')) {
-              <mat-error>Máximo 30 caracteres</mat-error>
-            }
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Dirección</mat-label>
-            <input matInput formControlName="address" placeholder="Calle, número, ciudad, CP">
-            @if (address.hasError('maxlength')) {
-              <mat-error>Máximo 300 caracteres</mat-error>
-            }
-          </mat-form-field>
-
-          <div class="file-upload">
-            <label>Logo</label>
-            <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onFileSelected($event)">
-            @if (currentLogoUrl() && !selectedFile) {
-              <div class="logo-preview">
-                <img [src]="currentLogoUrl()!" alt="Logo actual" class="preview-img">
-                <span>Logo actual</span>
-              </div>
+              <span class="field-error">Introduce un email válido</span>
             }
           </div>
 
-          <div class="form-actions">
-            <button mat-button type="button" (click)="cancel()">Cancelar</button>
-            <button mat-raised-button color="primary" type="submit"
-                    [disabled]="form.invalid || isLoading()">
-              @if (isLoading()) {
-                <mat-spinner diameter="20"></mat-spinner>
-              } @else {
-                {{ isEditMode ? 'Actualizar' : 'Crear' }}
-              }
-            </button>
+          <div class="field-group">
+            <label class="field-label" for="contactPhone">Teléfono</label>
+            <input id="contactPhone" class="field-input" type="tel"
+                   formControlName="contactPhone" placeholder="+34 912 345 678">
           </div>
-        </form>
-      }
-    </mat-card-content>
-  </mat-card>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="address">Dirección</label>
+          <input id="address" class="field-input" type="text"
+                 formControlName="address" placeholder="Calle, número, ciudad, CP">
+        </div>
+      </section>
+
+      <!-- Logo -->
+      <section class="form-section">
+        <h2 class="section-title">Logo</h2>
+
+        @if (currentLogoUrl() && !selectedFile) {
+          <div class="logo-preview">
+            <img [src]="currentLogoUrl()!" alt="Logo actual" class="logo-img">
+            <span class="logo-hint">Logo actual</span>
+          </div>
+        }
+
+        <label class="file-upload-label">
+          <mat-icon>upload</mat-icon>
+          <span>{{ selectedFile ? selectedFile.name : 'Seleccionar imagen' }}</span>
+          <input type="file" class="file-input"
+                 accept="image/jpeg,image/png,image/gif,image/webp"
+                 (change)="onFileSelected($event)">
+        </label>
+        <p class="file-hint">JPEG, PNG, GIF o WebP · Máximo 5 MB</p>
+      </section>
+
+      <!-- Acciones -->
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="cancel()">Cancelar</button>
+        <button type="submit" class="btn-submit"
+                [disabled]="form.invalid || isLoading()">
+          @if (isLoading()) {
+            <span class="spinner-sm"></span>
+          }
+          {{ isEditMode ? 'Guardar cambios' : 'Crear empresa' }}
+        </button>
+      </div>
+
+    </form>
+  }
+
 </div>

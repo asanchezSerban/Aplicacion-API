@@ -210,10 +210,8 @@
                   (click)="setTab('resumen')">Resumen</button>
           <button class="panel-tab" [class.panel-tab--active]="activeTab() === 'usuarios'"
                   (click)="setTab('usuarios')">Usuarios</button>
-          <button class="panel-tab" [class.panel-tab--active]="activeTab() === 'info'"
-                  (click)="setTab('info')">Información</button>
-          <button class="panel-tab" [class.panel-tab--active]="activeTab() === 'config'"
-                  (click)="setTab('config')">Configuración</button>
+          <button class="panel-tab" type="button"
+                  (click)="editCompany(c.id)">Configuración</button>
         </nav>
 
         <!-- Tab: Resumen -->
@@ -376,22 +374,6 @@
           </div>
         }
 
-        <!-- Tab: Información -->
-        @if (activeTab() === 'info') {
-          <div class="panel-body panel-body--center">
-            <mat-icon class="placeholder-icon">info</mat-icon>
-            <p class="placeholder-text">Información ampliada próximamente</p>
-            <button type="button" class="btn-ghost" (click)="editCompany(c.id)">Editar empresa</button>
-          </div>
-        }
-
-        <!-- Tab: Configuración -->
-        @if (activeTab() === 'config') {
-          <div class="panel-body panel-body--center">
-            <mat-icon class="placeholder-icon">settings</mat-icon>
-            <p class="placeholder-text">Configuración próximamente</p>
-          </div>
-        }
 
       </aside>
     }
