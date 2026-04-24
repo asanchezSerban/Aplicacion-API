@@ -39,6 +39,34 @@
             }
           </mat-form-field>
 
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="status">
+              @for (opt of statusOptions; track opt.value) {
+                <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email de contacto</mat-label>
+            <input matInput formControlName="contactEmail" type="email" placeholder="contacto@empresa.com">
+            @if (contactEmail.hasError('email') && contactEmail.touched) {
+              <mat-error>Introduce un email válido</mat-error>
+            }
+            @if (contactEmail.hasError('maxlength')) {
+              <mat-error>Máximo 200 caracteres</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Teléfono de contacto</mat-label>
+            <input matInput formControlName="contactPhone" type="tel" placeholder="+34 912 345 678">
+            @if (contactPhone.hasError('maxlength')) {
+              <mat-error>Máximo 30 caracteres</mat-error>
+            }
+          </mat-form-field>
+
           <div class="file-upload">
             <label>Logo</label>
             <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" (change)="onFileSelected($event)">

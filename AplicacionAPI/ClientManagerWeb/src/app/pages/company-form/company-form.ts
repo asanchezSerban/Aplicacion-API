@@ -4,11 +4,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatButton } from '@angular/material/button';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatCardModule } from '@angular/material/card';
 import { CompanyService } from '../../services/company.service';
+import { CompanyStatus, COMPANY_STATUS_LABELS } from '../../models/company.model';
 import { ROUTES } from '../../app.routes.constants';
 
 @Component({
@@ -16,7 +18,7 @@ import { ROUTES } from '../../app.routes.constants';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule,
+    MatFormFieldModule, MatInputModule, MatSelectModule,
     MatButton, MatProgressSpinner, MatCardModule
   ],
   templateUrl: './company-form.html',
@@ -36,13 +38,27 @@ export class CompanyFormComponent implements OnInit {
   isLoading      = signal(false);
   isEditMode     = false;
   companyId!: number;
-  get name()        { return this.form.controls['name']; }
-  get description() { return this.form.controls['description']; }
+
+  readonly statusOptions: { value: CompanyStatus; label: string }[] = [
+    { value: 'Prospect', label: COMPANY_STATUS_LABELS.Prospect },
+    { value: 'Active',   label: COMPANY_STATUS_LABELS.Active   },
+    { value: 'Inactive', label: COMPANY_STATUS_LABELS.Inactive },
+    { value: 'Churned',  label: COMPANY_STATUS_LABELS.Churned  },
+  ];
+
+  get name()         { return this.form.controls['name']; }
+  get description()  { return this.form.controls['description']; }
+  get status()       { return this.form.controls['status']; }
+  get contactEmail() { return this.form.controls['contactEmail']; }
+  get contactPhone() { return this.form.controls['contactPhone']; }
 
   ngOnInit(): void {
     this.form = this.fb.nonNullable.group({
-      name:        ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
-      description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]]
+      name:         ['', [Validators.required, Validators.minLength(2), Validators.maxLength(200)]],
+      description:  ['', [Validators.required, Validators.minLength(10), Validators.maxLength(2000)]],
+      status:       ['Active' as CompanyStatus],
+      contactEmail: ['', [Validators.email, Validators.maxLength(200)]],
+      contactPhone: ['', [Validators.maxLength(30)]]
     });
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -59,7 +75,13 @@ export class CompanyFormComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (company) => {
-          this.form.patchValue({ name: company.name, description: company.description });
+          this.form.patchValue({
+            name:         company.name,
+            description:  company.description,
+            status:       company.status,
+            contactEmail: company.contactEmail ?? '',
+            contactPhone: company.contactPhone ?? ''
+          });
           this.currentLogoUrl.set(company.logoUrl);
           this.isLoading.set(false);
         },
@@ -82,8 +104,13 @@ export class CompanyFormComponent implements OnInit {
     if (this.form.invalid) return;
 
     this.isLoading.set(true);
-    const { name, description } = this.form.getRawValue();
-    const dto = { name, description, logo: this.selectedFile || undefined };
+    const { name, description, status, contactEmail, contactPhone } = this.form.getRawValue();
+    const dto = {
+      name, description, status,
+      contactEmail: contactEmail || undefined,
+      contactPhone: contactPhone || undefined,
+      logo: this.selectedFile || undefined
+    };
 
     const operation = this.isEditMode
       ? this.companyService.update(this.companyId, dto)

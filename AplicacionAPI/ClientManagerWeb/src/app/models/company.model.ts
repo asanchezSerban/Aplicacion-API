@@ -1,8 +1,20 @@
+export type CompanyStatus = 'Prospect' | 'Active' | 'Inactive' | 'Churned';
+
+export const COMPANY_STATUS_LABELS: Record<CompanyStatus, string> = {
+  Prospect: 'Prospecto',
+  Active:   'Activa',
+  Inactive: 'Inactiva',
+  Churned:  'Perdida'
+};
+
 export interface Company {
   id: number;
   name: string;
   description: string;
   logoUrl: string | null;
+  status: CompanyStatus;
+  contactEmail: string | null;
+  contactPhone: string | null;
   createdAt: string;
   updatedAt: string;
   usersCount: number;

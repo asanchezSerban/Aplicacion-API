@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="Generator" content="Microsoft Word compatible">
+<style>
+  body {
+    font-family: 'Calibri', sans-serif;
+    font-size: 11pt;
+    color: #212121;
+    margin: 2.5cm 3cm;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 26pt;
+    font-weight: bold;
+    color: #1F3864;
+    border-bottom: 3px solid #1F3864;
+    padding-bottom: 8px;
+    margin-top: 0;
+    page-break-before: auto;
+  }
+  h2 {
+    font-size: 16pt;
+    font-weight: bold;
+    color: #2E75B6;
+    border-bottom: 1px solid #2E75B6;
+    padding-bottom: 4px;
+    margin-top: 28px;
+  }
+  h3 {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #1F3864;
+    margin-top: 20px;
+  }
+  h4 {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #2E75B6;
+    margin-top: 14px;
+    margin-bottom: 4px;
+  }
+  p { margin: 6px 0 10px 0; }
+  ul, ol { margin: 6px 0 10px 20px; }
+  li { margin-bottom: 4px; }
+  code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9.5pt;
+    background-color: #F2F2F2;
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: #C0392B;
+  }
+  pre {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9pt;
+    background-color: #1E1E1E;
+    color: #D4D4D4;
+    padding: 14px 18px;
+    border-radius: 6px;
+    border-left: 4px solid #2E75B6;
+    margin: 10px 0 16px 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.55;
+  }
+  pre .kw  { color: #569CD6; }   /* keywords */
+  pre .cl  { color: #4EC9B0; }   /* class names */
+  pre .st  { color: #CE9178; }   /* strings */
+  pre .cm  { color: #6A9955; }   /* comments */
+  pre .at  { color: #DCDCAA; }   /* attributes/methods */
+  pre .nm  { color: #9CDCFE; }   /* variables */
+  pre .nu  { color: #B5CEA8; }   /* numbers */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0 18px 0;
+    font-size: 10.5pt;
+  }
+  th {
+    background-color: #1F3864;
+    color: white;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: bold;
+  }
+  td {
+    padding: 7px 12px;
+    border: 1px solid #D0D0D0;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background-color: #EBF3FB; }
+  tr:nth-child(odd) td { background-color: #FFFFFF; }
+  .cover {
+    text-align: center;
+    padding: 60px 0 40px 0;
+    border-bottom: 2px solid #1F3864;
+    margin-bottom: 40px;
+  }
+  .cover h1 {
+    border: none;
+    font-size: 32pt;
+    margin-bottom: 10px;
+  }
+  .cover .subtitle {
+    font-size: 16pt;
+    color: #2E75B6;
+    margin-bottom: 30px;
+  }
+  .cover .meta {
+    font-size: 11pt;
+    color: #555;
+    line-height: 2;
+  }
+  .callout {
+    background-color: #EBF3FB;
+    border-left: 5px solid #2E75B6;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout-warn {
+    background-color: #FFF8E1;
+    border-left: 5px solid #F9A825;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout-ok {
+    background-color: #E8F5E9;
+    border-left: 5px solid #388E3C;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .badge {
+    display: inline-block;
+    background-color: #388E3C;
+    color: white;
+    font-size: 9pt;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+  .badge-blue {
+    background-color: #1565C0;
+  }
+  .toc { margin: 20px 0 40px 0; }
+  .toc a { color: #2E75B6; text-decoration: none; }
+  .toc li { margin-bottom: 6px; }
+  .page-break { page-break-before: always; }
+  .file-path {
+    font-family: 'Consolas', monospace;
+    font-size: 9.5pt;
+    color: #555;
+    background: #F8F8F8;
+    border: 1px solid #DDD;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  hr { border: none; border-top: 1px solid #DDD; margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ PORTADA -->
+<div class="cover">
+  <h1>Documentación Técnica<br>Tests de Integración</h1>
+  <div class="subtitle">Proyecto ClientManager — Rama <code>feature/integration-tests</code></div>
+  <div class="meta">
+    <strong>Proyecto:</strong> ClientManager API &amp; Web<br>
+    <strong>Stack:</strong> .NET 10 · PostgreSQL 15 · xUnit · Respawn · FluentAssertions<br>
+    <strong>Rama:</strong> feature/integration-tests → develop → master<br>
+    <strong>Fecha:</strong> Abril 2026<br>
+    <strong>Autor:</strong> Adrian Sanchez
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ ÍNDICE -->
+<h2>Índice</h2>
+<div class="toc">
+  <ol>
+    <li><a href="#s1">¿Qué son los tests de integración?</a></li>
+    <li><a href="#s2">Diferencia entre tests unitarios, de integración y de rendimiento</a></li>
+    <li><a href="#s3">Tecnologías utilizadas</a></li>
+    <li><a href="#s4">Instalación y configuración del proyecto de tests</a></li>
+    <li><a href="#s5">Arquitectura del proyecto de tests</a></li>
+    <li><a href="#s6">Infraestructura: CustomWebApplicationFactory</a></li>
+    <li><a href="#s7">Infraestructura: IntegrationTestBase</a></li>
+    <li><a href="#s8">Modificaciones al proyecto API</a></li>
+    <li><a href="#s9">Tests implementados</a></li>
+    <li><a href="#s10">Problemas encontrados y soluciones</a></li>
+    <li><a href="#s11">Cómo ejecutar los tests</a></li>
+    <li><a href="#s12">Integración con CI (GitHub Actions)</a></li>
+    <li><a href="#s13">Estrategia de ramas Git</a></li>
+  </ol>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 1 -->
+<h2 id="s1">1. ¿Qué son los tests de integración?</h2>
+
+<p>Un <strong>test de integración</strong> verifica que varios componentes del sistema funcionan correctamente <em>juntos</em>. A diferencia de un test unitario (que aísla una función y prueba solo esa), un test de integración arranca la aplicación real —o una versión muy cercana a ella— y ejecuta peticiones HTTP contra sus endpoints, comprobando que la respuesta es la esperada.</p>
+
+<p>En este proyecto, los tests de integración:</p>
+<ul>
+  <li>Arrancan la API completa de .NET 10 en memoria (sin necesidad de un servidor externo).</li>
+  <li>Se conectan a una base de datos PostgreSQL real, dedicada exclusivamente a tests (<code>clientmanager_tests</code>).</li>
+  <li>Ejecutan flujos completos: login → cookie de sesión → acceso a recurso protegido → logout.</li>
+  <li>Limpian la base de datos antes de cada test para garantizar independencia entre ellos.</li>
+</ul>
+
+<div class="callout">
+  <strong>Concepto clave:</strong> Los tests de integración comprueban el comportamiento del sistema tal como lo vería un cliente real (un navegador, una app Angular), no solo la lógica interna de una clase.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 2 -->
+<h2 id="s2">2. Diferencia entre tipos de tests</h2>
+
+<table>
+  <tr>
+    <th>Tipo</th>
+    <th>¿Qué prueba?</th>
+    <th>¿Usa BD real?</th>
+    <th>Velocidad</th>
+    <th>Herramienta en este proyecto</th>
+  </tr>
+  <tr>
+    <td><strong>Unitario</strong></td>
+    <td>Una función o método de forma aislada, con dependencias simuladas (mocks)</td>
+    <td>No</td>
+    <td>Muy rápido (&lt;1ms)</td>
+    <td>No implementado</td>
+  </tr>
+  <tr>
+    <td><strong>Integración</strong></td>
+    <td>Varios componentes juntos: controlador + servicio + base de datos + autenticación</td>
+    <td>Sí (BD de tests)</td>
+    <td>Medio (1-5s arranque)</td>
+    <td><strong>xUnit + WebApplicationFactory</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Rendimiento (k6)</strong></td>
+    <td>Comportamiento bajo carga: latencia, throughput, errores bajo muchas peticiones simultáneas</td>
+    <td>Sí (servidor real)</td>
+    <td>Lento (minutos)</td>
+    <td><strong>k6</strong></td>
+  </tr>
+  <tr>
+    <td><strong>End-to-end (E2E)</strong></td>
+    <td>Flujo completo desde el navegador: UI + API + BD</td>
+    <td>Sí</td>
+    <td>Muy lento</td>
+    <td>No implementado (Cypress / Playwright)</td>
+  </tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 3 -->
+<h2 id="s3">3. Tecnologías utilizadas</h2>
+
+<h3>3.1 xUnit</h3>
+<p><strong>xUnit</strong> es el framework de testing más utilizado en el ecosistema .NET moderno. Es el recomendado por Microsoft para ASP.NET Core. Permite definir tests con atributos y ejecutarlos mediante <code>dotnet test</code>.</p>
+<ul>
+  <li><strong>Versión usada:</strong> xUnit 2.9.3</li>
+  <li><strong>Conceptos clave:</strong>
+    <ul>
+      <li><code>[Fact]</code> — marca un método como test individual.</li>
+      <li><code>IClassFixture&lt;T&gt;</code> — comparte una instancia entre todos los tests de la clase (la factory de la API se crea una sola vez).</li>
+      <li><code>IAsyncLifetime</code> — permite ejecutar código asíncrono antes (<code>InitializeAsync</code>) y después (<code>DisposeAsync</code>) de cada test.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>3.2 Microsoft.AspNetCore.Mvc.Testing</h3>
+<p>Paquete oficial de Microsoft que permite arrancar la API completa en memoria dentro del proceso del test, sin necesitar un servidor HTTP real. Internamente usa <strong>TestServer</strong>.</p>
+<ul>
+  <li><strong>Versión usada:</strong> 10.0.6</li>
+  <li>Proporciona <code>WebApplicationFactory&lt;TEntryPoint&gt;</code>, que localiza el <code>Program.cs</code> de la API y lo ejecuta en un entorno de test configurable.</li>
+  <li>Permite sobrescribir configuración, servicios y middlewares antes de que la aplicación arranque.</li>
+</ul>
+
+<h3>3.3 Respawn</h3>
+<p><strong>Respawn</strong> es una librería especializada en limpiar bases de datos entre tests. En lugar de borrar y recrear la BD completa (lo que sería muy lento), Respawn analiza el esquema y genera un script SQL inteligente que borra solo los datos, respetando las claves foráneas y las tablas que se quieran preservar.</p>
+<ul>
+  <li><strong>Versión usada:</strong> 7.0.0</li>
+  <li>Compatible con PostgreSQL mediante <code>DbAdapter.Postgres</code>.</li>
+  <li>Permite excluir tablas del borrado (en nuestro caso: <code>__EFMigrationsHistory</code> y <code>AspNetRoles</code>).</li>
+</ul>
+
+<h3>3.4 FluentAssertions</h3>
+<p>Librería que proporciona una sintaxis de aserciones más legible y expresiva que los métodos estándar de xUnit (<code>Assert.Equal</code>). Las aserciones se leen casi como frases en inglés.</p>
+<ul>
+  <li><strong>Versión usada:</strong> 8.9.0</li>
+  <li><strong>Ejemplo:</strong> <code>response.StatusCode.Should().Be(HttpStatusCode.OK);</code></li>
+  <li>En caso de fallo, los mensajes de error son mucho más descriptivos que los de xUnit estándar.</li>
+</ul>
+
+<h3>3.5 Npgsql</h3>
+<p>Driver de PostgreSQL para .NET. Necesario para que Respawn abra una conexión directa a la base de datos y pueda ejecutar el borrado de datos.</p>
+<ul>
+  <li><strong>Versión usada:</strong> 10.0.2</li>
+</ul>
+
+<h3>3.6 Base de datos de tests</h3>
+<p>Se creó una base de datos PostgreSQL independiente llamada <code>clientmanager_tests</code>, completamente separada de la base de datos de desarrollo (<code>clientmanager</code>). Esto garantiza que los tests nunca afectan a los datos de desarrollo.</p>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 4 -->
+<h2 id="s4">4. Instalación y configuración</h2>
+
+<h3>4.1 Crear el proyecto de tests</h3>
+<p>Se creó un nuevo proyecto xUnit dentro de la solución:</p>
+<pre>
+dotnet new xunit -n ClientManager.Tests
+cd ClientManager.Tests
+dotnet add reference ../ClientManager.API/ClientManager.API.csproj
+</pre>
+<p>El proyecto se añadió también a la solución <code>ApiAppClaude.sln</code> para que Visual Studio lo reconozca:</p>
+<pre>
+dotnet sln ../../ApiAppClaude.sln add ClientManager.Tests.csproj
+</pre>
+
+<h3>4.2 Paquetes NuGet instalados</h3>
+<pre>
+dotnet add package Microsoft.AspNetCore.Mvc.Testing --version 10.0.6
+dotnet add package Respawn --version 7.0.0
+dotnet add package FluentAssertions --version 8.9.0
+dotnet add package Npgsql --version 10.0.2
+</pre>
+
+<h3>4.3 Archivo de proyecto resultante</h3>
+<p>Archivo: <span class="file-path">AplicacionAPI/ClientManager.Tests/ClientManager.Tests.csproj</span></p>
+<pre>
+&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;IsPackable&gt;false&lt;/IsPackable&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="coverlet.collector" Version="6.0.4" /&gt;
+    &lt;PackageReference Include="FluentAssertions" Version="8.9.0" /&gt;
+    &lt;PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.6" /&gt;
+    &lt;PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" /&gt;
+    &lt;PackageReference Include="Npgsql" Version="10.0.2" /&gt;
+    &lt;PackageReference Include="Respawn" Version="7.0.0" /&gt;
+    &lt;PackageReference Include="xunit" Version="2.9.3" /&gt;
+    &lt;PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;Using Include="Xunit" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;ProjectReference Include="..\ClientManager.API\ClientManager.API.csproj" /&gt;
+  &lt;/ItemGroup&gt;
+&lt;/Project&gt;
+</pre>
+
+<h3>4.4 Crear la base de datos de tests</h3>
+<p>Desde <code>psql</code> o cualquier cliente PostgreSQL:</p>
+<pre>
+CREATE DATABASE clientmanager_tests;
+</pre>
+<p>Las migraciones se aplican automáticamente la primera vez que corre <code>CustomWebApplicationFactory</code> mediante <code>db.Database.MigrateAsync()</code>.</p>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 5 -->
+<h2 id="s5">5. Arquitectura del proyecto de tests</h2>
+
+<p>El proyecto de tests se compone de tres capas bien diferenciadas:</p>
+
+<table>
+  <tr>
+    <th>Archivo</th>
+    <th>Responsabilidad</th>
+  </tr>
+  <tr>
+    <td><code>CustomWebApplicationFactory.cs</code></td>
+    <td>Arranca la API en memoria. Configura BD de tests, JWT, rate limiter. Se comparte entre todos los tests de una clase.</td>
+  </tr>
+  <tr>
+    <td><code>IntegrationTestBase.cs</code></td>
+    <td>Clase base que todos los tests heredan. Proporciona el <code>HttpClient</code> listo para usar y limpia la BD antes de cada test.</td>
+  </tr>
+  <tr>
+    <td><code>Tests/AuthTests.cs</code></td>
+    <td>Los tests concretos del flujo de autenticación.</td>
+  </tr>
+</table>
+
+<p>El flujo de inicialización es el siguiente:</p>
+<ol>
+  <li>xUnit crea una instancia de <code>CustomWebApplicationFactory</code> (una vez por clase de tests).</li>
+  <li><code>CustomWebApplicationFactory.InitializeAsync()</code> aplica migraciones y configura Respawn.</li>
+  <li>Para cada test individual, xUnit crea una instancia de <code>AuthTests</code>.</li>
+  <li>El constructor de <code>AuthTests</code> → <code>IntegrationTestBase</code> crea un <code>HttpClient</code>.</li>
+  <li><code>IntegrationTestBase.InitializeAsync()</code> llama a <code>ResetDatabaseAsync()</code> → limpia + re-siembra datos.</li>
+  <li>Se ejecuta el test.</li>
+  <li><code>IntegrationTestBase.DisposeAsync()</code> se llama al terminar.</li>
+</ol>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 6 -->
+<h2 id="s6">6. Infraestructura: CustomWebApplicationFactory</h2>
+
+<p>Archivo: <span class="file-path">AplicacionAPI/ClientManager.Tests/CustomWebApplicationFactory.cs</span></p>
+
+<p>Esta clase es el núcleo de la infraestructura de tests. Hereda de <code>WebApplicationFactory&lt;Program&gt;</code> y sobreescribe el comportamiento de la API para adaptarla al entorno de tests.</p>
+
+<h3>6.1 Sobreescritura de configuración</h3>
+<p>La API en producción lee su configuración de <code>appsettings.json</code> y User Secrets (JWT secret, connection string, etc.). En tests, reemplazamos toda esa configuración por valores fijos conocidos:</p>
+<pre>
+builder.ConfigureAppConfiguration((ctx, config) =>
+{
+    config.Sources.Clear();  // elimina appsettings, User Secrets, etc.
+    config.AddInMemoryCollection(new Dictionary&lt;string, string?&gt;
+    {
+        ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=clientmanager_tests;...",
+        ["Jwt:SecretKey"]         = "TestSecretKey_32CharsMinimumXXXXXX",
+        ["Jwt:Issuer"]            = "ClientManagerAPI",
+        ["Jwt:Audience"]          = "ClientManagerApp",
+        ["SuperAdmin:Email"]      = "admin@clientmanager.local",
+        ["SuperAdmin:Password"]   = "TestAdmin@2026!",
+        ...
+    });
+});
+</pre>
+
+<h3>6.2 Corrección del JWT (PostConfigure)</h3>
+<p>Se descubrió un problema sutil: <code>Program.cs</code> captura la clave JWT en una variable local <em>antes</em> de que el callback de <code>ConfigureAppConfiguration</code> corra. Esto significa que la clave de validación de tokens queda con el valor antiguo (de User Secrets), mientras que <code>AuthService</code> sí lee la nueva clave en tiempo de ejecución. El resultado era un mismatch: token firmado con la clave nueva, validado con la clave antigua → 401 Unauthorized.</p>
+<p>La solución fue usar <code>PostConfigure&lt;JwtBearerOptions&gt;</code> para sobreescribir la clave de validación <em>después</em> de que <code>Program.cs</code> haya corrido:</p>
+<pre>
+services.PostConfigure&lt;JwtBearerOptions&gt;(JwtBearerDefaults.AuthenticationScheme, opts =>
+{
+    opts.TokenValidationParameters.IssuerSigningKey =
+        new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes("TestSecretKey_32CharsMinimumXXXXXX"));
+    opts.TokenValidationParameters.ValidIssuer   = "ClientManagerAPI";
+    opts.TokenValidationParameters.ValidAudience = "ClientManagerApp";
+});
+</pre>
+
+<h3>6.3 Desactivación del Rate Limiter</h3>
+<p>La API tiene un rate limiter configurado: máximo 5 peticiones por minuto por IP en los endpoints <code>/api/auth/*</code>. En el TestServer, todas las peticiones de todos los tests comparten la misma IP (127.0.0.1 o null), por lo que al 6.º login ya se recibe un <code>429 Too Many Requests</code>.</p>
+<p>La solución fue eliminar la configuración original del rate limiter y reemplazarla por una política sin límite (<code>NoLimiter</code>):</p>
+<pre>
+services.RemoveAll&lt;IConfigureOptions&lt;RateLimiterOptions&gt;&gt;();
+services.Configure&lt;RateLimiterOptions&gt;(options =>
+{
+    options.AddPolicy("auth", _ => RateLimitPartition.GetNoLimiter("test"));
+});
+</pre>
+
+<h3>6.4 Inicialización y limpieza con Respawn</h3>
+<p>Respawn se inicializa una sola vez por clase de tests, analizando el esquema de la BD:</p>
+<pre>
+_respawner = await Respawner.CreateAsync(_connection, new RespawnerOptions
+{
+    DbAdapter        = DbAdapter.Postgres,
+    SchemasToInclude = ["public"],
+    TablesToIgnore   =
+    [
+        new Respawn.Graph.Table("__EFMigrationsHistory"),
+        new Respawn.Graph.Table("AspNetRoles"),
+    ],
+});
+</pre>
+<p>Antes de cada test individual, se llama a <code>ResetDatabaseAsync()</code>, que:</p>
+<ol>
+  <li>Ejecuta <code>_respawner.ResetAsync(_connection)</code> — borra todos los datos (excepto las tablas excluidas).</li>
+  <li>Llama a <code>SeedAsync()</code> — recrea el usuario SuperAdmin con su contraseña, ya que Respawn también borra <code>AspNetUsers</code>.</li>
+</ol>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 7 -->
+<h2 id="s7">7. Infraestructura: IntegrationTestBase</h2>
+
+<p>Archivo: <span class="file-path">AplicacionAPI/ClientManager.Tests/IntegrationTestBase.cs</span></p>
+
+<p>Clase abstracta de la que heredan todos los tests. Su responsabilidad es proporcionar un <code>HttpClient</code> ya configurado y limpiar la BD antes de cada test.</p>
+
+<h3>7.1 El problema de las cookies en TestServer</h3>
+<p>La autenticación del proyecto usa cookies <code>HttpOnly; SameSite=Strict</code>. En un navegador real, las cookies se envían automáticamente en cada petición. En el TestServer in-memory de ASP.NET Core, la opción estándar <code>HandleCookies = true</code> no funciona de forma fiable con cookies <code>SameSite=Strict</code>.</p>
+
+<p>La solución fue implementar un <code>DelegatingHandler</code> personalizado (<code>CookieHandler</code>) que intercepta todas las peticiones HTTP y:</p>
+<ol>
+  <li>Antes de enviar la petición: añade la cabecera <code>Cookie</code> con todas las cookies acumuladas.</li>
+  <li>Después de recibir la respuesta: lee las cabeceras <code>Set-Cookie</code> y almacena los valores en un diccionario.</li>
+</ol>
+
+<pre>
+private sealed class CookieHandler : DelegatingHandler
+{
+    private readonly Dictionary&lt;string, string&gt; _cookies = new();
+
+    protected override async Task&lt;HttpResponseMessage&gt; SendAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        // 1. Añadir cookies acumuladas a la petición
+        if (_cookies.Count > 0)
+        {
+            var cookieHeader = string.Join("; ",
+                _cookies.Select(c => $"{c.Key}={c.Value}"));
+            request.Headers.Remove("Cookie");
+            request.Headers.Add("Cookie", cookieHeader);
+        }
+
+        var response = await base.SendAsync(request, cancellationToken);
+
+        // 2. Leer y almacenar las cookies de la respuesta
+        if (response.Headers.TryGetValues("Set-Cookie", out var setCookies))
+        {
+            foreach (var raw in setCookies)
+            {
+                var firstPair = raw.Split(';')[0].Trim();
+                var eq = firstPair.IndexOf('=');
+                if (eq &lt;= 0) continue;
+                _cookies[firstPair[..eq]] = firstPair[(eq + 1)..];
+            }
+        }
+
+        return response;
+    }
+}
+</pre>
+
+<p>Este handler se registra al crear el cliente:</p>
+<pre>
+Client = factory.CreateDefaultClient(new Uri("http://localhost"), new CookieHandler());
+</pre>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 8 -->
+<h2 id="s8">8. Modificaciones al proyecto API</h2>
+
+<p>Para que los tests pudieran funcionar fue necesario realizar dos cambios menores en el proyecto <code>ClientManager.API</code>. Ambos son no invasivos y no cambian el comportamiento en producción.</p>
+
+<h3>8.1 <code>public partial class Program</code></h3>
+<p>En .NET 6+, cuando <code>Program.cs</code> usa top-level statements, la clase <code>Program</code> generada es interna (internal). <code>WebApplicationFactory&lt;Program&gt;</code> necesita poder referenciarla desde el proyecto de tests.</p>
+<p>Solución: añadir al final de <code>Program.cs</code>:</p>
+<pre>
+app.Run();
+
+// Necesario para que WebApplicationFactory&lt;Program&gt; pueda acceder a esta clase desde el proyecto de tests.
+public partial class Program { }
+</pre>
+
+<h3>8.2 Cookies <code>Secure</code> condicionales según entorno</h3>
+<p>Las cookies de acceso y refresco tenían <code>Secure = true</code> hardcodeado. Esto hace que el navegador solo las envíe por HTTPS. En el TestServer (HTTP), las cookies marcadas como <code>Secure</code> no se transmiten, lo que hacía que los tests recibieran siempre 401.</p>
+<p>Solución: inyectar <code>IHostEnvironment</code> en <code>AuthController</code> y hacer la flag condicional:</p>
+<pre>
+public AuthController(IAuthService authService, IConfiguration configuration, IHostEnvironment env)
+{
+    _authService  = authService;
+    _frontendBaseUrl = configuration["Frontend:BaseUrl"] ?? "http://localhost:4200";
+    _isProduction = env.IsProduction();
+}
+
+private void SetAccessTokenCookie(string token)
+{
+    Response.Cookies.Append("accessToken", token, new CookieOptions
+    {
+        HttpOnly = true,
+        Secure   = _isProduction,   // false en Development/Test, true en Production
+        SameSite = SameSiteMode.Strict,
+        Expires  = DateTimeOffset.UtcNow.AddMinutes(15)
+    });
+}
+</pre>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 9 -->
+<h2 id="s9">9. Tests implementados</h2>
+
+<p>Archivo: <span class="file-path">AplicacionAPI/ClientManager.Tests/Tests/AuthTests.cs</span></p>
+<p>Total: <strong>7 tests</strong> <span class="badge">7/7 ✓</span></p>
+
+<hr>
+
+<h3>9.1 <code>GetCompanies_WithoutAuth_Returns401</code></h3>
+<h4>¿Qué verifica?</h4>
+<p>Que el endpoint <code>GET /api/companies</code> devuelve <code>401 Unauthorized</code> cuando se accede sin ninguna cookie de sesión.</p>
+<h4>¿Por qué es importante?</h4>
+<p>Confirma que el middleware de autenticación está activo y que el endpoint está correctamente protegido con <code>[Authorize]</code>.</p>
+<pre>
+[Fact]
+public async Task GetCompanies_WithoutAuth_Returns401()
+{
+    var response = await Client.GetAsync("/api/companies");
+    response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+}
+</pre>
+
+<hr>
+
+<h3>9.2 <code>Login_WithValidCredentials_Returns200AndNoMfaRequired</code></h3>
+<h4>¿Qué verifica?</h4>
+<p>Que el endpoint <code>POST /api/auth/login</code> con credenciales correctas devuelve <code>200 OK</code> y que el body contiene <code>requiresMfa: false</code>.</p>
+<h4>¿Por qué es importante?</h4>
+<p>El SuperAdmin de seed no tiene TOTP activado, por lo que el flujo de login debería emitir tokens directamente sin pedir un segundo factor.</p>
+<pre>
+[Fact]
+public async Task Login_WithValidCredentials_Returns200AndNoMfaRequired()
+{
+    var response = await Client.PostAsJsonAsync("/api/auth/login", new
+    {
+        email    = "admin@clientmanager.local",
+        password = "TestAdmin@2026!"
+    });
+
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    var body = await response.Content.ReadFromJsonAsync&lt;JsonElement&gt;();
+    body.GetProperty("requiresMfa").GetBoolean().Should().BeFalse();
+}
+</pre>
+
+<hr>
+
+<h3>9.3 <code>Login_WithWrongPassword_Returns401</code></h3>
+<h4>¿Qué verifica?</h4>
+<p>Que el login con contraseña incorrecta devuelve <code>401 Unauthorized</code>.</p>
+<h4>¿Por qué es importante?</h4>
+<p>Confirma que la validación de credenciales funciona correctamente y que el sistema rechaza contraseñas erróneas.</p>
+<pre>
+[Fact]
+public async Task Login_WithWrongPassword_Returns401()
+{
+    var response = await Client.PostAsJsonAsync("/api/auth/login", new
+    {
+        email    = "admin@clientmanager.local",
+        password = "ContraseñaIncorrecta123!"
+    });
+    response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+}
+</pre>
+
+<hr>
+
+<h3>9.4 <code>GetCompanies_AfterLogin_Returns200</code></h3>
+<h4>¿Qué verifica?</h4>
+<p>Que después de hacer login exitoso, el acceso a <code>GET /api/companies</code> devuelve <code>200 OK</code>. Es el test más completo porque prueba el flujo de autenticación cookie de principio a fin.</p>
+<h4>¿Por qué es importante?</h4>
+<p>Confirma que:</p>
+<ul>
+  <li>El login emite la cookie <code>accessToken</code> correctamente.</li>
+  <li>El <code>CookieHandler</code> la captura y la envía en la siguiente petición.</li>
+  <li>El middleware JWT la lee desde la cookie y valida el token.</li>
+  <li>El endpoint devuelve datos al usuario autenticado.</li>
+</ul>
+<pre>
+[Fact]
+public async Task GetCompanies_AfterLogin_Returns200()
+{
+    await LoginAsAdminAsync();
+    var response = await Client.GetAsync("/api/companies");
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+}
+</pre>
+
+<hr>
+
+<h3>9.5 <code>GetMe_AfterLogin_ReturnsCorrectIdentity</code></h3>
+<h4>¿Qué verifica?</h4>
+<p>Que <code>GET /api/auth/me</code> devuelve la identidad correcta del usuario autenticado: email, role=<code>SuperAdmin</code> y <code>totpEnabled=false</code>.</p>
+<h4>¿Por qué es importante?</h4>
+<p>Este endpoint es el que usa el frontend Angular al arrancar (APP_INITIALIZER) para recuperar la identidad del usuario desde la cookie. Si falla, el usuario aparece como no autenticado aunque su cookie sea válida.</p>
+<pre>
+[Fact]
+public async Task GetMe_AfterLogin_ReturnsCorrectIdentity()
+{
+    await LoginAsAdminAsync();
+    var response = await Client.GetAsync("/api/auth/me");
+
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    var body = await response.Content.ReadFromJsonAsync&lt;JsonElement&gt;();
+    body.GetProperty("email").GetString().Should().Be("admin@clientmanager.local");
+    body.GetProperty("role").GetString().Should().Be("SuperAdmin");
+    body.GetProperty("totpEnabled").GetBoolean().Should().BeFalse();
+}
+</pre>
+
+<hr>
+
+<h3>9.6 <code>Refresh_ReturnsNewAccessToken_AndStaysAuthenticated</code></h3>
+<h4>¿Qué verifica?</h4>
+<p>Que después de hacer login, llamar a <code>POST /api/auth/refresh</code> devuelve <code>200 OK</code> y que con el nuevo access token se puede seguir accediendo a recursos protegidos.</p>
+<h4>¿Por qué es importante?</h4>
+<p>El access token expira en 15 minutos. El mecanismo de refresh es crítico para que las sesiones largas sigan funcionando sin pedir al usuario que vuelva a hacer login. Este test verifica que el refresh token rota correctamente y que el nuevo access token es válido.</p>
+<pre>
+[Fact]
+public async Task Refresh_ReturnsNewAccessToken_AndStaysAuthenticated()
+{
+    await LoginAsAdminAsync();
+
+    var refreshResponse = await Client.PostAsync("/api/auth/refresh", null);
+    refreshResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+    // Con el nuevo access token en la cookie, la API sigue autenticando al usuario.
+    var response = await Client.GetAsync("/api/companies");
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+}
+</pre>
+
+<hr>
+
+<h3>9.7 <code>Logout_RevokesSession_Returns401OnNextRequest</code></h3>
+<h4>¿Qué verifica?</h4>
+<p>Que después de hacer login y logout, el acceso a <code>GET /api/companies</code> devuelve <code>401 Unauthorized</code>.</p>
+<h4>¿Por qué es importante?</h4>
+<p>El logout debe revocar el refresh token en la BD y eliminar ambas cookies. Si esto no funciona, un usuario que haga logout podría seguir accediendo a recursos protegidos con la cookie anterior (vulnerabilidad de seguridad).</p>
+<pre>
+[Fact]
+public async Task Logout_RevokesSession_Returns401OnNextRequest()
+{
+    await LoginAsAdminAsync();
+
+    // Antes del logout el usuario está autenticado.
+    var before = await Client.GetAsync("/api/companies");
+    before.StatusCode.Should().Be(HttpStatusCode.OK);
+
+    var logoutResponse = await Client.PostAsync("/api/auth/logout", null);
+    logoutResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+    // Tras el logout la cookie queda borrada → 401.
+    var after = await Client.GetAsync("/api/companies");
+    after.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+}
+</pre>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 10 -->
+<h2 id="s10">10. Problemas encontrados y soluciones</h2>
+
+<table>
+  <tr>
+    <th>#</th>
+    <th>Problema</th>
+    <th>Causa raíz</th>
+    <th>Solución aplicada</th>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>SuperAdmin no existe al correr el segundo test</td>
+    <td>Respawn borra <code>AspNetUsers</code> entre tests</td>
+    <td>Añadir <code>SeedAsync()</code> que recrea el SuperAdmin después de cada reset</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Cookies no se envían en la segunda petición (<code>HandleCookies = true</code> no funciona)</td>
+    <td>TestServer in-memory no procesa <code>SameSite=Strict</code> igual que un navegador</td>
+    <td>Implementar <code>CookieHandler : DelegatingHandler</code> que gestiona cookies manualmente</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Token firmado pero validación falla (401) aunque la cookie llega correctamente</td>
+    <td><code>Program.cs</code> captura la clave JWT antes de que <code>ConfigureAppConfiguration</code> corra → mismatch de claves</td>
+    <td><code>PostConfigure&lt;JwtBearerOptions&gt;</code> sobreescribe la clave de validación con el valor de test</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>429 Too Many Requests en el 6.º test</td>
+    <td>Todos los tests comparten IP en TestServer, disparando el rate limiter de <code>/api/auth/*</code></td>
+    <td>Reemplazar la política <code>"auth"</code> por <code>RateLimitPartition.GetNoLimiter()</code> en el host de tests</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>CI falla con errores de whitespace</td>
+    <td>El código usaba espacios para alinear visualmente los <code>=</code>, que <code>dotnet format</code> no acepta</td>
+    <td>Ejecutar <code>dotnet format</code> y commitear los cambios</td>
+  </tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 11 -->
+<h2 id="s11">11. Cómo ejecutar los tests</h2>
+
+<h3>11.1 Requisitos previos</h3>
+<ul>
+  <li>PostgreSQL corriendo en <code>localhost</code> con usuario <code>postgres</code> y contraseña <code>admin1234</code>.</li>
+  <li>Base de datos <code>clientmanager_tests</code> creada (las migraciones se aplican solas).</li>
+  <li>.NET 10 SDK instalado.</li>
+</ul>
+
+<h3>11.2 Comandos</h3>
+<pre>
+# Desde la raíz del proyecto de tests
+cd AplicacionAPI/ClientManager.Tests
+
+# Ejecutar todos los tests
+dotnet test
+
+# Ejecutar con nombres visibles y duración
+dotnet test --logger "console;verbosity=normal"
+
+# Ejecutar un test concreto por nombre
+dotnet test --filter "GetCompanies_AfterLogin_Returns200"
+
+# Ejecutar todos los tests de una clase
+dotnet test --filter "ClassName=AuthTests"
+</pre>
+
+<h3>11.3 Resultado esperado</h3>
+<pre>
+Passed!  - Failed: 0, Passed: 7, Skipped: 0, Total: 7, Duration: 2 s
+</pre>
+
+<div class="callout-ok">
+  <strong>Nota:</strong> El primer run tarda un poco más (~5-8 segundos) porque WebApplicationFactory arranca la API y aplica migraciones. Los siguientes runs son más rápidos.
+</div>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 12 -->
+<h2 id="s12">12. Integración con CI (GitHub Actions)</h2>
+
+<p>El proyecto tiene un workflow de CI configurado en <span class="file-path">.github/workflows/ci.yml</span> que se ejecuta automáticamente en cada push a <code>master</code>.</p>
+
+<h3>12.1 ¿Qué hace el CI?</h3>
+<table>
+  <tr>
+    <th>Job</th>
+    <th>Pasos</th>
+  </tr>
+  <tr>
+    <td><strong>Backend (.NET 10)</strong></td>
+    <td>
+      1. Restaurar dependencias (<code>dotnet restore</code>)<br>
+      2. Compilar en modo Release (<code>dotnet build --configuration Release</code>)<br>
+      3. Verificar formato (<code>dotnet format --verify-no-changes</code>)
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Frontend (Angular 21)</strong></td>
+    <td>
+      1. Instalar dependencias (<code>npm ci</code>)<br>
+      2. Compilar en modo producción (<code>ng build --configuration production</code>)
+    </td>
+  </tr>
+</table>
+
+<div class="callout-warn">
+  <strong>Nota importante:</strong> Los tests de integración xUnit <em>no</em> se ejecutan en el CI actual, porque requieren una base de datos PostgreSQL real. Para ejecutarlos en CI sería necesario añadir un servicio PostgreSQL al workflow (Docker). Esto es una mejora futura posible.
+</div>
+
+<h3>12.2 Notificaciones</h3>
+<p>GitHub envía un email cuando un workflow falla. Para desactivar las notificaciones de CI: <strong>GitHub → Settings → Notifications → Actions → desmarcar Email</strong>.</p>
+
+<!-- ═══════════════════════════════════════════════════════ SECCIÓN 13 -->
+<h2 id="s13">13. Estrategia de ramas Git</h2>
+
+<p>Se siguió un flujo de ramas estándar para desarrollar los tests de forma aislada:</p>
+
+<table>
+  <tr>
+    <th>Rama</th>
+    <th>Propósito</th>
+  </tr>
+  <tr>
+    <td><code>master</code></td>
+    <td>Código estable y listo. Nunca se trabaja directamente aquí.</td>
+  </tr>
+  <tr>
+    <td><code>develop</code></td>
+    <td>Integración de features terminadas. Punto intermedio antes de llegar a master.</td>
+  </tr>
+  <tr>
+    <td><code>feature/integration-tests</code></td>
+    <td>Rama donde se desarrolló el proyecto de tests. Mergeada a develop cuando estuvo completa.</td>
+  </tr>
+</table>
+
+<p>El flujo de merge fue:</p>
+<pre>
+feature/integration-tests → develop → master
+</pre>
+
+<p>Cada merge se hizo con <code>--no-ff</code> (no fast-forward) para preservar la historia de que hubo una rama de feature separada, aunque no sea estrictamente necesario en proyectos individuales.</p>
+
+<div class="callout">
+  <strong>¿Por qué una rama de feature si trabajamos solos?</strong> En equipos, las ramas <code>feature/</code> permiten que varios desarrolladores trabajen en paralelo sin pisarse. En un proyecto individual, el valor es más formativo: aprender el flujo de trabajo estándar de la industria.
+</div>
+
+<hr>
+<p style="text-align:center; color:#888; font-size:9pt; margin-top:40px;">
+  Documentación generada para el proyecto ClientManager · Abril 2026
+</p>
+
+</body>
+</html>

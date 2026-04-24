@@ -7,7 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-import { Company, PagedResponse } from '../../models/company.model';
+import { Company, CompanyStatus, COMPANY_STATUS_LABELS, PagedResponse } from '../../models/company.model';
 import { User } from '../../models/user.model';
 import { CompanyService } from '../../services/company.service';
 import { UserService } from '../../services/user.service';
@@ -124,12 +124,18 @@ export class CompanyListComponent implements OnInit {
     if (!company) return;
     this.isPanelUsersLoading.set(true);
     this.panelUsers.set([]);
-    this.userService.getAll(1, 50, undefined, company.id)
+    this.userService.getAll(1, 8, undefined, company.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: r => { this.panelUsers.set(r.data); this.isPanelUsersLoading.set(false); },
         error: () => this.isPanelUsersLoading.set(false)
       });
+  }
+
+  viewUser(id: number): void { this.router.navigate([ROUTES.userDetail(id)]); }
+
+  viewCompanyUsers(companyId: number): void {
+    this.router.navigate([ROUTES.USERS], { queryParams: { companyId } });
   }
 
   viewCompany(id: number): void  { this.router.navigate([ROUTES.companyDetail(id)]); }
@@ -172,6 +178,14 @@ export class CompanyListComponent implements OnInit {
       ? { day: 'numeric', month: 'long', year: 'numeric' }
       : { day: '2-digit', month: '2-digit', year: 'numeric' };
     return new Date(dateStr).toLocaleDateString('es-ES', opts);
+  }
+
+  statusLabel(status: CompanyStatus): string {
+    return COMPANY_STATUS_LABELS[status] ?? status;
+  }
+
+  statusClass(status: CompanyStatus): string {
+    return { Active: 'active', Prospect: 'pending', Inactive: 'inactive', Churned: 'churned' }[status] ?? 'active';
   }
 
   initials(name: string): string {

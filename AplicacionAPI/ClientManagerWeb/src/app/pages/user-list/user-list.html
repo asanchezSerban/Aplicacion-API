@@ -47,90 +47,99 @@
     }
   </div>
 
-  @if (isLoading()) {
-    <div class="list-shell">
-      @for (row of skeletonRows; track row) {
-        <div class="user-row user-row--ghost">
-          <div class="ghost-avatar"></div>
-          <div class="ghost-body">
-            <div class="ghost-line ghost-name"></div>
-            <div class="ghost-line ghost-meta"></div>
+  <div class="content-section">
+    @if (isLoading()) {
+      <div class="list-shell">
+        @for (row of skeletonRows; track row) {
+          <div class="user-row user-row--ghost">
+            <div class="ghost-avatar"></div>
+            <div class="ghost-body">
+              <div class="ghost-line ghost-name"></div>
+              <div class="ghost-line ghost-meta"></div>
+            </div>
+            <div class="ghost-actions"></div>
           </div>
-          <div class="ghost-actions"></div>
-        </div>
-      }
-    </div>
-  } @else if (users().length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">
-        <mat-icon>person_outline</mat-icon>
+        }
       </div>
-      <h2>{{ nameFilter || companyFilter ? 'Sin resultados' : 'Sin usuarios' }}</h2>
-      <p>{{ nameFilter || companyFilter ? 'No hay coincidencias para los filtros aplicados.' : 'Añade el primer usuario para empezar.' }}</p>
-      @if (nameFilter || companyFilter) {
-        <button type="button" class="btn-ghost" (click)="clearFilters()">Limpiar filtros</button>
-      } @else {
-        <button type="button" class="btn-primary" (click)="newUser()">
-          <mat-icon>add</mat-icon>
-          <span>Nuevo usuario</span>
-        </button>
-      }
-    </div>
-  } @else {
-    <div class="list-shell">
-      @for (u of users(); track u.id) {
-        <div class="user-row"
-             role="link"
-             tabindex="0"
-             (click)="viewUser(u.id)"
-             (keydown.enter)="viewUser(u.id)">
-          <div class="user-avatar" [class]="'user-avatar--' + (u.id % 8)">
-            {{ u.name.charAt(0).toUpperCase() }}
-          </div>
-          <div class="user-info">
-            <span class="user-name">{{ u.name }}</span>
-            <span class="user-meta">
-              <span class="user-email">{{ u.email }}</span>
-              @if (u.companyName) {
-                <span class="meta-sep">·</span>
-                <span class="user-company">{{ u.companyName }}</span>
-              }
-            </span>
-          </div>
-          <div class="row-actions" (click)="$event.stopPropagation()">
-            <button type="button" class="action-btn"
-                    (click)="viewUser(u.id)"
-                    [attr.aria-label]="'Ver ' + u.name"
-                    matTooltip="Ver detalle">
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-            <button type="button" class="action-btn"
-                    (click)="editUser(u.id)"
-                    [attr.aria-label]="'Editar ' + u.name"
-                    matTooltip="Editar">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button type="button" class="action-btn action-btn--danger"
-                    (click)="deleteUser(u)"
-                    [attr.aria-label]="'Eliminar ' + u.name"
-                    matTooltip="Eliminar">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
+    } @else if (users().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <mat-icon>person_outline</mat-icon>
         </div>
-      }
-    </div>
+        <h2>{{ nameFilter || companyFilter ? 'Sin resultados' : 'Sin usuarios' }}</h2>
+        <p>{{ nameFilter || companyFilter ? 'No hay coincidencias para los filtros aplicados.' : 'Añade el primer usuario para empezar.' }}</p>
+        @if (nameFilter || companyFilter) {
+          <button type="button" class="btn-ghost" (click)="clearFilters()">Limpiar filtros</button>
+        } @else {
+          <button type="button" class="btn-primary" (click)="newUser()">
+            <mat-icon>add</mat-icon>
+            <span>Nuevo usuario</span>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="list-shell">
+        @for (u of users(); track u.id) {
+          <div class="user-row"
+               role="link"
+               tabindex="0"
+               (click)="viewUser(u.id)"
+               (keydown.enter)="viewUser(u.id)">
+            <div class="user-avatar" [class]="'user-avatar--' + (u.id % 8)">
+              {{ u.name.charAt(0).toUpperCase() }}
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{ u.name }}</span>
+              <span class="user-meta">
+                <span class="user-email">{{ u.email }}</span>
+                @if (u.companyName) {
+                  <span class="meta-sep">·</span>
+                  <span class="user-company">{{ u.companyName }}</span>
+                }
+              </span>
+            </div>
+            <div class="row-actions" (click)="$event.stopPropagation()">
+              <button type="button" class="action-btn"
+                      (click)="viewUser(u.id)"
+                      [attr.aria-label]="'Ver ' + u.name"
+                      matTooltip="Ver detalle">
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+              <button type="button" class="action-btn"
+                      (click)="editUser(u.id)"
+                      [attr.aria-label]="'Editar ' + u.name"
+                      matTooltip="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button type="button" class="action-btn action-btn--danger"
+                      (click)="deleteUser(u)"
+                      [attr.aria-label]="'Eliminar ' + u.name"
+                      matTooltip="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
 
-    <div class="pagination-wrap">
-      <mat-paginator
-        [length]="totalItems()"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="pageSizeOptions"
-        [pageIndex]="currentPage - 1"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
-    </div>
-  }
+    <!-- Pagination -->
+    @if (!isLoading() && users().length > 0) {
+      <div class="pagination-wrap">
+        <span class="pagination-info">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ [currentPage * pageSize, totalItems()].at(-1) === totalItems() ? totalItems() : currentPage * pageSize }} de {{ totalItems() }} usuarios
+        </span>
+        <mat-paginator
+          [length]="totalItems()"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="pageSizeOptions"
+          [pageIndex]="currentPage - 1"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+          [hidePageSize]="true">
+        </mat-paginator>
+      </div>
+    }
+  </div>
 
 </div>

@@ -1,5 +1,5 @@
 import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -30,6 +30,7 @@ export class UserListComponent implements OnInit {
   private userService    = inject(UserService);
   private companyService = inject(CompanyService);
   private router         = inject(Router);
+  private route          = inject(ActivatedRoute);
   private snackBar       = inject(MatSnackBar);
   private dialog         = inject(MatDialog);
 
@@ -40,13 +41,15 @@ export class UserListComponent implements OnInit {
   isLoading  = signal(false);
 
   currentPage           = 1;
-  pageSize              = 10;
-  pageSizeOptions       = [5, 10, 25];
+  pageSize              = 9;
+  pageSizeOptions       = [5, 9, 25];
   nameFilter            = '';
   companyFilter: number | null = null;
   skeletonRows          = [1, 2, 3, 4, 5];
 
   ngOnInit(): void {
+    const companyId = this.route.snapshot.queryParamMap.get('companyId');
+    if (companyId) this.companyFilter = Number(companyId);
     this.loadCompanies();
     this.loadUsers();
   }

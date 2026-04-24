@@ -114,7 +114,13 @@
 
               <!-- Estado -->
               <div class="td td-estado">
-                <span class="status-badge status-badge--active">Activa</span>
+                <span class="status-badge"
+                      [class.status-badge--active]="c.status === 'Active'"
+                      [class.status-badge--pending]="c.status === 'Prospect'"
+                      [class.status-badge--inactive]="c.status === 'Inactive'"
+                      [class.status-badge--churned]="c.status === 'Churned'">
+                  {{ statusLabel(c.status) }}
+                </span>
               </div>
 
               <!-- Creación -->
@@ -185,7 +191,13 @@
           <div class="panel-co-info">
             <span class="panel-co-name">{{ c.name }}</span>
             <span class="panel-co-domain">{{ generateDomain(c.name) }}</span>
-            <span class="status-badge status-badge--active panel-status">Activa</span>
+            <span class="status-badge panel-status"
+                  [class.status-badge--active]="c.status === 'Active'"
+                  [class.status-badge--pending]="c.status === 'Prospect'"
+                  [class.status-badge--inactive]="c.status === 'Inactive'"
+                  [class.status-badge--churned]="c.status === 'Churned'">
+              {{ statusLabel(c.status) }}
+            </span>
           </div>
           <button class="panel-close" type="button" (click)="closePanel()" aria-label="Cerrar panel">
             <mat-icon>close</mat-icon>
@@ -212,16 +224,20 @@
             <section class="panel-section">
               <h3 class="section-title">Información general</h3>
               <div class="info-grid">
-                <div class="info-field">
-                  <span class="info-label">Email de contacto</span>
-                  <a class="info-value info-value--link" href="mailto:contacto&#64;{{ generateDomain(c.name) }}">
-                    contacto&#64;{{ generateDomain(c.name) }}
-                  </a>
-                </div>
-                <div class="info-field">
-                  <span class="info-label">Teléfono</span>
-                  <span class="info-value info-value--phone">+34 912 345 678</span>
-                </div>
+                @if (c.contactEmail) {
+                  <div class="info-field">
+                    <span class="info-label">Email de contacto</span>
+                    <a class="info-value info-value--link" href="mailto:{{ c.contactEmail }}">
+                      {{ c.contactEmail }}
+                    </a>
+                  </div>
+                }
+                @if (c.contactPhone) {
+                  <div class="info-field">
+                    <span class="info-label">Teléfono</span>
+                    <span class="info-value info-value--phone">{{ c.contactPhone }}</span>
+                  </div>
+                }
                 <div class="info-field">
                   <span class="info-label">Fecha de creación</span>
                   <span class="info-value">{{ formatDate(c.createdAt, 'long') }}</span>
@@ -324,7 +340,11 @@
             } @else {
               <ul class="panel-user-list">
                 @for (u of panelUsers(); track u.id) {
-                  <li class="panel-user-row">
+                  <li class="panel-user-row panel-user-row--clickable"
+                      role="button" tabindex="0"
+                      (click)="viewUser(u.id)"
+                      (keydown.enter)="viewUser(u.id)"
+                      [attr.aria-label]="'Ver detalle de ' + u.name">
                     <div class="panel-user-avatar" [class]="'co-avatar--' + (u.id % 8)">
                       {{ u.name.charAt(0).toUpperCase() }}
                     </div>
@@ -332,14 +352,15 @@
                       <span class="panel-user-name">{{ u.name }}</span>
                       <span class="panel-user-email">{{ u.email }}</span>
                     </div>
+                    <mat-icon class="panel-user-arrow">chevron_right</mat-icon>
                   </li>
                 }
               </ul>
-              @if (c.usersCount > panelUsers().length) {
-                <p class="panel-users-more">
-                  Mostrando {{ panelUsers().length }} de {{ c.usersCount }} usuarios.
-                  <button type="button" class="activity-more" (click)="viewCompany(c.id)">Ver todos →</button>
-                </p>
+              @if (c.usersCount > 8) {
+                <button type="button" class="panel-view-all-btn" (click)="viewCompanyUsers(c.id)">
+                  <mat-icon>people</mat-icon>
+                  Ver los {{ c.usersCount }} usuarios de esta empresa
+                </button>
               }
             }
           </div>

@@ -46,20 +46,23 @@ public class CompanyService : ICompanyService
             .OrderByDescending(c => c.UpdatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
+            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.Status, c.ContactEmail, c.ContactPhone, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
             .ToListAsync(ct);
 
         return new PagedResponseDto<CompanyResponseDto>
         {
             Data = data.Select(c => new CompanyResponseDto
             {
-                Id         = c.Id,
-                Name       = c.Name,
-                Description = c.Description,
-                LogoUrl    = BuildLogoUrl(c.LogoFileName),
-                CreatedAt  = c.CreatedAt,
-                UpdatedAt  = c.UpdatedAt,
-                UsersCount = c.UsersCount
+                Id           = c.Id,
+                Name         = c.Name,
+                Description  = c.Description,
+                LogoUrl      = BuildLogoUrl(c.LogoFileName),
+                Status       = c.Status,
+                ContactEmail = c.ContactEmail,
+                ContactPhone = c.ContactPhone,
+                CreatedAt    = c.CreatedAt,
+                UpdatedAt    = c.UpdatedAt,
+                UsersCount   = c.UsersCount
             }),
             TotalItems = totalItems,
             TotalPages = totalPages,
@@ -73,19 +76,22 @@ public class CompanyService : ICompanyService
         var data = await _db.Companies
             .AsNoTracking()
             .Where(c => c.Id == id)
-            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
+            .Select(c => new { c.Id, c.Name, c.Description, c.LogoFileName, c.Status, c.ContactEmail, c.ContactPhone, c.CreatedAt, c.UpdatedAt, UsersCount = c.Users.Count })
             .FirstOrDefaultAsync(ct)
             ?? throw new KeyNotFoundException($"Empresa con ID {id} no encontrada.");
 
         return new CompanyResponseDto
         {
-            Id          = data.Id,
-            Name        = data.Name,
-            Description = data.Description,
-            LogoUrl     = BuildLogoUrl(data.LogoFileName),
-            CreatedAt   = data.CreatedAt,
-            UpdatedAt   = data.UpdatedAt,
-            UsersCount  = data.UsersCount
+            Id           = data.Id,
+            Name         = data.Name,
+            Description  = data.Description,
+            LogoUrl      = BuildLogoUrl(data.LogoFileName),
+            Status       = data.Status,
+            ContactEmail = data.ContactEmail,
+            ContactPhone = data.ContactPhone,
+            CreatedAt    = data.CreatedAt,
+            UpdatedAt    = data.UpdatedAt,
+            UsersCount   = data.UsersCount
         };
     }
 
@@ -98,10 +104,13 @@ public class CompanyService : ICompanyService
 
         var company = new Company
         {
-            Name = sanitizedName,
-            Description = SanitizeInput(dto.Description),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            Name         = sanitizedName,
+            Description  = SanitizeInput(dto.Description),
+            Status       = dto.Status,
+            ContactEmail = dto.ContactEmail is null ? null : SanitizeInput(dto.ContactEmail),
+            ContactPhone = dto.ContactPhone is null ? null : SanitizeInput(dto.ContactPhone),
+            CreatedAt    = DateTime.UtcNow,
+            UpdatedAt    = DateTime.UtcNow
         };
 
         if (logo is not null && logo.Length > 0)
@@ -127,9 +136,12 @@ public class CompanyService : ICompanyService
         if (await _db.Companies.AnyAsync(c => c.Name.ToLower() == sanitizedName.ToLower() && c.Id != id, ct))
             throw new ArgumentException($"Ya existe una empresa con el nombre '{sanitizedName}'.");
 
-        company.Name = sanitizedName;
-        company.Description = SanitizeInput(dto.Description);
-        company.UpdatedAt = DateTime.UtcNow;
+        company.Name         = sanitizedName;
+        company.Description  = SanitizeInput(dto.Description);
+        company.Status       = dto.Status;
+        company.ContactEmail = dto.ContactEmail is null ? null : SanitizeInput(dto.ContactEmail);
+        company.ContactPhone = dto.ContactPhone is null ? null : SanitizeInput(dto.ContactPhone);
+        company.UpdatedAt    = DateTime.UtcNow;
 
         if (logo is not null && logo.Length > 0)
         {

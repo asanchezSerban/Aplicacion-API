@@ -215,6 +215,11 @@ h1 {
 
 /* ── List shell ────────────────────────────────────────────────── */
 
+.content-section {
+  display: flex;
+  flex-direction: column;
+}
+
 .list-shell {
   background: #fff;
   border: 1.5px solid var(--ink-100);
@@ -472,14 +477,23 @@ $shimmer: linear-gradient(90deg, var(--ink-100) 25%, var(--ink-50) 50%, var(--in
 /* ── Pagination ─────────────────────────────────────────────────── */
 
 .pagination-wrap {
-  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  margin-top: 0.25rem;
+}
 
-  ::ng-deep mat-paginator {
-    background: transparent;
-    font-family: 'Inter', system-ui, sans-serif;
-    color: var(--ink-500);
-    font-size: 0.8125rem;
-  }
+.pagination-info {
+  font-size: 0.8125rem;
+  color: var(--ink-500);
+  flex: 1;
+}
+
+::ng-deep mat-paginator {
+  background: transparent;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink-500);
+  font-size: 0.8125rem;
 }
 
 /* ── Dark mode ─────────────────────────────────────────────────── */

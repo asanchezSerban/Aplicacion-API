@@ -37,10 +37,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         company.Property(c => c.Name).HasMaxLength(200).IsRequired();
         company.Property(c => c.Description).HasMaxLength(2000).IsRequired();
         company.Property(c => c.LogoFileName).HasMaxLength(500);
+        company.Property(c => c.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(ClientManager.API.Models.CompanyStatus.Active)
+            .IsRequired();
+        company.Property(c => c.ContactEmail).HasMaxLength(200);
+        company.Property(c => c.ContactPhone).HasMaxLength(30);
         company.Property(c => c.CreatedAt).HasDefaultValueSql("NOW()");
         company.Property(c => c.UpdatedAt).HasDefaultValueSql("NOW()");
         company.HasIndex(c => c.UpdatedAt);
         company.HasIndex(c => c.Name).IsUnique();
+        company.HasIndex(c => c.Status);
 
         company.HasData(
             new Company
