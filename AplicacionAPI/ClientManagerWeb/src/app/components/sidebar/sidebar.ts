@@ -70,10 +70,12 @@ type Theme = 'light' | 'dark' | 'system';
                 <span>Oscuro</span>
                 @if (theme() === 'dark') { <mat-icon class="theme-check">check</mat-icon> }
               </button>
-              <button class="theme-option theme-option--disabled" type="button" disabled>
+              <button class="theme-option" type="button"
+                      [class.theme-option--active]="theme() === 'system'"
+                      (click)="setTheme('system')">
                 <mat-icon>computer</mat-icon>
                 <span>Sistema</span>
-                <span class="theme-soon">Próx.</span>
+                @if (theme() === 'system') { <mat-icon class="theme-check">check</mat-icon> }
               </button>
             </div>
           }
@@ -380,9 +382,36 @@ export class SidebarComponent {
   isConfigOpen = signal(false);
   theme        = signal<Theme>('light');
 
+  private systemMq     = window.matchMedia('(prefers-color-scheme: dark)');
+  private systemListener: ((e: MediaQueryListEvent) => void) | null = null;
+
+  constructor() {
+    const saved = localStorage.getItem('cm-theme') as Theme | null;
+    if (saved) this.applyTheme(saved);
+  }
+
   setTheme(t: Theme): void {
-    this.theme.set(t);
     this.isConfigOpen.set(false);
-    document.body.classList.toggle('dark-mode', t === 'dark');
+    this.applyTheme(t);
+  }
+
+  private applyTheme(t: Theme): void {
+    // Limpiar listener del sistema anterior
+    if (this.systemListener) {
+      this.systemMq.removeEventListener('change', this.systemListener);
+      this.systemListener = null;
+    }
+
+    this.theme.set(t);
+    localStorage.setItem('cm-theme', t);
+
+    if (t === 'system') {
+      document.body.classList.toggle('dark-mode', this.systemMq.matches);
+      this.systemListener = (e: MediaQueryListEvent) =>
+        document.body.classList.toggle('dark-mode', e.matches);
+      this.systemMq.addEventListener('change', this.systemListener);
+    } else {
+      document.body.classList.toggle('dark-mode', t === 'dark');
+    }
   }
 }
