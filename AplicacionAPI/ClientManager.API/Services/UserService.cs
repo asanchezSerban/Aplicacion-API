@@ -24,7 +24,7 @@ public class UserService : IUserService
         var query = _db.CompanyUsers.AsNoTracking().Include(u => u.Company).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(name))
-            query = query.Where(u => u.Name.ToLower().Contains(name.ToLower()));
+            query = query.Where(u => u.Name.ToLower().StartsWith(name.ToLower()));
 
         if (companyId.HasValue)
             query = query.Where(u => u.CompanyId == companyId.Value);

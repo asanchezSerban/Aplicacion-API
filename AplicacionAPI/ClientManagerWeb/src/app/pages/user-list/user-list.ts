@@ -41,6 +41,7 @@ export class UserListComponent implements OnInit {
   isLoading  = signal(false);
   companyFilter           = signal<number | null>(null);
   isCompanyDropdownOpen   = signal(false);
+  appliedNameFilter       = signal('');
 
   pageTitle = computed(() => {
     const compId = this.companyFilter();
@@ -107,13 +108,15 @@ export class UserListComponent implements OnInit {
 
   onFilterChange(): void {
     this.currentPage = 1;
+    this.appliedNameFilter.set(this.nameFilter);
     this.loadUsers();
   }
 
   clearFilters(): void {
-    this.nameFilter    = '';
+    this.nameFilter         = '';
+    this.appliedNameFilter.set('');
     this.companyFilter.set(null);
-    this.currentPage   = 1;
+    this.currentPage        = 1;
     this.loadUsers();
   }
 
