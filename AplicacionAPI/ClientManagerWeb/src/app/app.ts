@@ -1,13 +1,24 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal, effect } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { filter, map } from 'rxjs';
+import { filter, map, forkJoin } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NavbarComponent } from './components/navbar/navbar';
 import { SidebarComponent } from './components/sidebar/sidebar';
 import { AuthService } from './services/auth.service';
+import { CompanyService } from './services/company.service';
+import { UserService } from './services/user.service';
 import { ROUTES } from './app.routes.constants';
+
+interface AppNotif {
+  icon: string;
+  iconColor: string;
+  text: string;
+  sub: string;
+  timeAgo: string;
+  date: Date;
+}
 
 const FULLSCREEN_ROUTES = [
   '/login', '/mfa-verificar', '/recuperar-password', '/reset-password', '/configurar-totp'
@@ -127,7 +138,167 @@ const FULLSCREEN_ROUTES = [
     .topbar-chevron {
       font-size: 16px; width: 16px; height: 16px;
       color: #8A93A6;
+      transition: transform 200ms ease;
+      &--open { transform: rotate(180deg); }
     }
+
+    /* ── Header dropdowns ──────────────────────────────────────── */
+
+    .header-dropdown { position: relative; }
+
+    .hd-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+    }
+
+    .hd-panel {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      background: #fff;
+      border: 1px solid #E6E9F0;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
+      z-index: 201;
+      overflow: hidden;
+      animation: dropIn 150ms cubic-bezier(0.22,1,0.36,1) both;
+
+      &--notif { width: 320px; }
+      &--user  { width: 200px; }
+    }
+
+    @keyframes dropIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hd-panel-header {
+      padding: 0.875rem 1rem 0.625rem;
+      border-bottom: 1px solid #E6E9F0;
+    }
+
+    .hd-panel-title {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: #0B0F1A;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .hd-empty {
+      padding: 1.25rem 1rem;
+      font-size: 0.8125rem;
+      color: #8A93A6;
+      font-family: 'Inter', system-ui, sans-serif;
+      text-align: center;
+    }
+
+    /* Notificaciones */
+    .notif-list {
+      list-style: none;
+      margin: 0;
+      padding: 0.375rem 0;
+    }
+
+    .notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.625rem 1rem;
+      transition: background-color 100ms ease;
+      cursor: default;
+      &:hover { background: #F5F6FA; }
+    }
+
+    .notif-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      mat-icon { font-size: 16px; width: 16px; height: 16px; }
+    }
+
+    .notif-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+
+    .notif-text {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #0B0F1A;
+      font-family: 'Inter', system-ui, sans-serif;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .notif-sub {
+      font-size: 0.75rem;
+      color: #8A93A6;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .notif-time {
+      font-size: 0.6875rem;
+      color: #8A93A6;
+      font-family: 'Inter', system-ui, sans-serif;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Menú usuario */
+    .hd-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0.625rem 1rem;
+      border: none;
+      background: transparent;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #1E2638;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color 150ms ease;
+
+      mat-icon { font-size: 18px; width: 18px; height: 18px; color: #4B5468; }
+      &:hover { background: #F5F6FA; }
+
+      &--danger {
+        color: #DC2626;
+        mat-icon { color: #DC2626; }
+        &:hover { background: #FEF2F2; }
+      }
+    }
+
+    .hd-divider {
+      height: 1px;
+      background: #E6E9F0;
+      margin: 0.25rem 0;
+    }
+
+    /* Dark mode dropdowns */
+    body.dark-mode .hd-panel {
+      background: #131826;
+      border-color: #1E2638;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    body.dark-mode .hd-panel-header { border-bottom-color: #1E2638; }
+    body.dark-mode .hd-panel-title  { color: #F5F6FA; }
+    body.dark-mode .notif-item:hover { background: #0B0F1A; }
+    body.dark-mode .notif-text { color: #F5F6FA; }
+    body.dark-mode .hd-item { color: #C3C9D6; mat-icon { color: #8A93A6; } }
+    body.dark-mode .hd-item:hover { background: #0B0F1A; }
+    body.dark-mode .hd-divider { background: #1E2638; }
+    body.dark-mode .hd-item--danger { color: #FCA5A5; mat-icon { color: #FCA5A5; } }
+    body.dark-mode .hd-item--danger:hover { background: rgba(220,38,38,0.12); }
 
     .admin-content {
       flex: 1;
@@ -222,21 +393,81 @@ const FULLSCREEN_ROUTES = [
         <app-sidebar />
 
         <div class="admin-content">
-          <!-- Header: solo bell + usuario, sin brand (el brand está en el sidebar) -->
+          <!-- Header: campana + usuario -->
           <header class="content-header">
-            <button class="topbar-notif" type="button" aria-label="Notificaciones">
-              <mat-icon>notifications</mat-icon>
-              <span class="notif-badge">3</span>
-            </button>
-            <div class="topbar-sep"></div>
-            <div class="topbar-user">
-              <div class="topbar-avatar">{{ userInitials() }}</div>
-              <div class="topbar-user-info">
-                <span class="topbar-name">{{ displayName() }}</span>
-                <span class="topbar-role">Administrador</span>
-              </div>
-              <mat-icon class="topbar-chevron">expand_more</mat-icon>
+
+            <!-- Notificaciones -->
+            <div class="header-dropdown">
+              <button class="topbar-notif" type="button" aria-label="Notificaciones"
+                      (click)="openNotif()">
+                <mat-icon>notifications</mat-icon>
+                @if (notifCount() > 0) {
+                  <span class="notif-badge">{{ notifCount() }}</span>
+                }
+              </button>
+
+              @if (isNotifOpen()) {
+                <div class="hd-backdrop" (click)="closeDropdowns()"></div>
+                <div class="hd-panel hd-panel--notif">
+                  <div class="hd-panel-header">
+                    <span class="hd-panel-title">Actividad reciente</span>
+                  </div>
+                  @if (notifications().length === 0) {
+                    <p class="hd-empty">Sin actividad reciente.</p>
+                  } @else {
+                    <ul class="notif-list">
+                      @for (n of notifications(); track n.date) {
+                        <li class="notif-item">
+                          <div class="notif-icon" [style.background]="n.iconColor + '18'">
+                            <mat-icon [style.color]="n.iconColor">{{ n.icon }}</mat-icon>
+                          </div>
+                          <div class="notif-body">
+                            <span class="notif-text">{{ n.text }}</span>
+                            <span class="notif-sub">{{ n.sub }}</span>
+                          </div>
+                          <span class="notif-time">{{ n.timeAgo }}</span>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+              }
             </div>
+
+            <div class="topbar-sep"></div>
+
+            <!-- Menú de usuario -->
+            <div class="header-dropdown">
+              <div class="topbar-user" role="button" tabindex="0"
+                   (click)="openUserMenu()"
+                   (keydown.enter)="openUserMenu()">
+                <div class="topbar-avatar">{{ userInitials() }}</div>
+                <div class="topbar-user-info">
+                  <span class="topbar-name">{{ displayName() }}</span>
+                  <span class="topbar-role">Administrador</span>
+                </div>
+                <mat-icon class="topbar-chevron"
+                          [class.topbar-chevron--open]="isUserMenuOpen()">
+                  expand_more
+                </mat-icon>
+              </div>
+
+              @if (isUserMenuOpen()) {
+                <div class="hd-backdrop" (click)="closeDropdowns()"></div>
+                <div class="hd-panel hd-panel--user">
+                  <button class="hd-item" type="button" (click)="goToAccount()">
+                    <mat-icon>manage_accounts</mat-icon>
+                    <span>Mi cuenta</span>
+                  </button>
+                  <div class="hd-divider"></div>
+                  <button class="hd-item hd-item--danger" type="button" (click)="logout()">
+                    <mat-icon>logout</mat-icon>
+                    <span>Cerrar sesión</span>
+                  </button>
+                </div>
+              }
+            </div>
+
           </header>
 
           <!-- Mobile nav (< 768px) -->
@@ -267,9 +498,16 @@ const FULLSCREEN_ROUTES = [
   `
 })
 export class App {
-  private readonly router       = inject(Router);
-  protected readonly authService = inject(AuthService);
-  protected readonly ROUTES      = ROUTES;
+  private readonly router          = inject(Router);
+  protected readonly authService   = inject(AuthService);
+  private readonly companyService  = inject(CompanyService);
+  private readonly userService     = inject(UserService);
+  protected readonly ROUTES        = ROUTES;
+
+  isUserMenuOpen  = signal(false);
+  isNotifOpen     = signal(false);
+  notifications   = signal<AppNotif[]>([]);
+  notifLoaded     = signal(false);
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -298,4 +536,79 @@ export class App {
     return name.charAt(0).toUpperCase() + name.slice(1);
   });
 
+  readonly notifCount = computed(() => this.notifications().length);
+
+  constructor() {
+    effect(() => {
+      if (this.isSuperAdmin() && !this.notifLoaded()) {
+        this.loadNotifications();
+      }
+    });
+  }
+
+  private loadNotifications(): void {
+    forkJoin({
+      companies: this.companyService.getAll(1, 4),
+      users:     this.userService.getAll(1, 4)
+    }).subscribe({
+      next: ({ companies, users }) => {
+        const items: AppNotif[] = [
+          ...companies.data.map(c => ({
+            icon: 'domain',
+            iconColor: '#4F46E5',
+            text: c.name,
+            sub: 'Empresa añadida',
+            timeAgo: this.timeAgo(c.createdAt),
+            date: new Date(c.createdAt)
+          })),
+          ...users.data.map(u => ({
+            icon: 'person_add',
+            iconColor: '#059669',
+            text: u.name,
+            sub: u.companyName,
+            timeAgo: this.timeAgo(u.createdAt),
+            date: new Date(u.createdAt)
+          }))
+        ];
+        items.sort((a, b) => b.date.getTime() - a.date.getTime());
+        this.notifications.set(items.slice(0, 6));
+        this.notifLoaded.set(true);
+      }
+    });
+  }
+
+  openNotif(): void {
+    this.isNotifOpen.update(v => !v);
+    this.isUserMenuOpen.set(false);
+  }
+
+  openUserMenu(): void {
+    this.isUserMenuOpen.update(v => !v);
+    this.isNotifOpen.set(false);
+  }
+
+  closeDropdowns(): void {
+    this.isNotifOpen.set(false);
+    this.isUserMenuOpen.set(false);
+  }
+
+  goToAccount(): void {
+    this.closeDropdowns();
+    this.router.navigate([ROUTES.CONFIGURAR_TOTP]);
+  }
+
+  logout(): void {
+    this.closeDropdowns();
+    this.authService.logout();
+  }
+
+  private timeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const days = Math.floor(diff / 86400000);
+    if (days === 0) return 'Hoy';
+    if (days === 1) return 'Ayer';
+    if (days < 30) return `Hace ${days}d`;
+    const months = Math.floor(days / 30);
+    return `Hace ${months}m`;
+  }
 }

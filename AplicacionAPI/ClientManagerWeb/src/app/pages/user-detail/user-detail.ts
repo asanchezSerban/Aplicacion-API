@@ -2,10 +2,7 @@ import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy 
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
-import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatCardModule } from '@angular/material/card';
 import { User } from '../../models/user.model';
 import { UserService } from '../../services/user.service';
 import { ROUTES } from '../../app.routes.constants';
@@ -13,11 +10,7 @@ import { ROUTES } from '../../app.routes.constants';
 @Component({
   selector: 'app-user-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    DatePipe,
-    MatButton, MatIcon, MatProgressSpinner,
-    MatCardModule
-  ],
+  imports: [DatePipe, MatIcon],
   templateUrl: './user-detail.html',
   styleUrl: './user-detail.scss'
 })

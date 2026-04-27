@@ -2,11 +2,7 @@ import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy 
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
-import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
-import { MatCardModule } from '@angular/material/card';
-import { MatTooltip } from '@angular/material/tooltip';
 import { Company } from '../../models/company.model';
 import { User } from '../../models/user.model';
 import { CompanyService } from '../../services/company.service';
@@ -17,9 +13,7 @@ import { ROUTES } from '../../app.routes.constants';
   selector: 'app-company-detail',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    DatePipe,
-    MatButton, MatIconButton, MatIcon, MatProgressSpinner,
-    MatCardModule, MatTooltip
+    DatePipe, MatIcon
   ],
   templateUrl: './company-detail.html',
   styleUrl: './company-detail.scss'
@@ -66,6 +60,8 @@ export class CompanyDetailComponent implements OnInit {
     const c = this.company();
     if (c) this.router.navigate([ROUTES.USER_NEW], { queryParams: { companyId: c.id } });
   }
+
+  viewUser(id: number): void { this.router.navigate([ROUTES.userDetail(id)]); }
 
   editUser(id: number): void {
     const c = this.company();

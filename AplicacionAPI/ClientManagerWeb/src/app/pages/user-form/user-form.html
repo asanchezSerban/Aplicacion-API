@@ -98,6 +98,23 @@
         </section>
       }
 
+      <!-- Zona de peligro (solo edición) -->
+      @if (isEditMode) {
+        <section class="form-section danger-section">
+          <h2 class="section-title danger-title">Zona de peligro</h2>
+          <div class="danger-row">
+            <div class="danger-info">
+              <span class="danger-label">Eliminar usuario</span>
+              <span class="danger-desc">Esta acción es permanente y no se puede deshacer.</span>
+            </div>
+            <button type="button" class="btn-danger" (click)="deleteUser()">
+              <mat-icon>delete</mat-icon>
+              Eliminar
+            </button>
+          </div>
+        </section>
+      }
+
       <!-- Acciones -->
       <div class="form-actions">
         <button type="button" class="btn-cancel" (click)="cancel()">Cancelar</button>

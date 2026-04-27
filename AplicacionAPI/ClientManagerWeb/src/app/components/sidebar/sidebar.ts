@@ -1,7 +1,6 @@
-import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { AuthService } from '../../services/auth.service';
 import { ROUTES } from '../../app.routes.constants';
 
 type Theme = 'light' | 'dark' | 'system';
@@ -79,12 +78,6 @@ type Theme = 'light' | 'dark' | 'system';
             </div>
           }
         </div>
-
-        <!-- Cerrar sesión -->
-        <button type="button" class="logout-btn" (click)="authService.logout()">
-          <mat-icon>logout</mat-icon>
-          <span>Cerrar sesión</span>
-        </button>
 
         <!-- Help section -->
         <div class="help-section">
@@ -285,34 +278,6 @@ type Theme = 'light' | 'dark' | 'system';
       align-items: center;
     }
 
-    /* ── Logout button ─────────────────────────────────────────── */
-
-    .logout-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      width: 100%;
-      padding: 0.625rem 0.75rem;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
-      font-family: inherit;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #DC2626;
-      cursor: pointer;
-      transition: background-color 150ms ease;
-
-      mat-icon { font-size: 20px; width: 20px; height: 20px; flex-shrink: 0; }
-
-      &:hover { background: #FEF2F2; }
-    }
-
-    :host-context(body.dark-mode) .logout-btn {
-      color: #FCA5A5;
-      &:hover { background: rgba(220,38,38,0.12); }
-    }
-
     /* ── Help section ──────────────────────────────────────────── */
 
     .help-section {
@@ -410,8 +375,7 @@ type Theme = 'light' | 'dark' | 'system';
   `]
 })
 export class SidebarComponent {
-  protected readonly ROUTES       = ROUTES;
-  protected readonly authService  = inject(AuthService);
+  protected readonly ROUTES = ROUTES;
 
   isConfigOpen = signal(false);
   theme        = signal<Theme>('light');

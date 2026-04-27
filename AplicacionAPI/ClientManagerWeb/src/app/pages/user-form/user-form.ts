@@ -4,6 +4,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { Company } from '../../models/company.model';
 import { UserService } from '../../services/user.service';
 import { CompanyService } from '../../services/company.service';
@@ -28,6 +30,7 @@ export class UserFormComponent implements OnInit {
   private router         = inject(Router);
   private route          = inject(ActivatedRoute);
   private snackBar       = inject(MatSnackBar);
+  private dialog         = inject(MatDialog);
 
   form!: FormGroup;
   companies    = signal<Company[]>([]);
@@ -123,6 +126,30 @@ export class UserFormComponent implements OnInit {
           const msg = err?.error?.error ?? 'Error al guardar el usuario';
           this.showSnackBar(msg, true);
           this.isLoading.set(false);
+        }
+      });
+  }
+
+  deleteUser(): void {
+    const u = this.form.getRawValue();
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '360px',
+      data: { title: 'Eliminar usuario', message: `¿Estás seguro de que deseas eliminar a "${u.name}"? Esta acción no se puede deshacer.` }
+    });
+
+    dialogRef.afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(confirmed => {
+        if (confirmed) {
+          this.userService.delete(this.userId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: () => {
+                this.showSnackBar('Usuario eliminado correctamente');
+                this.router.navigate([ROUTES.USERS]);
+              },
+              error: () => this.showSnackBar('Error al eliminar el usuario', true)
+            });
         }
       });
   }

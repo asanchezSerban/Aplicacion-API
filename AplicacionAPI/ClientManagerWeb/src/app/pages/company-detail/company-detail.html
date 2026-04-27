@@ -1,85 +1,145 @@
-<div class="detail-container">
+<div class="page">
+
   @if (isLoading()) {
-    <div class="spinner-container">
-      <mat-spinner diameter="48"></mat-spinner>
-    </div>
+    <div class="loading-wrap"><div class="spinner"></div></div>
   }
 
-  @if (company()) {
-    <mat-card>
-      <mat-card-content>
-        <div class="detail-header">
-          @if (company()!.logoUrl) {
-            <img [src]="company()!.logoUrl" alt="Logo de {{ company()!.name }}" class="company-logo">
-          }
-          <div class="header-info">
-            <h1>{{ company()!.name }}</h1>
+  @if (company(); as c) {
+
+    <header class="page-header">
+      <button type="button" class="btn-back" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+        <span>Volver</span>
+      </button>
+      <h1>Detalle de empresa</h1>
+      <button type="button" class="btn-edit" (click)="editCompany()">
+        <mat-icon>edit</mat-icon>
+        <span>Editar</span>
+      </button>
+    </header>
+
+    <div class="content">
+
+      <!-- Tarjeta de perfil -->
+      <div class="profile-card">
+        @if (c.logoUrl) {
+          <img [src]="c.logoUrl" [alt]="c.name" class="company-logo">
+        } @else {
+          <div class="company-avatar" [class]="'avatar--' + (c.id % 8)">
+            {{ c.name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase() }}
           </div>
+        }
+        <div class="profile-info">
+          <h2 class="profile-name">{{ c.name }}</h2>
+          <span class="profile-domain">{{ c.name.toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,20) }}.com</span>
+          <span class="status-badge"
+                [class.status-badge--active]="c.status === 'Active'"
+                [class.status-badge--pending]="c.status === 'Prospect'"
+                [class.status-badge--inactive]="c.status === 'Inactive'"
+                [class.status-badge--churned]="c.status === 'Churned'">
+            {{ {Active:'Activa',Prospect:'Prospecto',Inactive:'Inactiva',Churned:'Perdida'}[c.status] || c.status }}
+          </span>
         </div>
-
-        <div class="detail-section">
-          <h3>Descripción</h3>
-          <p>{{ company()!.description }}</p>
-        </div>
-
-        <div class="detail-dates">
-          <div class="date-item">
-            <span class="date-label">Creado</span>
-            <span>{{ company()!.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
-          </div>
-          <div class="date-item">
-            <span class="date-label">Actualizado</span>
-            <span>{{ company()!.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
-          </div>
-        </div>
-
-        <div class="detail-actions">
-          <button mat-button (click)="goBack()">
-            <mat-icon>arrow_back</mat-icon>
-            Volver
-          </button>
-          <button mat-raised-button color="primary" (click)="editCompany()">
-            <mat-icon>edit</mat-icon>
-            Editar
-          </button>
-        </div>
-      </mat-card-content>
-    </mat-card>
-
-    <div class="users-section">
-      <div class="users-header">
-        <h2>Usuarios</h2>
-        <button mat-raised-button color="primary" (click)="newUser()">
-          <mat-icon>person_add</mat-icon>
-          Nuevo usuario
-        </button>
+        <span class="users-count">
+          <mat-icon>group</mat-icon>
+          {{ c.usersCount }} usuario{{ c.usersCount !== 1 ? 's' : '' }}
+        </span>
       </div>
 
-      @if (usersLoading()) {
-        <div class="spinner-container">
-          <mat-spinner diameter="36"></mat-spinner>
-        </div>
-      } @else if (users().length === 0) {
-        <div class="users-empty">
-          <mat-icon>group_off</mat-icon>
-          <span>Esta empresa no tiene usuarios asignados</span>
-        </div>
-      } @else {
-        <div class="users-list">
-          @for (user of users(); track user.id) {
-            <div class="user-row">
-              <div class="user-avatar">{{ user.name[0].toUpperCase() }}</div>
-              <div class="user-info">
-                <span class="user-name">{{ user.name }}</span>
-                <span class="user-email">{{ user.email }}</span>
-              </div>
-              <button mat-icon-button matTooltip="Editar usuario" [attr.aria-label]="'Editar usuario ' + user.name" (click)="editUser(user.id)">
-                <mat-icon>edit</mat-icon>
-              </button>
+      <!-- Información -->
+      <section class="detail-section">
+        <h3 class="section-title">Información</h3>
+        <div class="detail-grid">
+          @if (c.contactEmail) {
+            <div class="detail-field">
+              <span class="detail-label">Email de contacto</span>
+              <a class="detail-value detail-value--link" href="mailto:{{ c.contactEmail }}">{{ c.contactEmail }}</a>
+            </div>
+          }
+          @if (c.contactPhone) {
+            <div class="detail-field">
+              <span class="detail-label">Teléfono</span>
+              <span class="detail-value detail-value--link">{{ c.contactPhone }}</span>
+            </div>
+          }
+          <div class="detail-field">
+            <span class="detail-label">Fecha de creación</span>
+            <span class="detail-value">{{ c.createdAt | date:'dd/MM/yyyy · HH:mm' }}</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Última actualización</span>
+            <span class="detail-value">{{ c.updatedAt | date:'dd/MM/yyyy · HH:mm' }}</span>
+          </div>
+          @if (c.address) {
+            <div class="detail-field detail-field--full">
+              <span class="detail-label">Dirección</span>
+              <span class="detail-value">{{ c.address }}</span>
+            </div>
+          }
+          @if (c.description) {
+            <div class="detail-field detail-field--full">
+              <span class="detail-label">Descripción</span>
+              <span class="detail-value">{{ c.description }}</span>
             </div>
           }
         </div>
-      }
+      </section>
+
+      <!-- Usuarios -->
+      <section class="detail-section">
+        <div class="section-header">
+          <h3 class="section-title">Usuarios</h3>
+          <button type="button" class="btn-add" (click)="newUser()">
+            <mat-icon>person_add</mat-icon>
+            <span>Nuevo usuario</span>
+          </button>
+        </div>
+
+        @if (usersLoading()) {
+          <div class="users-skeleton">
+            @for (r of [1,2,3]; track r) {
+              <div class="user-row user-row--ghost">
+                <div class="ghost-avatar"></div>
+                <div class="ghost-lines">
+                  <div class="ghost-line" style="width:120px;height:13px"></div>
+                  <div class="ghost-line" style="width:180px;height:11px;margin-top:4px"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (users().length === 0) {
+          <div class="users-empty">
+            <mat-icon>person_outline</mat-icon>
+            <span>Esta empresa no tiene usuarios asignados.</span>
+            <button type="button" class="btn-add" (click)="newUser()">Añadir primero</button>
+          </div>
+        } @else {
+          <ul class="users-list">
+            @for (u of users(); track u.id) {
+              <li class="user-row"
+                  role="link" tabindex="0"
+                  (click)="viewUser(u.id)"
+                  (keydown.enter)="viewUser(u.id)">
+                <div class="user-avatar" [class]="'avatar--' + (u.id % 8)">
+                  {{ u.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="user-info">
+                  <span class="user-name">{{ u.name }}</span>
+                  <span class="user-email">{{ u.email }}</span>
+                </div>
+                <button type="button" class="action-btn"
+                        (click)="$event.stopPropagation(); editUser(u.id)"
+                        [attr.aria-label]="'Editar ' + u.name">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <mat-icon class="user-arrow">chevron_right</mat-icon>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
     </div>
   }
+
 </div>

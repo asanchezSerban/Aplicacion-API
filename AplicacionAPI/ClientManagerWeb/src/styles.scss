@@ -48,6 +48,19 @@ input[type="password"]::-ms-clear {
   display: none;
 }
 
+// Global dialog styles
+.mat-mdc-dialog-surface {
+  border-radius: 16px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08) !important;
+}
+
+.cdk-overlay-backdrop.cdk-overlay-dark-backdrop {
+  background: rgba(11, 15, 26, 0.5);
+  backdrop-filter: blur(2px);
+}
+
 // Global snackbar styles
 .snackbar-success,
 .snackbar-error {

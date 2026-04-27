@@ -242,6 +242,75 @@ h1 {
   }
 }
 
+/* ── Danger section ────────────────────────────────────────────── */
+
+.danger-section {
+  border-color: #FECACA;
+  background: #FEF2F2;
+}
+
+.danger-title {
+  color: #DC2626;
+  border-bottom-color: #FECACA;
+}
+
+.danger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.danger-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.danger-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #DC2626;
+}
+
+.danger-desc {
+  font-size: 0.8125rem;
+  color: #4B5468;
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 38px;
+  padding: 0 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #FECACA;
+  background: #fff;
+  color: #DC2626;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 150ms ease, border-color 150ms ease;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  &:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
+}
+
+:host-context(body.dark-mode) .danger-section {
+  background: rgba(220,38,38,0.08);
+  border-color: rgba(220,38,38,0.3);
+}
+
+:host-context(body.dark-mode) .danger-desc { color: #8A93A6; }
+
+:host-context(body.dark-mode) .btn-danger {
+  background: transparent;
+  border-color: rgba(220,38,38,0.4);
+  &:hover { background: rgba(220,38,38,0.15); color: #FCA5A5; border-color: rgba(220,38,38,0.6); }
+}
+
 /* ── Actions ───────────────────────────────────────────────────── */
 
 .form-actions {

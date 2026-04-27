@@ -49,13 +49,18 @@ export class CompanyListComponent implements OnInit {
 
   private closingTimeout?: ReturnType<typeof setTimeout>;
 
-  currentPage     = 1;
-  pageSize        = 10;
-  pageSizeOptions = [5, 10, 25];
-  nameFilter      = '';
-  skeletonRows    = [1, 2, 3, 4, 5];
+  currentPage       = 1;
+  pageSize          = 10;
+  pageSizeOptions   = [5, 10, 25];
+  nameFilter        = '';
+  appliedNameFilter = signal('');
+  skeletonRows      = [1, 2, 3, 4, 5];
 
   ngOnInit(): void {
+    this.nameFilter = '';
+    this.appliedNameFilter.set('');
+    this.currentPage = 1;
+    this.selectedCompany.set(null);
     this.loadCompanies();
   }
 
@@ -86,11 +91,13 @@ export class CompanyListComponent implements OnInit {
 
   onFilterChange(): void {
     this.currentPage = 1;
+    this.appliedNameFilter.set(this.nameFilter);
     this.loadCompanies();
   }
 
   clearFilters(): void {
     this.nameFilter  = '';
+    this.appliedNameFilter.set('');
     this.currentPage = 1;
     this.loadCompanies();
   }
