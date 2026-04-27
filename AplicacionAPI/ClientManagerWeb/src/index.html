@@ -12,45 +12,112 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
       .splash {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         height: 100vh;
-        background-color: #0D47A1;
-        gap: 24px;
+        background:
+          radial-gradient(120% 90% at 0% 0%, #3730A3 0%, transparent 55%),
+          radial-gradient(100% 70% at 100% 100%, #1E1B4B 0%, transparent 60%),
+          #0B0F1A;
+        gap: 0;
+        font-family: 'Inter', system-ui, sans-serif;
+        overflow: hidden;
       }
-      .splash-icon {
-        font-family: 'Material Icons';
-        font-size: 64px;
-        color: white;
-        opacity: 0.9;
-      }
-      .splash-title {
-        font-family: 'Roboto', sans-serif;
-        font-size: 2rem;
-        font-weight: 300;
-        color: white;
-        letter-spacing: 2px;
-      }
-      .splash-spinner {
-        width: 40px;
-        height: 40px;
-        border: 3px solid rgba(255,255,255,0.3);
-        border-top-color: white;
+
+      /* Glows animados */
+      .splash::before,
+      .splash::after {
+        content: '';
+        position: absolute;
         border-radius: 50%;
-        animation: spin 0.8s linear infinite;
+        filter: blur(80px);
+        pointer-events: none;
       }
-      @keyframes spin {
-        to { transform: rotate(360deg); }
+      .splash::before {
+        width: 500px; height: 500px;
+        background: #6366F1;
+        opacity: 0.3;
+        top: -160px; left: -160px;
+        animation: glow-a 14s ease-in-out infinite;
+      }
+      .splash::after {
+        width: 420px; height: 420px;
+        background: #22D3EE;
+        opacity: 0.15;
+        bottom: -120px; right: -120px;
+        animation: glow-b 18s ease-in-out infinite;
+      }
+
+      @keyframes glow-a {
+        0%,100% { transform: translate(0,0); }
+        50%     { transform: translate(50px,35px); }
+      }
+      @keyframes glow-b {
+        0%,100% { transform: translate(0,0); }
+        50%     { transform: translate(-35px,-25px); }
+      }
+
+      /* Logo */
+      .splash-logo {
+        width: 56px; height: 56px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.14);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(8px);
+        margin-bottom: 1.25rem;
+        animation: rise 600ms cubic-bezier(0.22,1,0.36,1) both;
+      }
+
+      .splash-logo svg {
+        display: block;
+      }
+
+      /* Título */
+      .splash-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: #fff;
+        margin-bottom: 2rem;
+        animation: rise 600ms cubic-bezier(0.22,1,0.36,1) 80ms both;
+      }
+
+      /* Spinner */
+      .splash-spinner {
+        width: 28px; height: 28px;
+        border: 2.5px solid rgba(255,255,255,0.2);
+        border-top-color: rgba(255,255,255,0.85);
+        border-radius: 50%;
+        animation: spin 700ms linear infinite;
+      }
+
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
     </style>
   </head>
   <body>
     <app-root>
       <div class="splash">
-        <span class="splash-icon">people</span>
+        <div class="splash-logo">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7.5L12 3L20 7.5V16.5L12 21L4 16.5V7.5Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 12L20 7.5" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 12V21" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M12 12L4 7.5" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+        </div>
         <span class="splash-title">ClientManager</span>
         <div class="splash-spinner"></div>
       </div>
