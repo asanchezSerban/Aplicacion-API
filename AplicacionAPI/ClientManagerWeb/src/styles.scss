@@ -49,12 +49,43 @@ input[type="password"]::-ms-clear {
 }
 
 // Global snackbar styles
+.snackbar-success,
+.snackbar-error {
+  --mdc-snackbar-container-shape: 12px;
+  --mdc-snackbar-supporting-text-font: 'Inter', system-ui, sans-serif;
+  --mdc-snackbar-supporting-text-size: 0.875rem;
+  --mdc-snackbar-supporting-text-weight: 500;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  min-width: 300px !important;
+  max-width: 440px !important;
+
+  .mat-mdc-snack-bar-label {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.875rem 1rem !important;
+  }
+
+  .mdc-button__label {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+}
+
 .snackbar-success {
-  --mdc-snackbar-container-color: #2e7d32;
-  --mdc-snackbar-supporting-text-color: white;
+  --mdc-snackbar-container-color: #EEF0FF;
+  --mdc-snackbar-supporting-text-color: #1E1B4B;
+  border-left: 4px solid #4F46E5 !important;
+
+  .mdc-button__label { color: #4F46E5; }
 }
 
 .snackbar-error {
-  --mdc-snackbar-container-color: #c62828;
-  --mdc-snackbar-supporting-text-color: white;
+  --mdc-snackbar-container-color: #FEF2F2;
+  --mdc-snackbar-supporting-text-color: #7F1D1D;
+  border-left: 4px solid #DC2626 !important;
+
+  .mdc-button__label { color: #DC2626; }
 }

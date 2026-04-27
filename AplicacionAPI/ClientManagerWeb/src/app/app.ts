@@ -24,8 +24,9 @@ const FULLSCREEN_ROUTES = [
     .admin-shell {
       display: flex;
       flex-direction: row;
-      min-height: 100vh;
+      height: 100vh;
       background: #F5F6FA;
+      overflow: hidden;
     }
 
     /* ── Bell + user: flotando en esquina superior derecha ───── */

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ClientManager.API.Models;
 
-public enum CompanyStatus { Prospect, Active, Inactive, Churned }
+public enum CompanyStatus { Active, Prospect, Inactive, Churned }
 
 public class Company
 {

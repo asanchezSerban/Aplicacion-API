@@ -140,7 +140,9 @@ export class UserFormComponent implements OnInit {
   private showSnackBar(message: string, isError = false): void {
     this.snackBar.open(message, 'Cerrar', {
       duration: 4000,
-      panelClass: isError ? ['snackbar-error'] : ['snackbar-success']
+      panelClass: isError ? ['snackbar-error'] : ['snackbar-success'],
+      verticalPosition: 'top',
+      horizontalPosition: 'center'
     });
   }
 }
