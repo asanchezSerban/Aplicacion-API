@@ -30,14 +30,15 @@ public class CompanyService : ICompanyService
         _logger = logger;
     }
 
-    public async Task<PagedResponseDto<CompanyResponseDto>> GetAllAsync(int page, int pageSize, string? name, CancellationToken ct = default)
+    public async Task<PagedResponseDto<CompanyResponseDto>> GetAllAsync(int page, int pageSize, string? name, CompanyStatus? status = null, CancellationToken ct = default)
     {
         var query = _db.Companies.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(name))
-        {
             query = query.Where(c => c.Name.ToLower().StartsWith(name.ToLower()));
-        }
+
+        if (status.HasValue)
+            query = query.Where(c => c.Status == status.Value);
 
         var totalItems = await query.CountAsync(ct);
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);

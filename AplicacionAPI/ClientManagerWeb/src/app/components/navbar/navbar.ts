@@ -1,12 +1,11 @@
-import { Component, signal, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-navbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatIconModule, MatTooltipModule],
+  imports: [MatIconModule],
   template: `
     <header class="topbar">
       <div class="topbar-brand">
@@ -21,22 +20,21 @@ import { AuthService } from '../../services/auth.service';
         <span class="brand-name">ClientManager</span>
       </div>
 
-      <div class="topbar-actions">
-        <span class="user-email" [matTooltip]="authService.userRole() ?? ''">
-          {{ authService.userEmail() }}
-        </span>
+      <div class="topbar-right">
+        <div class="user-chip">
+          <div class="user-avatar">{{ initials() }}</div>
+          <span class="user-email">{{ authService.userEmail() }}</span>
+        </div>
 
         <button class="icon-btn" type="button"
                 (click)="toggleDarkMode()"
-                [attr.aria-label]="isDarkMode() ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
-                [matTooltip]="isDarkMode() ? 'Modo claro' : 'Modo oscuro'">
+                [attr.aria-label]="isDarkMode() ? 'Modo claro' : 'Modo oscuro'">
           <mat-icon>{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</mat-icon>
         </button>
 
         <button class="icon-btn icon-btn--danger" type="button"
                 (click)="authService.logout()"
-                aria-label="Cerrar sesión"
-                matTooltip="Cerrar sesión">
+                aria-label="Cerrar sesión">
           <mat-icon>logout</mat-icon>
         </button>
       </div>
@@ -45,10 +43,12 @@ import { AuthService } from '../../services/auth.service';
   styles: [`
     :host {
       --ink-900: #0B0F1A;
+      --ink-700: #1E2638;
       --ink-500: #4B5468;
       --ink-200: #C3C9D6;
       --ink-100: #E6E9F0;
       --ink-50:  #F5F6FA;
+      --accent:  #4F46E5;
       font-family: 'Inter', system-ui, sans-serif;
     }
 
@@ -56,8 +56,8 @@ import { AuthService } from '../../services/auth.service';
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 48px;
-      padding: 0 1.25rem;
+      height: 60px;
+      padding: 0 1.75rem;
       background: #fff;
       border-bottom: 1px solid var(--ink-100);
       position: sticky;
@@ -72,39 +72,64 @@ import { AuthService } from '../../services/auth.service';
     }
 
     .brand-mark {
-      width: 28px;
-      height: 28px;
-      border-radius: 7px;
-      background: #0B0F1A;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--accent);
       display: grid;
       place-items: center;
       color: #fff;
+      flex-shrink: 0;
     }
 
     .brand-name {
       font-size: 0.9375rem;
-      font-weight: 600;
-      letter-spacing: -0.01em;
+      font-weight: 700;
+      letter-spacing: -0.02em;
       color: var(--ink-900);
     }
 
-    .topbar-actions {
+    .topbar-right {
       display: flex;
       align-items: center;
-      gap: 0.375rem;
+      gap: 0.5rem;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+      border-radius: 20px;
+      border: 1px solid var(--ink-100);
+      background: var(--ink-50);
+    }
+
+    .user-avatar {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(79,70,229,0.12);
+      border: 1px solid rgba(79,70,229,0.2);
+      color: var(--accent);
+      font-size: 0.625rem;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
     }
 
     .user-email {
       font-size: 0.8125rem;
-      color: var(--ink-500);
-      padding: 0 0.5rem;
-      cursor: default;
+      color: var(--ink-700);
+      font-weight: 500;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .icon-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 7px;
+      width: 34px; height: 34px;
+      border-radius: 8px;
       border: 1px solid var(--ink-100);
       background: transparent;
       color: var(--ink-500);
@@ -112,17 +137,8 @@ import { AuthService } from '../../services/auth.service';
       display: grid;
       place-items: center;
       transition: background-color 150ms ease, color 150ms ease;
-
-      mat-icon {
-        font-size: 17px;
-        width: 17px;
-        height: 17px;
-      }
-
-      &:hover {
-        background: var(--ink-50);
-        color: var(--ink-900);
-      }
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+      &:hover { background: var(--ink-50); color: var(--ink-900); }
     }
 
     .icon-btn--danger:hover {
@@ -133,29 +149,25 @@ import { AuthService } from '../../services/auth.service';
 
     :host-context(body.dark-mode) {
       --ink-900: #F5F6FA;
+      --ink-700: #C3C9D6;
       --ink-500: #8A93A6;
       --ink-200: #1E2638;
       --ink-100: #131826;
       --ink-50:  #0B0F1A;
     }
-    :host-context(body.dark-mode) .topbar {
-      background: #0B0F1A;
-    }
-    :host-context(body.dark-mode) .brand-mark {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    :host-context(body.dark-mode) .icon-btn--danger:hover {
-      background: rgba(220, 38, 38, 0.12);
-      color: #FCA5A5;
-      border-color: rgba(220, 38, 38, 0.3);
-    }
+    :host-context(body.dark-mode) .topbar { background: #0B0F1A; border-bottom-color: #131826; }
+    :host-context(body.dark-mode) .user-chip { background: #131826; border-color: #1E2638; }
+    :host-context(body.dark-mode) .icon-btn--danger:hover { background: rgba(220,38,38,0.12); color: #FCA5A5; border-color: rgba(220,38,38,0.3); }
   `]
 })
 export class NavbarComponent {
   protected readonly authService = inject(AuthService);
-
   isDarkMode = signal(false);
+
+  readonly initials = computed(() => {
+    const email = this.authService.userEmail() ?? '';
+    return email.split('@')[0].slice(0, 2).toUpperCase();
+  });
 
   toggleDarkMode(): void {
     this.isDarkMode.update(v => !v);

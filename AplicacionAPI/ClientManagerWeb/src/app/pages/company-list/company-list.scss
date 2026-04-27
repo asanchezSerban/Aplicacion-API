@@ -239,6 +239,93 @@
   &:hover { background: var(--ink-100); color: var(--ink-900); }
 }
 
+/* ── Filter panel ──────────────────────────────────────────────── */
+
+.filter-wrap { position: relative; }
+
+.btn-ghost--active {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: var(--accent-soft) !important;
+}
+
+.filter-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.filter-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #fff;
+  border: 1.5px solid var(--ink-200);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  padding: 1rem;
+  z-index: 51;
+  min-width: 260px;
+  animation: dropIn 150ms cubic-bezier(0.22,1,0.36,1) both;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.625rem;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-chip {
+  height: 28px;
+  padding: 0 0.75rem;
+  border-radius: 14px;
+  border: 1.5px solid var(--ink-200);
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ink-700);
+  cursor: pointer;
+  transition: all 150ms ease;
+
+  &:hover { border-color: var(--ink-300); background: var(--ink-50); }
+
+  &--active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  &--active.filter-chip--pending  { background: #FEF9C3; border-color: #CA8A04; color: #CA8A04; }
+  &--active.filter-chip--inactive { background: var(--ink-100); border-color: var(--ink-300); color: var(--ink-700); }
+  &--active.filter-chip--churned  { background: #FEE2E2; border-color: var(--error); color: var(--error); }
+  &--active.filter-chip--active   { background: #DCFCE7; border-color: #16A34A; color: #16A34A; }
+}
+
+:host-context(body.dark-mode) .filter-panel { background: #131826; border-color: #1E2638; }
+
 /* ── Content wrap (split layout) ───────────────────────────────── */
 
 .content-wrap {

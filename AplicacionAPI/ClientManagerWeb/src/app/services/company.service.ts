@@ -9,12 +9,13 @@ export class CompanyService {
   private readonly http   = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/companies`;
 
-  getAll(page: number, pageSize: number, name?: string): Observable<PagedResponse<Company>> {
+  getAll(page: number, pageSize: number, name?: string, status?: string): Observable<PagedResponse<Company>> {
     let params = new HttpParams()
       .set('page', page)
       .set('pageSize', pageSize);
 
-    if (name) params = params.set('name', name);
+    if (name)   params = params.set('name', name);
+    if (status) params = params.set('status', status);
 
     return this.http.get<PagedResponse<Company>>(this.apiUrl, { params });
   }

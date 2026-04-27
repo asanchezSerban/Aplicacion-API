@@ -1,10 +1,11 @@
 using ClientManager.API.DTOs;
+using ClientManager.API.Models;
 
 namespace ClientManager.API.Services;
 
 public interface ICompanyService
 {
-    Task<PagedResponseDto<CompanyResponseDto>> GetAllAsync(int page, int pageSize, string? name, CancellationToken ct = default);
+    Task<PagedResponseDto<CompanyResponseDto>> GetAllAsync(int page, int pageSize, string? name, CompanyStatus? status = null, CancellationToken ct = default);
     Task<CompanyResponseDto> GetByIdAsync(int id, CancellationToken ct = default);
     Task<CompanyResponseDto> CreateAsync(CreateCompanyDto dto, IFormFile? logo, CancellationToken ct = default);
     Task<CompanyResponseDto> UpdateAsync(int id, UpdateCompanyDto dto, IFormFile? logo, CancellationToken ct = default);

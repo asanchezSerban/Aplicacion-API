@@ -1,4 +1,5 @@
 using ClientManager.API.DTOs;
+using ClientManager.API.Models;
 using ClientManager.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,11 +28,12 @@ public class CompaniesController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] string? name = null,
+        [FromQuery] CompanyStatus? status = null,
         CancellationToken ct = default)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
-        var result = await _companyService.GetAllAsync(page, pageSize, name, ct);
+        var result = await _companyService.GetAllAsync(page, pageSize, name, status, ct);
         return Ok(result);
     }
 

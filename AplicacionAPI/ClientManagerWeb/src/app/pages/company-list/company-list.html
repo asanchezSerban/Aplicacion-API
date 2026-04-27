@@ -13,17 +13,42 @@
     <label class="search-wrap">
       <mat-icon class="search-icon">search</mat-icon>
       <input class="search-input" type="text" placeholder="Buscar empresas..."
-             [(ngModel)]="nameFilter" (keyup.enter)="onFilterChange()">
-      @if (nameFilter || appliedNameFilter()) {
+             [ngModel]="nameFilter" (ngModelChange)="onNameInput($event)">
+      @if (nameFilter || appliedNameFilter() || statusFilter()) {
         <button type="button" class="search-clear" (click)="clearFilters()" aria-label="Limpiar búsqueda">
           ×
         </button>
       }
     </label>
-    <button type="button" class="btn-ghost">
-      <mat-icon>filter_list</mat-icon>
-      <span>Filtrar</span>
-    </button>
+    <div class="filter-wrap">
+      <button type="button" class="btn-ghost" [class.btn-ghost--active]="statusFilter()"
+              (click)="isFilterOpen.update(v => !v)">
+        <mat-icon>filter_list</mat-icon>
+        <span>Filtrar</span>
+        @if (statusFilter()) { <span class="filter-dot"></span> }
+      </button>
+
+      @if (isFilterOpen()) {
+        <div class="filter-backdrop" (click)="isFilterOpen.set(false)"></div>
+        <div class="filter-panel">
+          <p class="filter-label">Estado</p>
+          <div class="filter-chips">
+            <button type="button" class="filter-chip"
+                    [class.filter-chip--active]="statusFilter() === null"
+                    (click)="setStatusFilter(null)">
+              Todos
+            </button>
+            @for (opt of statusOptions; track opt.value) {
+              <button type="button" class="filter-chip filter-chip--{{ opt.cls }}"
+                      [class.filter-chip--active]="statusFilter() === opt.value"
+                      (click)="setStatusFilter(opt.value)">
+                {{ opt.label }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
     <button type="button" class="btn-primary" (click)="newCompany()">
       <mat-icon>add</mat-icon>
       <span>Nueva empresa</span>
@@ -42,10 +67,7 @@
           <div class="th th-empresa">Empresa</div>
           <div class="th th-usuarios">Usuarios</div>
           <div class="th th-estado">Estado</div>
-          <div class="th th-creacion">
-            <span>Creación</span>
-            <mat-icon class="sort-icon">unfold_more</mat-icon>
-          </div>
+          <div class="th th-creacion">Creación</div>
           <div class="th th-acciones">Acciones</div>
         </div>
 

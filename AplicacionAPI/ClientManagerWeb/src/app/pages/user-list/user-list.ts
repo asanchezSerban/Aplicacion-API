@@ -1,6 +1,7 @@
 import { Component, OnInit, DestroyRef, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatIcon } from '@angular/material/icon';
@@ -67,12 +68,25 @@ export class UserListComponent implements OnInit {
   pageSizeOptions       = [5, 9, 25];
   nameFilter            = '';
   skeletonRows          = [1, 2, 3, 4, 5];
+  private nameSearch$   = new Subject<string>();
 
   ngOnInit(): void {
     const companyId = this.route.snapshot.queryParamMap.get('companyId');
     if (companyId) this.companyFilter.set(Number(companyId));
+
+    this.nameSearch$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.onFilterChange());
+
     this.loadCompanies();
     this.loadUsers();
+  }
+
+  onNameInput(value: string): void {
+    this.nameFilter = value;
+    this.nameSearch$.next(value);
   }
 
   loadCompanies(): void {

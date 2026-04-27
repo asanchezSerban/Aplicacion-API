@@ -22,8 +22,8 @@
       <input class="search-input"
              type="text"
              placeholder="Buscar por nombre…"
-             [(ngModel)]="nameFilter"
-             (keyup.enter)="onFilterChange()">
+             [ngModel]="nameFilter"
+             (ngModelChange)="onNameInput($event)">
     </label>
 
     <div class="company-dropdown" [class.company-dropdown--open]="isCompanyDropdownOpen()">

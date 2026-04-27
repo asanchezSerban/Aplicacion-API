@@ -1,6 +1,7 @@
 import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
@@ -48,25 +49,48 @@ export class CompanyListComponent implements OnInit {
   isActivityLoading    = signal(false);
 
   private closingTimeout?: ReturnType<typeof setTimeout>;
+  private nameSearch$ = new Subject<string>();
 
   currentPage       = 1;
   pageSize          = 10;
   pageSizeOptions   = [5, 10, 25];
   nameFilter        = '';
-  appliedNameFilter = signal('');
-  skeletonRows      = [1, 2, 3, 4, 5];
+  appliedNameFilter  = signal('');
+  isFilterOpen       = signal(false);
+  statusFilter       = signal<CompanyStatus | null>(null);
+  skeletonRows       = [1, 2, 3, 4, 5];
+
+  readonly statusOptions: { value: CompanyStatus; label: string; cls: string }[] = [
+    { value: 'Active',   label: 'Activa',    cls: 'active'   },
+    { value: 'Prospect', label: 'Prospecto', cls: 'pending'  },
+    { value: 'Inactive', label: 'Inactiva',  cls: 'inactive' },
+    { value: 'Churned',  label: 'Perdida',   cls: 'churned'  },
+  ];
 
   ngOnInit(): void {
     this.nameFilter = '';
     this.appliedNameFilter.set('');
+    this.statusFilter.set(null);
     this.currentPage = 1;
     this.selectedCompany.set(null);
+
+    this.nameSearch$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => this.onFilterChange());
+
     this.loadCompanies();
+  }
+
+  onNameInput(value: string): void {
+    this.nameFilter = value;
+    this.nameSearch$.next(value);
   }
 
   loadCompanies(): void {
     this.isLoading.set(true);
-    this.companyService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined)
+    this.companyService.getAll(this.currentPage, this.pageSize, this.nameFilter || undefined, this.statusFilter() || undefined)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: PagedResponse<Company>) => {
@@ -95,9 +119,18 @@ export class CompanyListComponent implements OnInit {
     this.loadCompanies();
   }
 
+  setStatusFilter(s: CompanyStatus | null): void {
+    this.statusFilter.set(s);
+    this.currentPage = 1;
+    this.isFilterOpen.set(false);
+    this.loadCompanies();
+  }
+
   clearFilters(): void {
     this.nameFilter  = '';
     this.appliedNameFilter.set('');
+    this.statusFilter.set(null);
+    this.isFilterOpen.set(false);
     this.currentPage = 1;
     this.loadCompanies();
   }
