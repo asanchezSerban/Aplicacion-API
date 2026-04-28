@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using ClientManager.API.Data;
 using ClientManager.API.DTOs;
 using ClientManager.API.Models;
@@ -201,14 +202,36 @@ public class AuthService : IAuthService
 
         if (user.TotpEnabled)
         {
-            // ── Verificación TOTP (Google Authenticator) ─────────────────────
+            // ── Verificación TOTP o código de respaldo ────────────────────────
             if (string.IsNullOrEmpty(user.TotpSecret))
                 throw new UnauthorizedAccessException("TOTP no configurado correctamente.");
 
-            var totp = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
-            var valid = totp.VerifyTotp(DateTime.UtcNow, dto.Code, out _, VerificationWindow.RfcSpecifiedNetworkDelay);
-            if (!valid)
-                throw new UnauthorizedAccessException("Código incorrecto. Verifica que tu app esté sincronizada.");
+            var normalizedCode = dto.Code.Replace("-", "");
+            var isBackupAttempt = normalizedCode.Length == 8;
+
+            if (isBackupAttempt)
+            {
+                var storedHashes = string.IsNullOrEmpty(user.TotpBackupCodes)
+                    ? []
+                    : JsonSerializer.Deserialize<List<string>>(user.TotpBackupCodes) ?? [];
+
+                var inputHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalizedCode)));
+                var matchIndex = storedHashes.FindIndex(h => h.Equals(inputHash, StringComparison.OrdinalIgnoreCase));
+
+                if (matchIndex < 0)
+                    throw new UnauthorizedAccessException("Código de respaldo incorrecto o ya usado.");
+
+                storedHashes.RemoveAt(matchIndex);
+                user.TotpBackupCodes = JsonSerializer.Serialize(storedHashes);
+                await _userManager.UpdateAsync(user);
+            }
+            else
+            {
+                var totp = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
+                var valid = totp.VerifyTotp(DateTime.UtcNow, dto.Code, out _, VerificationWindow.RfcSpecifiedNetworkDelay);
+                if (!valid)
+                    throw new UnauthorizedAccessException("Código incorrecto. Verifica que tu app esté sincronizada.");
+            }
         }
         else
         {
@@ -306,10 +329,21 @@ public class AuthService : IAuthService
         if (!valid)
             throw new ArgumentException("Código incorrecto. Asegúrate de haber escaneado el QR y de que la hora del dispositivo sea correcta.");
 
+        // Generar 8 códigos de respaldo (xxxx-xxxx)
+        var plainCodes = Enumerable.Range(0, 8).Select(_ =>
+        {
+            var bytes = new byte[4];
+            RandomNumberGenerator.Fill(bytes);
+            var hex = Convert.ToHexString(bytes).ToLower();
+            return $"{hex[..4]}-{hex[4..]}";
+        }).ToList();
+
         user.TotpEnabled = true;
+        user.TotpBackupCodes = JsonSerializer.Serialize(
+            plainCodes.Select(c => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(c.Replace("-", ""))))).ToList()
+        );
         await _userManager.UpdateAsync(user);
 
-        // Emitir nuevos tokens con totpEnabled=true en el claim para que el guard lo refleje de inmediato
         var roles = await _userManager.GetRolesAsync(user);
         var role = roles.FirstOrDefault() ?? string.Empty;
         var accessToken = GenerateAccessToken(user, role, out var expiresAt);
@@ -324,7 +358,8 @@ public class AuthService : IAuthService
             ExpiresAt = expiresAt,
             UserEmail = user.Email!,
             Role = role,
-            TotpEnabled = user.TotpEnabled
+            TotpEnabled = user.TotpEnabled,
+            BackupCodes = plainCodes  // solo se devuelven una vez
         };
     }
 
@@ -335,6 +370,7 @@ public class AuthService : IAuthService
 
         user.TotpEnabled = false;
         user.TotpSecret = null;
+        user.TotpBackupCodes = null;
         await _userManager.UpdateAsync(user);
 
         // Emitir nuevos tokens con totpEnabled=false para que el guard bloquee inmediatamente

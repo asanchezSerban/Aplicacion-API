@@ -118,26 +118,35 @@ import { ROUTES } from '../../app.routes.constants';
 
           <form (ngSubmit)="onSubmit()" novalidate>
 
-            <div class="digits-row" (paste)="onPaste($event)">
-              <input #d0 class="digit-input" type="text" inputmode="numeric" maxlength="1"
-                     [class.error]="errorMessage()" autocomplete="one-time-code"
-                     (input)="onDigitInput(0, $event)" (keydown)="onKeyDown(0, $event)">
-              <input #d1 class="digit-input" type="text" inputmode="numeric" maxlength="1"
-                     [class.error]="errorMessage()"
-                     (input)="onDigitInput(1, $event)" (keydown)="onKeyDown(1, $event)">
-              <input #d2 class="digit-input" type="text" inputmode="numeric" maxlength="1"
-                     [class.error]="errorMessage()"
-                     (input)="onDigitInput(2, $event)" (keydown)="onKeyDown(2, $event)">
-              <input #d3 class="digit-input" type="text" inputmode="numeric" maxlength="1"
-                     [class.error]="errorMessage()"
-                     (input)="onDigitInput(3, $event)" (keydown)="onKeyDown(3, $event)">
-              <input #d4 class="digit-input" type="text" inputmode="numeric" maxlength="1"
-                     [class.error]="errorMessage()"
-                     (input)="onDigitInput(4, $event)" (keydown)="onKeyDown(4, $event)">
-              <input #d5 class="digit-input" type="text" inputmode="numeric" maxlength="1"
-                     [class.error]="errorMessage()"
-                     (input)="onDigitInput(5, $event)" (keydown)="onKeyDown(5, $event)">
-            </div>
+            @if (mfaType() === 'totp' && useBackupCode()) {
+              <div class="backup-input-wrap">
+                <input type="text" class="backup-code-input" placeholder="xxxx-xxxx"
+                       maxlength="9" autocomplete="off" spellcheck="false"
+                       [value]="backupCodeInput()"
+                       (input)="backupCodeInput.set($any($event.target).value); errorMessage.set(null)" />
+              </div>
+            } @else {
+              <div class="digits-row" (paste)="onPaste($event)">
+                <input #d0 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+                       [class.error]="errorMessage()" autocomplete="one-time-code"
+                       (input)="onDigitInput(0, $event)" (keydown)="onKeyDown(0, $event)">
+                <input #d1 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+                       [class.error]="errorMessage()"
+                       (input)="onDigitInput(1, $event)" (keydown)="onKeyDown(1, $event)">
+                <input #d2 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+                       [class.error]="errorMessage()"
+                       (input)="onDigitInput(2, $event)" (keydown)="onKeyDown(2, $event)">
+                <input #d3 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+                       [class.error]="errorMessage()"
+                       (input)="onDigitInput(3, $event)" (keydown)="onKeyDown(3, $event)">
+                <input #d4 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+                       [class.error]="errorMessage()"
+                       (input)="onDigitInput(4, $event)" (keydown)="onKeyDown(4, $event)">
+                <input #d5 class="digit-input" type="text" inputmode="numeric" maxlength="1"
+                       [class.error]="errorMessage()"
+                       (input)="onDigitInput(5, $event)" (keydown)="onKeyDown(5, $event)">
+              </div>
+            }
 
             @if (errorMessage()) {
               <div class="inline-error" role="alert">
@@ -169,7 +178,7 @@ import { ROUTES } from '../../app.routes.constants';
               </button>
             } @else {
               <button mat-flat-button type="submit"
-                      [disabled]="!codeComplete() || loading()"
+                      [disabled]="(useBackupCode() ? backupCodeInput().replace('-','').length !== 8 : !codeComplete()) || loading()"
                       class="submit-btn">
                 @if (loading()) {
                   <mat-spinner diameter="20" />
@@ -185,6 +194,12 @@ import { ROUTES } from '../../app.routes.constants';
           </form>
 
           <div class="footer-links">
+            @if (mfaType() === 'totp') {
+              <button type="button" class="link-btn" (click)="useBackupCode.update(v => !v); errorMessage.set(null); backupCodeInput.set('')">
+                <mat-icon>{{ useBackupCode() ? 'smartphone' : 'key' }}</mat-icon>
+                <span>{{ useBackupCode() ? 'Usar app de autenticación' : '¿Perdiste el acceso? Usa un código de respaldo' }}</span>
+              </button>
+            }
             @if (mfaType() === 'email' && timeLeft() > 0) {
               <button type="button" class="link-btn"
                       [disabled]="resendLoading() || resendCooldown() > 0"
@@ -757,12 +772,14 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('d4') d4!: ElementRef<HTMLInputElement>;
   @ViewChild('d5') d5!: ElementRef<HTMLInputElement>;
 
-  loading        = signal(false);
-  resendLoading  = signal(false);
-  resendCooldown = signal(0);
-  errorMessage   = signal<string | null>(null);
-  codeComplete   = signal(false);
-  mfaType        = signal<'email' | 'totp'>('email');
+  loading         = signal(false);
+  resendLoading   = signal(false);
+  resendCooldown  = signal(0);
+  errorMessage    = signal<string | null>(null);
+  codeComplete    = signal(false);
+  mfaType         = signal<'email' | 'totp'>('email');
+  useBackupCode   = signal(false);
+  backupCodeInput = signal('');
   private static readonly OTP_TTL_FALLBACK = 60;
   private static readonly RESEND_COOLDOWN  = 30;
   timeLeft = signal(MfaVerificarComponent.OTP_TTL_FALLBACK);
@@ -854,9 +871,14 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async onSubmit(): Promise<void> {
-    if (!this.codeComplete()) return;
+    const isBackup = this.useBackupCode();
+    const code = isBackup
+      ? this.backupCodeInput().trim()
+      : [0,1,2,3,4,5].map(i => this.inputAt(i).value).join('');
 
-    const code = [0,1,2,3,4,5].map(i => this.inputAt(i).value).join('');
+    const ready = isBackup ? code.replace('-', '').length === 8 : this.codeComplete();
+    if (!ready) return;
+
     this.loading.set(true);
     this.errorMessage.set(null);
 
@@ -868,7 +890,7 @@ export class MfaVerificarComponent implements OnInit, AfterViewInit, OnDestroy {
       const e = err as { error?: { error?: string } };
       const msg = e?.error?.error ?? 'Código incorrecto. Inténtalo de nuevo.';
       this.errorMessage.set(msg);
-      this.clearDigits();
+      if (!isBackup) this.clearDigits();
     } finally {
       this.loading.set(false);
     }

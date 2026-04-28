@@ -29,6 +29,9 @@ public class TokenResponseDto
     public string UserEmail { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public bool TotpEnabled { get; set; }
+    // Solo se devuelve una vez al confirmar el setup de TOTP
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? BackupCodes { get; set; }
 }
 
 public class ForgotPasswordDto
@@ -102,7 +105,7 @@ public class MfaVerifyDto
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(6, MinimumLength = 6)]
+    [StringLength(9)]  // 6 dígitos TOTP o 9 chars código de respaldo (xxxx-xxxx)
     public string Code { get; set; } = string.Empty;
 }
 

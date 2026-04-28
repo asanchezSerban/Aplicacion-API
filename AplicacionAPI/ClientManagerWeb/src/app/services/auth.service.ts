@@ -26,6 +26,10 @@ export interface TotpSetupResponse {
   secret: string;
 }
 
+export interface TotpConfirmResponse {
+  backupCodes: string[];
+}
+
 export interface TotpStatus {
   enabled: boolean;
 }
@@ -163,12 +167,12 @@ export class AuthService {
     );
   }
 
-  async totpConfirm(code: string): Promise<void> {
-    const identity = await firstValueFrom(
-      this.http.post<Identity>(`${this.apiUrl}/totp/confirm`, { code }, { withCredentials: true })
+  async totpConfirm(code: string): Promise<TotpConfirmResponse> {
+    const res = await firstValueFrom(
+      this.http.post<Identity & TotpConfirmResponse>(`${this.apiUrl}/totp/confirm`, { code }, { withCredentials: true })
     );
-    // El nuevo JWT (en cookie) tiene totpEnabled=true — actualizar identidad en memoria
-    this._identity.set(identity);
+    this._identity.set(res);
+    return { backupCodes: res.backupCodes ?? [] };
   }
 
   async totpDisable(): Promise<void> {

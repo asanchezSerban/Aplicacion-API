@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthService, TotpSetupResponse } from '../../services/auth.service';
+import { AuthService, TotpSetupResponse, TotpConfirmResponse } from '../../services/auth.service';
 import { ROUTES } from '../../app.routes.constants';
 import QRCode from 'qrcode';
 
@@ -86,7 +86,18 @@ import QRCode from 'qrcode';
                 <mat-icon>verified_user</mat-icon>
               </div>
               <h1>2FA configurado correctamente</h1>
-              <p>Tu cuenta ya está protegida. A partir de ahora necesitarás el código de la app en cada inicio de sesión.</p>
+              <p>Tu cuenta ya está protegida. Guarda estos <strong>códigos de respaldo</strong> en un lugar seguro — te permitirán entrar si pierdes acceso a tu app de autenticación. Cada código solo se puede usar una vez.</p>
+
+              <div class="backup-codes-grid">
+                @for (code of backupCodes(); track code) {
+                  <span class="backup-code">{{ code }}</span>
+                }
+              </div>
+
+              <button mat-stroked-button type="button" class="copy-backup-btn" (click)="copyBackupCodes()">
+                <mat-icon>content_copy</mat-icon>
+                <span>Copiar todos</span>
+              </button>
 
               <button mat-flat-button type="button" class="submit-btn" (click)="goBack()">
                 <span class="submit-label">
@@ -1043,6 +1054,7 @@ export class ConfigurarTotpComponent implements OnInit, OnDestroy {
   loading        = signal(true);
   totpEnabled    = signal(false);
   justConfirmed  = signal(false);
+  backupCodes    = signal<string[]>([]);
   setup          = signal<TotpSetupResponse | null>(null);
   qrDataUrl      = signal<string | null>(null);
   confirming     = signal(false);
@@ -1151,12 +1163,13 @@ export class ConfigurarTotpComponent implements OnInit, OnDestroy {
     this.error.set(null);
     this.confirming.set(true);
     try {
-      await this.authService.totpConfirm(this.confirmCode);
+      const res = await this.authService.totpConfirm(this.confirmCode);
       this.totpEnabled.set(true);
       this.setup.set(null);
       this.qrDataUrl.set(null);
       this.confirmCode = '';
       this.codeComplete.set(false);
+      this.backupCodes.set(res.backupCodes);
       this.justConfirmed.set(true);
     } catch (err: unknown) {
       this.error.set((err as { error?: { error?: string } })?.error?.error ?? 'Código incorrecto. Verifica que hayas escaneado el QR correctamente.');
@@ -1178,6 +1191,14 @@ export class ConfigurarTotpComponent implements OnInit, OnDestroy {
       this.error.set((err as { error?: { error?: string } })?.error?.error ?? 'Error al desactivar el 2FA.');
     } finally {
       this.disabling.set(false);
+    }
+  }
+
+  async copyBackupCodes(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.backupCodes().join('\n'));
+    } catch {
+      /* ignore */
     }
   }
 
