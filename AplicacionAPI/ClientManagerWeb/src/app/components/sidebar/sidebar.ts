@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { environment } from '../../../environments/environment';
 import { ROUTES } from '../../app.routes.constants';
 
 type Theme = 'light' | 'dark' | 'system';
@@ -85,10 +86,11 @@ type Theme = 'light' | 'dark' | 'system';
         <div class="help-section">
           <mat-icon class="help-icon">help_outline</mat-icon>
           <strong class="help-title">¿Necesitas ayuda?</strong>
-          <p class="help-desc">Consulta nuestra documentación</p>
-          <a class="help-link" href="#" (click)="$event.preventDefault()">
-            Ver documentación →
+          <p class="help-desc">Contacta con soporte técnico</p>
+          <a class="help-link" [href]="'mailto:' + supportEmail">
+            {{ supportEmail }}
           </a>
+          <span class="help-version">v{{ version }}</span>
         </div>
 
       </div>
@@ -319,7 +321,17 @@ type Theme = 'light' | 'dark' | 'system';
       text-decoration: none;
       margin-top: 0.125rem;
       display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       &:hover { text-decoration: underline; }
+    }
+
+    .help-version {
+      font-size: 0.6875rem;
+      color: #9CA3AF;
+      margin-top: 0.25rem;
+      display: block;
     }
 
     /* ── Dark mode ─────────────────────────────────────────────── */
@@ -377,7 +389,9 @@ type Theme = 'light' | 'dark' | 'system';
   `]
 })
 export class SidebarComponent {
-  protected readonly ROUTES = ROUTES;
+  protected readonly ROUTES        = ROUTES;
+  protected readonly version       = environment.version;
+  protected readonly supportEmail  = environment.supportEmail;
 
   isConfigOpen = signal(false);
   theme        = signal<Theme>('light');
