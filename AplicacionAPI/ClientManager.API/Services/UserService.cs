@@ -133,12 +133,29 @@ public class UserService : IUserService
         if (!companyExists)
             throw new ArgumentException($"La empresa con ID {dto.CompanyId} no existe.");
 
+        var oldEmail = user.Email;
+        var newEmail = dto.Email.Trim().ToLowerInvariant();
+
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
         user.Name = dto.Name.Trim();
-        user.Email = dto.Email.Trim().ToLowerInvariant();
+        user.Email = newEmail;
         user.CompanyId = dto.CompanyId;
         user.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
+
+        if (oldEmail != newEmail)
+        {
+            var appUser = await _userManager.FindByEmailAsync(oldEmail);
+            if (appUser is not null)
+            {
+                await _userManager.SetEmailAsync(appUser, newEmail);
+                await _userManager.SetUserNameAsync(appUser, newEmail);
+            }
+        }
+
+        await tx.CommitAsync(ct);
 
         _logger.LogInformation("Usuario {UserId} actualizado", user.Id);
 

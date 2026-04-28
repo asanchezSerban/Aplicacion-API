@@ -203,6 +203,8 @@ app.UseExceptionHandler(errorApp =>
 });
 
 app.UseStaticFiles();
+if (!app.Environment.IsDevelopment())
+    app.UseHsts();
 app.UseHttpsRedirection();
 app.UseCors("AllowAngular");
 app.UseRateLimiter();

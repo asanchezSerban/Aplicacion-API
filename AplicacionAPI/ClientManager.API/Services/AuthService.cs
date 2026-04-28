@@ -100,7 +100,7 @@ public class AuthService : IAuthService
         RandomNumberGenerator.Fill(bytes);
         var code = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
         var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
-        var expiresAt = DateTime.UtcNow.AddMinutes(1);
+        var expiresAt = DateTime.UtcNow.AddSeconds(30);
 
         _db.EmailOtpCodes.Add(new EmailOtpCode
         {
@@ -140,7 +140,7 @@ public class AuthService : IAuthService
     {
         // Calcular el TTL antes de cualquier comprobación — anti-enumeración:
         // siempre devolvemos un expiresAt real aunque el email no exista.
-        var expiresAt = DateTime.UtcNow.AddMinutes(1);
+        var expiresAt = DateTime.UtcNow.AddSeconds(30);
 
         var user = await _userManager.FindByEmailAsync(email);
         if (user is null) return expiresAt;
@@ -511,9 +511,11 @@ public class AuthService : IAuthService
 
     private async Task<RefreshToken> CreateRefreshTokenAsync(string userId)
     {
+        var tokenBytes = new byte[32];
+        RandomNumberGenerator.Fill(tokenBytes);
         var refreshToken = new RefreshToken
         {
-            Token = Guid.NewGuid().ToString(),
+            Token = Convert.ToBase64String(tokenBytes),
             UserId = userId,
             ExpiresAt = DateTime.UtcNow.AddHours(24)
         };

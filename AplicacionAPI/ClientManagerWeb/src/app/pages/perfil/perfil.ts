@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { UserService } from '../../services/user.service';
@@ -274,6 +275,7 @@ import { AuthService } from '../../services/auth.service';
 export class PerfilComponent implements OnInit {
   readonly authService = inject(AuthService);
   private readonly userService = inject(UserService);
+  private readonly destroyRef = inject(DestroyRef);
 
   client  = signal<User | null>(null);
   loading = signal(true);
@@ -285,7 +287,7 @@ export class PerfilComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.userService.getMe().subscribe({
+    this.userService.getMe().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next:  (u: User) => { this.client.set(u);  this.loading.set(false); },
       error: ()        => { this.error.set('No se pudieron cargar tus datos.'); this.loading.set(false); }
     });
