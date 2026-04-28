@@ -1,6 +1,6 @@
 import { Component, signal, inject, OnInit, computed, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -679,6 +679,7 @@ import { PASSWORD_RULES } from '../../constants/password-rules';
 export class ResetPasswordComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly route       = inject(ActivatedRoute);
+  private readonly router      = inject(Router);
 
   password     = '';
   showPassword = signal(false);
@@ -704,6 +705,7 @@ export class ResetPasswordComponent implements OnInit {
     this.email = this.route.snapshot.queryParamMap.get('email') ?? '';
     this.token = decodeURIComponent(this.route.snapshot.queryParamMap.get('token') ?? '');
     if (!this.email || !this.token) this.invalidLink.set(true);
+    this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
   }
 
   onPasswordChange(value: string): void {
