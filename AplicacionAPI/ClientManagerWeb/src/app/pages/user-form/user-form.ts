@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
+import { NotificationService } from '../../services/notification.service';
 import { ConfirmDialogComponent } from '../../components/confirm-dialog/confirm-dialog';
 import { Company } from '../../models/company.model';
 import { UserService } from '../../services/user.service';
@@ -23,14 +24,15 @@ import { PASSWORD_RULES } from '../../constants/password-rules';
   styleUrl: './user-form.scss'
 })
 export class UserFormComponent implements OnInit {
-  private destroyRef     = inject(DestroyRef);
-  private fb             = inject(FormBuilder);
-  private userService    = inject(UserService);
-  private companyService = inject(CompanyService);
-  private router         = inject(Router);
-  private route          = inject(ActivatedRoute);
-  private snackBar       = inject(MatSnackBar);
-  private dialog         = inject(MatDialog);
+  private destroyRef          = inject(DestroyRef);
+  private fb                  = inject(FormBuilder);
+  private userService         = inject(UserService);
+  private companyService      = inject(CompanyService);
+  private notificationService = inject(NotificationService);
+  private router              = inject(Router);
+  private route               = inject(ActivatedRoute);
+  private snackBar            = inject(MatSnackBar);
+  private dialog              = inject(MatDialog);
 
   form!: FormGroup;
   companies    = signal<Company[]>([]);
@@ -120,6 +122,13 @@ export class UserFormComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showSnackBar(this.isEditMode ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente');
+          if (!this.isEditMode) {
+            this.notificationService.add({
+              icon: 'person_add', iconColor: '#059669',
+              text: dto.name, sub: dto.email,
+              date: new Date().toISOString()
+            });
+          }
           this.goBack();
         },
         error: (err: any) => {
@@ -172,4 +181,17 @@ export class UserFormComponent implements OnInit {
       horizontalPosition: 'center'
     });
   }
+
+  isCompanyDropdownOpen = signal(false);
+
+  selectCompany(id: number) {
+  this.form.get('companyId')?.setValue(id);
+  this.isCompanyDropdownOpen.set(false);
+}
+
+selectedCompanyName() {
+  const id = this.form.get('companyId')?.value;
+  const company = this.companies().find(c => c.id === id);
+  return company?.name ?? 'Selecciona una empresa';
+}
 }

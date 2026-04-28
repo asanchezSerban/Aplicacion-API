@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { NotificationService } from '../../services/notification.service';
 import { CompanyService } from '../../services/company.service';
 import { CompanyStatus, COMPANY_STATUS_LABELS } from '../../models/company.model';
 import { ROUTES } from '../../app.routes.constants';
@@ -19,12 +20,13 @@ import { ROUTES } from '../../app.routes.constants';
   styleUrl: './company-form.scss'
 })
 export class CompanyFormComponent implements OnInit {
-  private destroyRef     = inject(DestroyRef);
-  private fb             = inject(FormBuilder);
-  private companyService = inject(CompanyService);
-  private router         = inject(Router);
-  private route          = inject(ActivatedRoute);
-  private snackBar       = inject(MatSnackBar);
+  private destroyRef           = inject(DestroyRef);
+  private fb                   = inject(FormBuilder);
+  private companyService       = inject(CompanyService);
+  private notificationService  = inject(NotificationService);
+  private router               = inject(Router);
+  private route                = inject(ActivatedRoute);
+  private snackBar             = inject(MatSnackBar);
 
   form!: FormGroup;
   selectedFile: File | null = null;
@@ -119,6 +121,13 @@ export class CompanyFormComponent implements OnInit {
       .subscribe({
         next: () => {
           this.showSnackBar(this.isEditMode ? 'Empresa actualizada correctamente' : 'Empresa creada correctamente');
+          if (!this.isEditMode) {
+            this.notificationService.add({
+              icon: 'domain', iconColor: '#4F46E5',
+              text: name, sub: 'Empresa creada',
+              date: new Date().toISOString()
+            });
+          }
           this.router.navigate([ROUTES.COMPANIES]);
         },
         error: () => {

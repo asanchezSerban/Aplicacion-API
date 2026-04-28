@@ -1,23 +1,17 @@
 import { Component, inject, computed, signal, effect } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { filter, map, forkJoin } from 'rxjs';
+import { filter, map } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NavbarComponent } from './components/navbar/navbar';
 import { SidebarComponent } from './components/sidebar/sidebar';
 import { AuthService } from './services/auth.service';
-import { CompanyService } from './services/company.service';
-import { UserService } from './services/user.service';
+import { NotificationService, StoredNotif } from './services/notification.service';
 import { ROUTES } from './app.routes.constants';
 
-interface AppNotif {
-  icon: string;
-  iconColor: string;
-  text: string;
-  sub: string;
+interface AppNotif extends StoredNotif {
   timeAgo: string;
-  date: Date;
 }
 
 const FULLSCREEN_ROUTES = [
@@ -401,8 +395,8 @@ const FULLSCREEN_ROUTES = [
               <button class="topbar-notif" type="button" aria-label="Notificaciones"
                       (click)="openNotif()">
                 <mat-icon>notifications</mat-icon>
-                @if (notifCount() > 0) {
-                  <span class="notif-badge">{{ notifCount() }}</span>
+                @if (unreadCount() > 0) {
+                  <span class="notif-badge">{{ unreadCount() }}</span>
                 }
               </button>
 
@@ -498,21 +492,23 @@ const FULLSCREEN_ROUTES = [
   `
 })
 export class App {
-  private readonly router          = inject(Router);
-  protected readonly authService   = inject(AuthService);
-  private readonly companyService  = inject(CompanyService);
-  private readonly userService     = inject(UserService);
-  protected readonly ROUTES        = ROUTES;
+  private readonly router              = inject(Router);
+  protected readonly authService       = inject(AuthService);
+  private readonly notificationService = inject(NotificationService);
+  protected readonly ROUTES            = ROUTES;
 
   isUserMenuOpen  = signal(false);
   isNotifOpen     = signal(false);
   notifications   = signal<AppNotif[]>([]);
-  notifLoaded     = signal(false);
+  unreadCount     = signal(0);
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
-      map(e => (e as NavigationEnd).urlAfterRedirects)
+      map(e => {
+        this.unreadCount.set(this.notificationService.getUnreadCount());
+        return (e as NavigationEnd).urlAfterRedirects;
+      })
     ),
     { initialValue: this.router.url }
   );
@@ -538,48 +534,24 @@ export class App {
 
   readonly notifCount = computed(() => this.notifications().length);
 
-  constructor() {
-    effect(() => {
-      if (this.isSuperAdmin() && !this.notifLoaded()) {
-        this.loadNotifications();
-      }
-    });
-  }
-
   private loadNotifications(): void {
-    forkJoin({
-      companies: this.companyService.getAll(1, 4),
-      users:     this.userService.getAll(1, 4)
-    }).subscribe({
-      next: ({ companies, users }) => {
-        const items: AppNotif[] = [
-          ...companies.data.map(c => ({
-            icon: 'domain',
-            iconColor: '#4F46E5',
-            text: c.name,
-            sub: 'Empresa añadida',
-            timeAgo: this.timeAgo(c.createdAt),
-            date: new Date(c.createdAt)
-          })),
-          ...users.data.map(u => ({
-            icon: 'person_add',
-            iconColor: '#059669',
-            text: u.name,
-            sub: u.companyName,
-            timeAgo: this.timeAgo(u.createdAt),
-            date: new Date(u.createdAt)
-          }))
-        ];
-        items.sort((a, b) => b.date.getTime() - a.date.getTime());
-        this.notifications.set(items.slice(0, 6));
-        this.notifLoaded.set(true);
-      }
-    });
+    const items = this.notificationService.getAll().map(n => ({
+      ...n,
+      timeAgo: this.timeAgo(n.date)
+    }));
+    this.notifications.set(items);
   }
 
   openNotif(): void {
-    this.isNotifOpen.update(v => !v);
+    const opening = !this.isNotifOpen();
+    this.isNotifOpen.set(opening);
     this.isUserMenuOpen.set(false);
+    if (opening) {
+      this.loadNotifications();
+    } else {
+      this.notificationService.markAsSeen();
+      this.unreadCount.set(0);
+    }
   }
 
   openUserMenu(): void {
@@ -588,6 +560,10 @@ export class App {
   }
 
   closeDropdowns(): void {
+    if (this.isNotifOpen()) {
+      this.notificationService.markAsSeen();
+      this.unreadCount.set(0);
+    }
     this.isNotifOpen.set(false);
     this.isUserMenuOpen.set(false);
   }
