@@ -91,6 +91,7 @@ public class CompanyService : ICompanyService
             Status       = data.Status,
             ContactEmail = data.ContactEmail,
             ContactPhone = data.ContactPhone,
+            Address      = data.Address,
             CreatedAt    = data.CreatedAt,
             UpdatedAt    = data.UpdatedAt,
             UsersCount   = data.UsersCount
@@ -259,6 +260,8 @@ public class CompanyService : ICompanyService
 
     private static string SanitizeInput(string input)
     {
-        return System.Net.WebUtility.HtmlEncode(input.Trim());
+        // Solo trim + decode: Angular escapa {{ }} automáticamente, no necesitamos HtmlEncode.
+        // El decode normaliza datos previamente corrompidos por dobles codificaciones.
+        return System.Net.WebUtility.HtmlDecode(input.Trim());
     }
 }

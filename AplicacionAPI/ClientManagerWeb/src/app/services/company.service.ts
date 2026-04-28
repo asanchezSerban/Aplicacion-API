@@ -40,9 +40,11 @@ export class CompanyService {
     const formData = new FormData();
     formData.append('name', dto.name);
     formData.append('description', dto.description);
-    if (dto.logo) {
-      formData.append('logo', dto.logo);
-    }
+    if (dto.status)       formData.append('status', dto.status);
+    if (dto.contactEmail) formData.append('contactEmail', dto.contactEmail);
+    if (dto.contactPhone) formData.append('contactPhone', dto.contactPhone);
+    if (dto.address)      formData.append('address', dto.address);
+    if (dto.logo)         formData.append('logo', dto.logo);
     return formData;
   }
 }

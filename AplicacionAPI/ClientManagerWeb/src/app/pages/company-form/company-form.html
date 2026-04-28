@@ -53,14 +53,28 @@
 
         <div class="field-row">
           <div class="field-group">
-            <label class="field-label" for="status">Estado</label>
-            <div class="field-select-wrap">
-              <select id="status" class="field-select" formControlName="status">
-                @for (opt of statusOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-              <mat-icon class="select-chevron">expand_more</mat-icon>
+            <label class="field-label">Estado</label>
+            <div class="company-dropdown" [class.company-dropdown--open]="isStatusDropdownOpen()">
+              <button type="button" class="dropdown-trigger"
+                      (click)="isStatusDropdownOpen.update(v => !v)">
+                <span class="dropdown-label">{{ selectedStatusLabel() }}</span>
+                <mat-icon class="dropdown-chevron"
+                          [class.dropdown-chevron--open]="isStatusDropdownOpen()">
+                  expand_more
+                </mat-icon>
+              </button>
+              @if (isStatusDropdownOpen()) {
+                <div class="dropdown-backdrop" (click)="isStatusDropdownOpen.set(false)"></div>
+                <div class="dropdown-panel">
+                  @for (opt of statusOptions; track opt.value) {
+                    <button type="button" class="dropdown-option"
+                            [class.dropdown-option--active]="status.value === opt.value"
+                            (click)="selectStatus(opt.value)">
+                      {{ opt.label }}
+                    </button>
+                  }
+                </div>
+              }
             </div>
           </div>
         </div>

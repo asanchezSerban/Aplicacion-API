@@ -1,4 +1,4 @@
-import { Component, OnInit, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -42,6 +42,19 @@ export class CompanyFormComponent implements OnInit {
     { value: 'Churned',  label: COMPANY_STATUS_LABELS.Churned  },
   ];
 
+  isStatusDropdownOpen = signal(false);
+  currentStatus        = signal<CompanyStatus>('Active');
+
+  selectedStatusLabel = computed(() =>
+    this.statusOptions.find(o => o.value === this.currentStatus())?.label ?? 'Selecciona estado'
+  );
+
+  selectStatus(value: CompanyStatus): void {
+    this.currentStatus.set(value);
+    this.form.controls['status'].setValue(value);
+    this.isStatusDropdownOpen.set(false);
+  }
+
   get name()         { return this.form.controls['name']; }
   get description()  { return this.form.controls['description']; }
   get status()       { return this.form.controls['status']; }
@@ -73,6 +86,7 @@ export class CompanyFormComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (company) => {
+          this.currentStatus.set(company.status);
           this.form.patchValue({
             name:         company.name,
             description:  company.description,

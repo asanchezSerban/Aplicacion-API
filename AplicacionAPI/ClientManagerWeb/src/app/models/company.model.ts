@@ -24,12 +24,20 @@ export interface Company {
 export interface CreateCompany {
   name: string;
   description: string;
+  status?: CompanyStatus;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
   logo?: File;
 }
 
 export interface UpdateCompany {
   name: string;
   description: string;
+  status?: CompanyStatus;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
   logo?: File;
 }
 
