@@ -46,16 +46,34 @@
         </div>
 
         <div class="field-group">
-          <label class="field-label" for="companyId">Empresa <span class="required">*</span></label>
-          <div class="field-select-wrap">
-            <select id="companyId" class="field-select" formControlName="companyId"
-                    [class.field-input--error]="companyId.invalid && companyId.touched">
-              <option [ngValue]="null" disabled>Selecciona una empresa</option>
-              @for (c of companies(); track c.id) {
-                <option [ngValue]="c.id">{{ c.name }}</option>
-              }
-            </select>
-            <mat-icon class="select-chevron">expand_more</mat-icon>
+          <label class="field-label">Empresa <span class="required">*</span></label>
+          <div class="company-dropdown"
+               [class.company-dropdown--open]="isCompanyDropdownOpen()"
+               [class.company-dropdown--error]="companyId.invalid && companyId.touched">
+            <button type="button" class="dropdown-trigger"
+                    (click)="isCompanyDropdownOpen.update(v => !v)">
+              <span class="dropdown-label"
+                    [class.dropdown-label--placeholder]="!companyId.value">
+                {{ selectedCompanyName() }}
+              </span>
+              <mat-icon class="dropdown-chevron"
+                        [class.dropdown-chevron--open]="isCompanyDropdownOpen()">
+                expand_more
+              </mat-icon>
+            </button>
+
+            @if (isCompanyDropdownOpen()) {
+              <div class="dropdown-backdrop" (click)="isCompanyDropdownOpen.set(false)"></div>
+              <div class="dropdown-panel">
+                @for (c of companies(); track c.id) {
+                  <button type="button" class="dropdown-option"
+                          [class.dropdown-option--active]="companyId.value === c.id"
+                          (click)="selectCompany(c.id)">
+                    {{ c.name }}
+                  </button>
+                }
+              </div>
+            }
           </div>
           @if (companyId.hasError('required') && companyId.touched) {
             <span class="field-error">Selecciona una empresa</span>

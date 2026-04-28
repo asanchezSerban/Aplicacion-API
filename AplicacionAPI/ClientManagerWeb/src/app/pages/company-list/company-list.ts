@@ -270,8 +270,8 @@ export class CompanyListComponent implements OnInit {
   }
 
   private showSnackBar(message: string, isError = false): void {
-    this.snackBar.open(message, 'Cerrar', {
-      duration: 3000,
+    this.snackBar.open(message, undefined, {
+      duration: 2000,
       panelClass: isError ? ['snackbar-error'] : ['snackbar-success'],
       verticalPosition: 'top',
       horizontalPosition: 'center'

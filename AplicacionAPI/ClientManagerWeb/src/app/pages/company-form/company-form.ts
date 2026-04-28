@@ -140,8 +140,8 @@ export class CompanyFormComponent implements OnInit {
   cancel(): void { this.router.navigate([ROUTES.COMPANIES]); }
 
   private showSnackBar(message: string, isError = false): void {
-    this.snackBar.open(message, 'Cerrar', {
-      duration: 3000,
+    this.snackBar.open(message, undefined, {
+      duration: 2000,
       panelClass: isError ? ['snackbar-error'] : ['snackbar-success'],
       verticalPosition: 'top',
       horizontalPosition: 'center'

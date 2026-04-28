@@ -61,44 +61,48 @@ input[type="password"]::-ms-clear {
   backdrop-filter: blur(2px);
 }
 
-// Global snackbar styles
+// Global snackbar — override directo sobre el DOM de Material
 .snackbar-success,
 .snackbar-error {
-  --mdc-snackbar-container-shape: 12px;
-  --mdc-snackbar-supporting-text-font: 'Inter', system-ui, sans-serif;
-  --mdc-snackbar-supporting-text-size: 0.875rem;
-  --mdc-snackbar-supporting-text-weight: 500;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.06) !important;
-  min-width: 300px !important;
-  max-width: 440px !important;
-
-  .mat-mdc-snack-bar-label {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    padding: 0.875rem 1rem !important;
+  // Contenedor y superficie
+  &.mat-mdc-snack-bar-container,
+  .mdc-snackbar__surface {
+    min-width: 0 !important;
+    max-width: 400px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10) !important;
+    border-radius: 10px !important;
+    padding: 0 !important;
   }
 
-  .mdc-button__label {
-    font-family: 'Inter', system-ui, sans-serif;
-    font-size: 0.8125rem;
-    font-weight: 600;
+  // Ocultar todos los iconos/pseudo que añade Material
+  *::before, *::after,
+  .mat-icon, .mdc-button__ripple { display: none !important; }
+
+  // Label — texto único
+  .mat-mdc-snack-bar-label.mdc-snackbar__label {
+    font-family: 'Inter', system-ui, sans-serif !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    padding: 0.75rem 1.25rem !important;
   }
 }
 
 .snackbar-success {
-  --mdc-snackbar-container-color: #EEF0FF;
-  --mdc-snackbar-supporting-text-color: #1E1B4B;
-  border-left: 4px solid #4F46E5 !important;
-
-  .mdc-button__label { color: #4F46E5; }
+  .mdc-snackbar__surface {
+    background: #EFF6FF !important;
+    border: 1.5px solid #BFDBFE !important;
+  }
+  .mat-mdc-snack-bar-label.mdc-snackbar__label {
+    color: #1E40AF !important;
+  }
 }
 
 .snackbar-error {
-  --mdc-snackbar-container-color: #FEF2F2;
-  --mdc-snackbar-supporting-text-color: #7F1D1D;
-  border-left: 4px solid #DC2626 !important;
-
-  .mdc-button__label { color: #DC2626; }
+  .mdc-snackbar__surface {
+    background: #FEF2F2 !important;
+    border: 1.5px solid #FECACA !important;
+  }
+  .mat-mdc-snack-bar-label.mdc-snackbar__label {
+    color: #991B1B !important;
+  }
 }
