@@ -126,7 +126,7 @@ public class AuthService : IAuthService
                           background:#f0f4ff;border-radius:12px;color:#1a1a2e">
                 {code}
               </div>
-              <p>Este código expira en <strong>1 minuto</strong>.</p>
+              <p>Este código expira en <strong>30 segundos</strong>.</p>
               <p style="color:#888;font-size:0.85rem">Si no intentaste iniciar sesión, ignora este email.</p>
             </div>
             """;
@@ -185,7 +185,7 @@ public class AuthService : IAuthService
                           background:#f0f4ff;border-radius:12px;color:#1a1a2e">
                 {code}
               </div>
-              <p>Este código expira en <strong>1 minuto</strong>.</p>
+              <p>Este código expira en <strong>30 segundos</strong>.</p>
               <p style="color:#888;font-size:0.85rem">Si no intentaste iniciar sesión, ignora este email.</p>
             </div>
             """;
