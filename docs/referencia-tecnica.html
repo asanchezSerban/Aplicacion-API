@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClientManager — Referencia Técnica Completa</title>
+<style>
+:root {
+  --primary: #4f46e5;
+  --primary-dark: #3730a3;
+  --accent: #06b6d4;
+  --bg: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-code: #0f172a;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg); line-height: 1.75; font-size: 16px; }
+
+.layout { display: flex; min-height: 100vh; }
+
+/* SIDEBAR */
+aside { width: 260px; min-width: 260px; background: var(--bg-secondary); border-right: 1px solid var(--border); padding: 1.5rem 1.25rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; font-size: 0.82rem; }
+.logo { display: flex; align-items: center; gap: 0.6rem; padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+.logo-badge { width: 34px; height: 34px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
+.logo-text { font-weight: 700; color: var(--text); line-height: 1.3; }
+.logo-sub { font-size: 0.7rem; color: var(--text-muted); }
+aside h5 { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700; margin: 1.25rem 0 0.4rem; }
+aside ul { list-style: none; }
+aside ul li a { display: block; padding: 0.3rem 0.6rem; border-radius: 5px; color: var(--text-muted); text-decoration: none; transition: all 0.12s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+aside ul li a:hover { background: var(--border); color: var(--primary); }
+aside ul.sub { margin-left: 0.75rem; }
+aside ul.sub li a { font-size: 0.78rem; padding: 0.22rem 0.5rem; }
+
+/* MAIN */
+main { flex: 1; min-width: 0; }
+
+/* COVER */
+.cover { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 100%); color: white; padding: 4rem 4.5rem; position: relative; overflow: hidden; }
+.cover::after { content: ''; position: absolute; top: -50%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(79,70,229,0.25) 0%, transparent 65%); pointer-events: none; }
+.cover-chip { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 1.25rem; }
+.cover h1 { font-size: 2.5rem !important; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; color: white !important; border: none !important; margin: 0 0 1rem !important; padding: 0 !important; }
+.cover p { color: rgba(255,255,255,0.65); font-size: 1rem; max-width: 560px; margin: 0 0 2rem !important; }
+.cover-stats { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+.cover-stat { display: flex; flex-direction: column; gap: 0.15rem; }
+.cover-stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); }
+.cover-stat-value { font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.95); }
+
+/* CONTENT */
+.content { padding: 3rem 4.5rem; max-width: 900px; }
+
+h1 { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; margin: 3rem 0 1rem; color: var(--text); padding-bottom: 0.65rem; border-bottom: 3px solid var(--primary); }
+h2 { font-size: 1.35rem; font-weight: 700; margin: 2.5rem 0 0.65rem; color: var(--text); padding: 0.65rem 1rem; background: var(--bg-secondary); border-left: 4px solid var(--primary); border-radius: 0 8px 8px 0; }
+h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.5rem; color: var(--text); }
+h4 { font-size: 0.95rem; font-weight: 700; margin: 1.5rem 0 0.4rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.82rem; }
+p { margin: 0.75rem 0; }
+strong { font-weight: 700; }
+
+ul, ol { margin: 0.65rem 0 0.65rem 1.5rem; }
+li { margin: 0.3rem 0; }
+
+blockquote { background: #eff6ff; border-left: 4px solid var(--primary); padding: 0.85rem 1.25rem; margin: 1.25rem 0; border-radius: 0 8px 8px 0; color: #1e40af; }
+
+hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code { background: #f1f5f9; color: #be123c; padding: 0.12em 0.4em; border-radius: 4px; font-size: 0.85em; font-family: 'Cascadia Code', 'Consolas', 'Fira Code', monospace; }
+pre { background: var(--bg-code); border-radius: 10px; padding: 1.5rem; margin: 1.25rem 0; overflow-x: auto; border: 1px solid rgba(255,255,255,0.05); }
+pre code { background: transparent; color: #cbd5e1; padding: 0; font-size: 0.82rem; line-height: 1.65; }
+
+table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.875rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+thead { background: var(--primary); }
+th { padding: 0.65rem 1rem; text-align: left; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: white; }
+td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg-secondary); }
+tbody tr:hover { background: #eff6ff; }
+
+@media print {
+  aside { display: none; }
+  .content { padding: 1.5rem; max-width: 100%; }
+  .cover { padding: 2rem; }
+  pre { white-space: pre-wrap; word-break: break-all; }
+  h2 { break-before: page; }
+  a { color: var(--text); }
+}
+@media (max-width: 900px) {
+  aside { display: none; }
+  .content { padding: 2rem; }
+  .cover { padding: 2rem; }
+  .cover h1 { font-size: 1.75rem !important; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="logo">
+    <div class="logo-badge">CM</div>
+    <div>
+      <div class="logo-text">ClientManager</div>
+      <div class="logo-sub">Referencia Técnica</div>
+    </div>
+  </div>
+  <h5>Secciones</h5>
+  <ul>
+    <li><a href="#1-vision-general">1. Visión general</a></li>
+    <li><a href="#2-por-que-este-stack">2. Por qué este stack</a></li>
+    <li><a href="#3-arquitectura-general">3. Arquitectura</a></li>
+    <li><a href="#4-base-de-datos">4. Base de datos</a></li>
+    <li><a href="#5-backend--capa-por-capa">5. Backend</a></li>
+    <ul class="sub">
+      <li><a href="#51-programcs--el-punto-de-entrada">5.1 Program.cs</a></li>
+      <li><a href="#52-modelos">5.2 Modelos</a></li>
+      <li><a href="#53-dtos">5.3 DTOs</a></li>
+      <li><a href="#54-servicios">5.4 Servicios</a></li>
+      <li><a href="#55-controladores">5.5 Controladores</a></li>
+    </ul>
+    <li><a href="#6-frontend--capa-por-capa">6. Frontend</a></li>
+    <ul class="sub">
+      <li><a href="#61-conceptos-angular-21">6.1 Angular 21</a></li>
+      <li><a href="#62-estructura-de-carpetas">6.2 Estructura</a></li>
+      <li><a href="#63-servicios">6.3 Servicios</a></li>
+      <li><a href="#64-guards">6.4 Guards</a></li>
+      <li><a href="#65-interceptor-http">6.5 Interceptor</a></li>
+      <li><a href="#68-paginas-principales">6.8 Páginas</a></li>
+    </ul>
+    <li><a href="#7-seguridad-completa">7. Seguridad</a></li>
+    <li><a href="#8-flujos-completos-de-usuario">8. Flujos</a></li>
+    <li><a href="#9-tests-de-integracion">9. Tests</a></li>
+    <li><a href="#10-despliegue-en-iis">10. IIS</a></li>
+    <li><a href="#11-cicd">11. CI/CD</a></li>
+    <li><a href="#apendice-comandos-utiles">Apéndice</a></li>
+  </ul>
+</aside>
+<main>
+  <div class="cover">
+    <span class="cover-chip">Documentación interna v1.0</span>
+    <h1>ClientManager<br>Referencia Técnica Completa</h1>
+    <p>Documento definitivo. Stack, arquitectura, backend, frontend, seguridad, flujos, base de datos y despliegue explicados en profundidad.</p>
+    <div class="cover-stats">
+      <div class="cover-stat"><span class="cover-stat-label">Backend</span><span class="cover-stat-value">.NET 10 + ASP.NET Core</span></div>
+      <div class="cover-stat"><span class="cover-stat-label">Frontend</span><span class="cover-stat-value">Angular 21</span></div>
+      <div class="cover-stat"><span class="cover-stat-label">Base de datos</span><span class="cover-stat-value">PostgreSQL 15</span></div>
+      <div class="cover-stat"><span class="cover-stat-label">Despliegue</span><span class="cover-stat-value">IIS (Windows)</span></div>
+      <div class="cover-stat"><span class="cover-stat-label">Año</span><span class="cover-stat-value">2026</span></div>
+    </div>
+  </div>
+  <div class="content">
+<h1 id="clientmanager-referencia-tecnica-completa">ClientManager — Referencia Técnica Completa</h1>
+
+<blockquote>Documento definitivo de la aplicación. Cubre absolutamente todo: stack, arquitectura, backend, frontend, seguridad, flujos, base de datos y despliegue. Escrito para poder responder cualquier pregunta técnica sin necesidad de consultar el código.</blockquote>
+
+<hr>
+
+<h2 id="indice">ÍNDICE</h2>
+
+<ol><li><a href="#1-visión-general">Visión general</a></li><li><a href="#2-por-qué-este-stack">Por qué este stack</a></li><li><a href="#3-arquitectura-general">Arquitectura general</a></li><li><a href="#4-base-de-datos">Base de datos</a></li><li><a href="#5-backend--capa-por-capa">Backend — capa por capa</a></li><li><a href="#6-frontend--capa-por-capa">Frontend — capa por capa</a></li><li><a href="#7-seguridad-completa">Seguridad completa</a></li><li><a href="#8-flujos-completos-de-usuario">Flujos completos de usuario</a></li><li><a href="#9-tests-de-integración">Tests de integración</a></li><li><a href="#10-despliegue-en-iis">Despliegue en IIS</a></li><li><a href="#11-cicd">CI/CD</a></li></ol>
+
+<hr>
+
+<h2 id="1-vision-general">1. Visión general</h2>
+
+<p>
+ClientManager es una aplicación web de gestión de empresas y sus usuarios de contacto. Tiene dos tipos de usuarios:
+</p>
+
+<ul><li><strong>SuperAdmin</strong>: administrador único con acceso total. Gestiona empresas, crea usuarios, ve estadísticas.</li><li><strong>Cliente</strong>: usuario de contacto de una empresa. Solo puede ver su propio perfil.</li></ul>
+
+<p>
+La app es una <strong>SPA (Single Page Application)</strong> con un backend API REST separado. El frontend en Angular se comunica con el backend en .NET a través de HTTP. La autenticación usa JWT almacenado en cookies HttpOnly, lo que significa que el token nunca es accesible desde JavaScript.
+</p>
+
+<hr>
+
+<h2 id="2-por-que-este-stack">2. Por qué este stack</h2>
+
+<h3 id="2-1-net-10-asp-net-core">2.1 .NET 10 + ASP.NET Core</h3>
+
+<p>
+<strong>Qué es</strong>: .NET es la plataforma de desarrollo de Microsoft. ASP.NET Core es el framework web que corre sobre ella. La versión 10 es la más reciente LTS.
+</p>
+
+<p>
+<strong>Por qué se eligió</strong>:
+</p>
+<ul><li>Rendimiento excepcional — ASP.NET Core está consistentemente en el top 5 de los benchmarks de TechEmpower para frameworks web</li><li>Sistema de inyección de dependencias integrado y maduro</li><li>ASP.NET Core Identity — solución completa para autenticación con usuarios, roles, hashing de contraseñas, lockout, etc. No hay que construirla desde cero</li><li>EF Core — ORM potente con migraciones automáticas y LINQ</li><li>Ecosistema maduro con librerías de calidad para JWT, OTP, email</li></ul>
+
+<p>
+<strong>Alternativas descartadas</strong>:
+</p>
+<ul><li>Node.js/Express: menos tipado, más propenso a errores en runtime</li><li>Spring Boot (Java): más verboso, mayor overhead de configuración</li><li>FastAPI (Python): excelente para ML/datos pero el ecosistema de Identity no es tan completo</li></ul>
+
+<h3 id="2-2-entity-framework-core-9">2.2 Entity Framework Core 9</h3>
+
+<p>
+<strong>Qué es</strong>: ORM (Object-Relational Mapper) de Microsoft. Permite trabajar con la base de datos usando objetos C# en lugar de SQL puro. Las "migraciones" son scripts que EF genera automáticamente para crear/modificar tablas.
+</p>
+
+<p>
+<strong>Por qué se eligió</strong>:
+</p>
+<ul><li>Code-first: defines el modelo en C# y EF genera el SQL</li><li>Migraciones versionadas que se aplican automáticamente al arrancar</li><li>LINQ: consultas tipadas que se traducen a SQL eficiente</li><li>Integración nativa con ASP.NET Core Identity</li></ul>
+
+<p>
+<strong>Cómo funciona internamente</strong>: EF mantiene un grafo de objetos en memoria (<code>DbContext</code>). Cuando llamas a <code>SaveChangesAsync()</code>, EF compara el estado actual con el estado original y genera el SQL mínimo necesario (INSERT/UPDATE/DELETE). Las migraciones son clases C# con métodos <code>Up()</code> y <code>Down()</code> que EF usa para evolucionar el schema.
+</p>
+
+<h3 id="2-3-postgresql">2.3 PostgreSQL</h3>
+
+<p>
+<strong>Qué es</strong>: Sistema de gestión de bases de datos relacionales de código abierto. Considerado el más avanzado técnicamente en el mundo open source.
+</p>
+
+<p>
+<strong>Por qué se eligió</strong>:
+</p>
+<ul><li>ACID completo: las transacciones son seguras</li><li>Tipos de datos avanzados (JSONB, arrays, etc.)</li><li>Rendimiento excelente con índices bien configurados</li><li><code>IDENTITY ALWAYS</code> para claves primarias (más seguro que SERIAL)</li><li>Soporte nativo en EF Core a través de Npgsql</li></ul>
+
+<p>
+<strong>Alternativas descartadas</strong>:
+</p>
+<ul><li>MySQL: históricamente más lento en operaciones complejas, menos estricto con tipos</li><li>SQL Server: de pago para producción, dependencia de Microsoft</li><li>SQLite: no apto para producción con concurrencia</li></ul>
+
+<h3 id="2-4-angular-21">2.4 Angular 21</h3>
+
+<p>
+<strong>Qué es</strong>: Framework JavaScript de Google para construir SPAs. Una SPA (Single Page Application) es una web que carga una sola vez y navega sin recargar la página completa. Angular 21 introduce el sistema de "signals" para reactividad y componentes standalone sin NgModules.
+</p>
+
+<p>
+<strong>Por qué se eligió</strong>:
+</p>
+<ul><li>TypeScript nativo: tipado fuerte que evita errores en runtime</li><li>Standalone components y signals: arquitectura moderna sin el boilerplate de los módulos</li><li>Angular Material: librería de componentes UI completa y accesible</li><li>Inyección de dependencias integrada: <code>inject()</code> en lugar de constructores</li><li>Angular Router: routing avanzado con guards, lazy loading y resolvers</li><li>Ecosistema maduro con herramientas de testing, build, etc.</li></ul>
+
+<p>
+<strong>Alternativas descartadas</strong>:
+</p>
+<ul><li>React: biblioteca (no framework), requiere más decisiones manuales de arquitectura</li><li>Vue.js: menos tipado fuerte, ecosistema más pequeño para apps enterprise</li><li>Svelte: excelente rendimiento pero ecosistema más joven</li></ul>
+
+<h3 id="2-5-jwt-json-web-tokens">2.5 JWT (JSON Web Tokens)</h3>
+
+<p>
+<strong>Qué es</strong>: Estándar para transmitir información de autenticación de forma segura entre partes. Un JWT tiene tres partes separadas por puntos: <code>header.payload.signature</code>. El header dice el algoritmo de firma, el payload contiene los claims (datos del usuario), y la signature verifica que no fue alterado.
+</p>
+
+<p>
+<strong>Por qué en cookie HttpOnly</strong>: Si el JWT se guarda en localStorage (como hacen muchas apps), JavaScript puede leerlo, lo que abre el vector de ataque XSS (un script malicioso roba el token). Al guardarlo en una cookie HttpOnly, el navegador lo envía automáticamente en cada request pero JavaScript no puede accederlo, eliminando ese vector.
+</p>
+
+<p>
+<strong>Por qué se eligió sobre alternativas</strong>:
+</p>
+<ul><li>Sessions en servidor: requieren almacenamiento en servidor (Redis, DB), no escalan horizontalmente tan bien</li><li>OAuth2/OIDC: excesivamente complejo para una app con un solo proveedor de identidad propio</li></ul>
+
+<h3 id="2-6-asp-net-core-identity">2.6 ASP.NET Core Identity</h3>
+
+<p>
+<strong>Qué es</strong>: Sistema de gestión de usuarios de Microsoft para .NET. Incluye: hashing de contraseñas (PBKDF2 con salt), gestión de roles, lockout de cuentas, tokens de reset de contraseña, tokens de verificación de email, SecurityStamp para invalidar sesiones.
+</p>
+
+<p>
+<strong>Por qué se eligió</strong>: Construir un sistema de autenticación seguro desde cero es extremadamente difícil. Identity resuelve correctamente docenas de problemas de seguridad que son fáciles de hacer mal.
+</p>
+
+<h3 id="2-7-mailkit">2.7 MailKit</h3>
+
+<p>
+<strong>Qué es</strong>: Librería .NET para enviar emails via SMTP. Es la recomendación oficial de Microsoft (sustituyó a <code>System.Net.Mail</code>).
+</p>
+
+<p>
+<strong>Para qué se usa</strong>: Envío de OTPs (códigos de un solo uso) a usuarios clientes y links de reset de contraseña.
+</p>
+
+<p>
+<strong>En desarrollo</strong>: Se usa smtp4dev, un servidor SMTP falso que intercepta los emails y los muestra en una UI web en <code>localhost:5010</code>. Los emails nunca llegan realmente.
+</p>
+
+<h3 id="2-8-otpnet">2.8 OtpNet</h3>
+
+<p>
+<strong>Qué es</strong>: Librería .NET que implementa los estándares RFC 6238 (TOTP) y RFC 4226 (HOTP).
+</p>
+
+<p>
+<strong>TOTP (Time-based One-Time Password)</strong>: Algoritmo que genera códigos de 6 dígitos válidos durante 30 segundos basándose en una clave secreta compartida y el tiempo actual. Es lo que usa Google Authenticator.
+</p>
+
+<p>
+<strong>Cómo funciona</strong>: El backend genera una clave secreta aleatoria de 160 bits, la convierte a Base32 y genera un URI <code>otpauth://</code>. El usuario escanea ese URI con Google Authenticator. Desde ese momento, tanto el servidor como la app del usuario pueden generar independientemente el mismo código de 6 dígitos para el mismo instante de tiempo (sin comunicación de red).
+</p>
+
+<hr>
+
+<h2 id="3-arquitectura-general">3. Arquitectura general</h2>
+
+<pre><code class="lang-text">┌─────────────────────────────────────────────────────────┐
+│                    NAVEGADOR                            │
+│  Angular 21 SPA (localhost:4200 en dev / IIS en prod)  │
+│                                                         │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
+│  │ Services │  │  Guards  │  │Interceptor│             │
+│  └──────────┘  └──────────┘  └──────────┘             │
+│        │              │              │                  │
+│        └──────────────┴──────────────┘                  │
+│                       │ HTTP + cookies                   │
+└───────────────────────┼─────────────────────────────────┘
+                        │
+┌───────────────────────▼─────────────────────────────────┐
+│              ASP.NET Core API (localhost:5000)           │
+│                                                         │
+│  ┌────────────┐  ┌────────────┐  ┌────────────────┐    │
+│  │Controllers │  │  Services  │  │ Background Svc │    │
+│  └────────────┘  └────────────┘  └────────────────┘    │
+│         │               │                               │
+│         └───────────────┘                               │
+│                   │ EF Core                              │
+└───────────────────┼─────────────────────────────────────┘
+                    │
+┌───────────────────▼─────────────────────────────────────┐
+│              PostgreSQL (localhost:5432)                 │
+│                                                         │
+│  Companies │ Users │ AspNetUsers │ RefreshTokens │ OTPs │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+
+<p>
+<strong>Principio</strong>: el frontend nunca accede directamente a la base de datos. Todo pasa por la API. La API valida la autenticación (JWT en cookie) antes de ejecutar cualquier operación.
+</p>
+
+<hr>
+
+<h2 id="4-base-de-datos">4. Base de datos</h2>
+
+<h3 id="4-1-tablas-principales">4.1 Tablas principales</h3>
+
+<h4 id="companies"><code>Companies</code></h4>
+<p>
+Almacena las empresas que gestiona el SuperAdmin.
+</p>
+
+<table><thead><tr><th>Columna</th><th>Tipo</th><th>Notas</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>IDENTITY ALWAYS (auto-incremental)</td></tr>
+<p>
+<tr><td>Name</td><td>varchar(200)</td><td>UNIQUE — no pueden existir dos empresas con el mismo nombre</td></tr>
+<tr><td>Description</td><td>varchar(2000)</td><td>Obligatorio</td></tr>
+<tr><td>LogoFileName</td><td>varchar(500)</td><td>Nombre del archivo de logo guardado en wwwroot/uploads/</td></tr>
+<tr><td>Status</td><td>varchar(20)</td><td>Enum como string: 'Active', 'Prospect', 'Inactive', 'Churned'</td></tr>
+<tr><td>ContactEmail</td><td>varchar(200)</td><td>Opcional. Único globalmente (ver validación en servicios)</td></tr>
+<tr><td>ContactPhone</td><td>varchar(30)</td><td>Opcional</td></tr>
+<tr><td>Address</td><td>varchar(300)</td><td>Opcional</td></tr>
+<tr><td>CreatedAt</td><td>timestamp</td><td>Default NOW()</td></tr>
+<tr><td>UpdatedAt</td><td>timestamp</td><td>Default NOW()</td></tr></tbody></table>
+</p>
+
+<p>
+<strong>Índices</strong>: <code>Name</code> (UNIQUE), <code>Status</code>, <code>UpdatedAt</code>
+</p>
+
+<p>
+<strong>Por qué Status es string y no int</strong>: Los enums como strings son más legibles en la BD y más mantenibles. Si se añade un valor al enum, no hay que hacer una migración para cambiar el tipo numérico. EF Core convierte automáticamente entre el enum C# y el string en BD.
+</p>
+
+<h4 id="users"><code>Users</code></h4>
+<p>
+Contactos de empresa. Cada usuario pertenece a una empresa.
+</p>
+
+<table><thead><tr><th>Columna</th><th>Tipo</th><th>Notas</th></tr></thead><tbody><tr><td>Id</td><td>int</td><td>IDENTITY ALWAYS</td></tr>
+<p>
+<tr><td>Name</td><td>varchar(200)</td><td>Obligatorio</td></tr>
+<tr><td>Email</td><td>varchar(200)</td><td>UNIQUE — un email solo puede pertenecer a un usuario</td></tr>
+<tr><td>CompanyId</td><td>int</td><td>FK a Companies</td></tr>
+<tr><td>CreatedAt</td><td>timestamp</td><td>Default NOW()</td></tr>
+<tr><td>UpdatedAt</td><td>timestamp</td><td>Default NOW()</td></tr></tbody></table>
+</p>
+
+<p>
+<strong>Índices</strong>: <code>Email</code> (UNIQUE), <code>CompanyId</code>, <code>Name</code>
+</p>
+
+<p>
+<strong>Relación con Companies</strong>: <code>CASCADE DELETE</code> — si se borra una empresa, se borran todos sus usuarios automáticamente.
+</p>
+
+<p>
+<strong>Relación con AspNetUsers</strong>: Cada <code>User</code> tiene un <code>ApplicationUser</code> correspondiente con la cuenta de login. Cuando se crea un <code>User</code>, en la misma transacción se crea el <code>ApplicationUser</code>. Cuando se borra un <code>User</code>, el <code>ApplicationUser</code> tiene <code>UserId = null</code> (SET NULL).
+</p>
+
+<h4 id="aspnetusers-gestionada-por-identity"><code>AspNetUsers</code> (gestionada por Identity)</h4>
+<p>
+Tabla de cuentas de acceso. ASP.NET Core Identity genera esta tabla automáticamente.
+</p>
+
+<table><thead><tr><th>Columna relevante</th><th>Notas</th></tr></thead><tbody><tr><td>Id</td><td>GUID (string) — Identity usa GUIDs como PK</td></tr>
+<p>
+<tr><td>UserName</td><td>Email del usuario (mismo valor que Email)</td></tr>
+<tr><td>Email</td><td>Email normalizado</td></tr>
+<tr><td>NormalizedEmail</td><td>Email en mayúsculas para búsquedas case-insensitive</td></tr>
+<tr><td>PasswordHash</td><td>PBKDF2 con salt — nunca se guarda la contraseña en texto plano</td></tr>
+<tr><td>SecurityStamp</td><td>GUID que cambia cuando cambia la contraseña. Se incluye en el JWT y se valida en cada request</td></tr>
+<tr><td>LockoutEnd</td><td>Fecha hasta la que la cuenta está bloqueada (null = no bloqueada)</td></tr>
+<tr><td>AccessFailedCount</td><td>Contador de intentos fallidos</td></tr>
+<tr><td>TotpSecret</td><td>Clave secreta TOTP en Base32 (null si TOTP no configurado) — COLUMNA AÑADIDA</td></tr>
+<tr><td>TotpEnabled</td><td>Boolean — indica si el 2FA está activo — COLUMNA AÑADIDA</td></tr>
+<tr><td>TotpBackupCodes</td><td>JSON con array de hashes SHA256 de los códigos de respaldo — COLUMNA AÑADIDA</td></tr>
+<tr><td>UserId</td><td>FK nullable a Users — null para SuperAdmin — COLUMNA AÑADIDA</td></tr>
+<tr><td>CreatedAt</td><td>Fecha de creación — COLUMNA AÑADIDA</td></tr></tbody></table>
+</p>
+
+<p>
+<strong>Por qué Identity usa GUIDs</strong>: Evita que un atacante pueda enumerar usuarios probando IDs secuenciales.
+</p>
+
+<h4 id="refreshtokens"><code>RefreshTokens</code></h4>
+<p>
+Tokens de larga duración que permiten renovar el access token (JWT de 15 min) sin pedir contraseña.
+</p>
+
+<table><thead><tr><th>Columna</th><th>Notas</th></tr></thead><tbody><tr><td>Id</td><td>IDENTITY ALWAYS</td></tr>
+<p>
+<tr><td>Token</td><td>32 bytes aleatorios en Base64 — criptográficamente seguro</td></tr>
+<tr><td>UserId</td><td>FK a AspNetUsers</td></tr>
+<tr><td>ExpiresAt</td><td>24 horas desde creación</td></tr>
+<tr><td>RevokedAt</td><td>null si activo. Fecha si fue revocado (logout, cambio de contraseña)</td></tr>
+<tr><td>ReplacedByToken</td><td>Al rotar el token, aquí se guarda el nuevo. Permite auditoría de cadena</td></tr>
+<tr><td>CreatedAt</td><td>Fecha de creación</td></tr></tbody></table>
+</p>
+
+<p>
+<strong>Propiedad calculada <code>IsActive</code></strong>: <code>RevokedAt == null && ExpiresAt > DateTime.UtcNow</code>
+</p>
+
+<p>
+<strong>Índices</strong>: <code>Token</code> (UNIQUE), <code>UserId</code>, <code>ExpiresAt</code>
+</p>
+
+<h4 id="emailotpcodes"><code>EmailOtpCodes</code></h4>
+<p>
+Códigos de un solo uso enviados por email a los clientes para verificar su identidad.
+</p>
+
+<table><thead><tr><th>Columna</th><th>Notas</th></tr></thead><tbody><tr><td>Id</td><td>IDENTITY ALWAYS</td></tr>
+<p>
+<tr><td>UserId</td><td>FK a AspNetUsers</td></tr>
+<tr><td>CodeHash</td><td>SHA256 del código de 6 dígitos — nunca se guarda el código en texto plano</td></tr>
+<tr><td>ExpiresAt</td><td>30 segundos desde creación</td></tr>
+<tr><td>IsUsed</td><td>Boolean — una vez usado, no puede usarse de nuevo</td></tr>
+<tr><td>Attempts</td><td>Contador de intentos fallidos. Máximo 3 antes de invalidar</td></tr>
+<tr><td>CreatedAt</td><td>Fecha de creación</td></tr></tbody></table>
+</p>
+
+<p>
+<strong>Por qué se hashea el OTP</strong>: Si alguien accede a la BD durante la ventana de 30 segundos, no puede usar el código porque solo está el hash.
+</p>
+
+<p>
+<strong>Índices</strong>: <code>UserId</code>, <code>ExpiresAt</code>, <code>(ExpiresAt, IsUsed)</code> (índice compuesto para la limpieza)
+</p>
+
+<h3 id="4-2-tablas-de-identity-generadas-automaticamente">4.2 Tablas de Identity (generadas automáticamente)</h3>
+
+<p>
+Además de <code>AspNetUsers</code>, Identity crea:
+</p>
+<ul><li><code>AspNetRoles</code>: roles del sistema (SuperAdmin, Cliente)</li><li><code>AspNetUserRoles</code>: relación N:M entre usuarios y roles</li><li><code>AspNetUserClaims</code>, <code>AspNetRoleClaims</code>: claims adicionales</li><li><code>AspNetUserLogins</code>, <code>AspNetUserTokens</code>: para proveedores externos (no usados)</li></ul>
+
+<h3 id="4-3-datos-de-seed">4.3 Datos de seed</h3>
+
+<p>
+Al iniciar la app, Program.cs crea automáticamente:
+</p>
+<ol><li>Los roles <code>SuperAdmin</code> y <code>Cliente</code> en <code>AspNetRoles</code></li><li>El usuario SuperAdmin con el email y contraseña de configuración</li><li>Dos empresas de ejemplo: "Acme Corp" y "Tech Startup SL"</li></ol>
+
+<p>
+Las empresas de seed están en <code>ApplicationDbContext.OnModelCreating()</code> via <code>HasData()</code>. El SuperAdmin se crea en <code>Program.cs</code> via <code>UserManager</code>.
+</p>
+
+<h3 id="4-4-migraciones">4.4 Migraciones</h3>
+
+<p>
+EF Core gestiona la evolución del schema con migraciones. Cada migración es un archivo C# con:
+</p>
+<ul><li><code>Up()</code>: cambios a aplicar (CREATE TABLE, ALTER COLUMN, etc.)</li><li><code>Down()</code>: cómo revertirlos (DROP TABLE, etc.)</li></ul>
+
+<p>
+Al arrancar la app, <code>db.Database.MigrateAsync()</code> aplica automáticamente todas las migraciones pendientes. Historial de migraciones del proyecto:
+</p>
+
+<ol><li><code>InitialCreate</code> — Schema inicial</li><li><code>Phase1_RenameClientsToCompanies_AddClientsTable</code> — Renombrado + tabla Users</li><li><code>Phase2_AddIdentityTables</code> — Tablas de Identity</li><li><code>Phase4_AddRefreshTokens</code> — Tabla RefreshTokens</li><li><code>Phase6_RenameClientsToUsers</code> — Renombrado definitivo</li><li><code>Phase7_AddEmailOtpCodes</code> — Tabla EmailOtpCodes</li><li><code>Phase8_RemoveCompanyStatus_UniqueCompanyName</code> — Status y nombre único</li><li><code>Phase9_AddTotpToApplicationUser</code> — Campos TOTP en AspNetUsers</li><li><code>Phase10_AddCleanupIndexes</code> — Índices de rendimiento para limpieza</li><li><code>Phase11_AddCompanyContactFields</code> — Email, teléfono, dirección en empresas</li><li><code>AddTotpBackupCodes</code> — Campo TotpBackupCodes en AspNetUsers</li></ol>
+
+<hr>
+
+<h2 id="5-backend-capa-por-capa">5. Backend — capa por capa</h2>
+
+<h3 id="5-1-program-cs-el-punto-de-entrada">5.1 Program.cs — el punto de entrada</h3>
+
+<p>
+<code>Program.cs</code> es el archivo que arranca toda la aplicación. En .NET 6+ usa el patrón "minimal hosting" donde todo va en un único archivo. Tiene tres grandes secciones:
+</p>
+
+<h4 id="seccion-1-registro-de-servicios-builder">Sección 1: Registro de servicios (builder)</h4>
+
+<pre><code class="lang-text">builder.Services.AddX() — registra servicios en el contenedor de DI
+</code></pre>
+
+<p>
+<strong>Contenedor de Inyección de Dependencias (DI)</strong>: Sistema que gestiona la creación y ciclo de vida de objetos. Cuando un controlador necesita <code>IAuthService</code>, el contenedor automáticamente crea la instancia correcta e inyecta sus propias dependencias. Hay tres ciclos de vida:
+</p>
+<ul><li><code>Singleton</code>: una instancia para toda la app</li><li><code>Scoped</code>: una instancia por request HTTP</li><li><code>Transient</code>: una nueva instancia cada vez que se pide</li></ul>
+
+<p>
+Los servicios de negocio (<code>AuthService</code>, <code>CompanyService</code>, <code>UserService</code>) se registran como <code>Scoped</code> — una instancia por request.
+</p>
+
+<p>
+<strong>Configuración de Identity</strong>:
+</p>
+<pre><code class="lang-csharp">builder.Services.AddIdentity&lt;ApplicationUser, IdentityRole&gt;(options =&gt; {
+    options.Password.RequireUppercase = true;       // Mínimo una mayúscula
+    options.Password.RequireDigit = true;           // Mínimo un número
+    options.Password.RequireNonAlphanumeric = true; // Mínimo un especial
+    options.Password.RequiredLength = 8;            // 8 caracteres mínimo
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1); // 1 min bloqueado
+    options.Lockout.MaxFailedAccessAttempts = 5;    // 5 intentos antes de bloquear
+    options.User.RequireUniqueEmail = true;         // Email único en AspNetUsers
+})
+</code></pre>
+
+<p>
+<strong>Configuración de JWT</strong>:
+</p>
+<pre><code class="lang-csharp">builder.Services.AddAuthentication().AddJwtBearer(options =&gt; {
+    options.TokenValidationParameters = new TokenValidationParameters {
+        ValidateIssuer = true,           // Verifica que el JWT fue emitido por nosotros
+        ValidateAudience = true,         // Verifica que el JWT es para nuestra app
+        ValidateLifetime = true,         // Verifica que no está caducado
+        ValidateIssuerSigningKey = true, // Verifica la firma criptográfica
+        ClockSkew = TimeSpan.Zero,       // Sin margen de tiempo — expira exacto
+        RoleClaimType = "role"           // El claim que identifica el rol
+    };
+    
+    // Leer el token desde la cookie HttpOnly
+    options.Events.OnMessageReceived = ctx =&gt; {
+        var cookie = ctx.Request.Cookies["accessToken"];
+        if (!string.IsNullOrEmpty(cookie)) ctx.Token = cookie;
+    };
+    
+    // Validar el SecurityStamp en cada request
+    options.Events.OnTokenValidated = async ctx =&gt; {
+        var user = await userManager.FindByIdAsync(userId);
+        if (tokenStamp != user.SecurityStamp)
+            ctx.Fail("Sesión invalidada");
+    };
+});
+</code></pre>
+
+<p>
+<strong>Por qué <code>ClockSkew = TimeSpan.Zero</code></strong>: Por defecto JWT tiene 5 minutos de margen para compensar relojes desincronizados entre servidores. Al ponerlo a cero, el token expira exactamente cuando dice. En nuestra app solo hay un servidor, así que no hay problema.
+</p>
+
+<p>
+<strong>Rate Limiting</strong>:
+</p>
+<pre><code class="lang-csharp">options.AddPolicy("auth", httpContext =&gt;
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+        factory: _ =&gt; new FixedWindowRateLimiterOptions {
+            PermitLimit = 5,                    // 5 peticiones
+            Window = TimeSpan.FromMinutes(1),    // por minuto
+        }
+    ));
+</code></pre>
+
+<p>
+La política <code>"auth"</code> se aplica a nivel de clase en <code>AuthController</code> con <code>[EnableRateLimiting("auth")]</code>. Excepto <code>/auth/me</code> que tiene <code>[DisableRateLimiting]</code> ya que es solo lectura.
+</p>
+
+<p>
+<strong>CORS</strong>:
+</p>
+<pre><code class="lang-csharp">policy.WithOrigins(corsOrigins)  // Solo localhost:4200 en desarrollo
+      .AllowAnyMethod()
+      .AllowAnyHeader()
+      .AllowCredentials();       // Imprescindible para que las cookies se envíen
+</code></pre>
+
+<p>
+<code>AllowCredentials()</code> es crítico: sin él, el navegador no envía las cookies HttpOnly en requests cross-origin.
+</p>
+
+<h4 id="seccion-2-pipeline-http-app">Sección 2: Pipeline HTTP (app)</h4>
+
+<p>
+El orden del pipeline importa — cada middleware procesa el request en orden y pasa al siguiente:
+</p>
+
+<pre><code class="lang-text">1. UseExceptionHandler     → captura excepciones no controladas, las convierte en respuestas JSON
+2. UseStaticFiles          → sirve archivos de wwwroot/ (logos de empresas)
+3. UseHsts (solo prod)     → añade header Strict-Transport-Security
+4. UseHttpsRedirection     → redirige HTTP a HTTPS
+5. UseCors                 → aplica política CORS
+6. UseRateLimiter          → aplica rate limiting
+7. UseAuthentication       → verifica JWT, establece HttpContext.User
+8. UseAuthorization        → verifica permisos según [Authorize] attributes
+9. MapControllers          → enruta requests a controladores
+</code></pre>
+
+<p>
+<strong>Por qué UseAuthentication antes que UseAuthorization</strong>: Authentication establece quién eres, Authorization decide qué puedes hacer. Deben ir en ese orden.
+</p>
+
+<h4 id="seccion-3-endpoints-de-desarrollo">Sección 3: Endpoints de desarrollo</h4>
+
+<p>
+Solo accesibles cuando <code>ASPNETCORE_ENVIRONMENT = Development</code>:
+</p>
+
+<ul><li><code>POST /api/dev/seed-companies?count=N</code> — Crea N empresas con nombres aleatorios de una lista predefinida</li><li><code>POST /api/dev/seed-users?count=N</code> — Crea N usuarios con sus <code>ApplicationUser</code> correspondientes (pass: <code>Temporal@2026!</code>)</li><li><code>DELETE /api/dev/delete-all-users</code> — Borra todos los usuarios y sus cuentas de Identity</li><li><code>GET /api/dev/last-otp?email=X</code> — Devuelve el último OTP generado para ese email (lee de <code>DevOtpStore</code>)</li></ul>
+
+<p>
+<code>DevOtpStore</code> es un <code>ConcurrentDictionary<string, string></code> estático que guarda en memoria el último OTP generado para cada email. Solo se usa en Development para que el endpoint anterior pueda devolver el código sin necesitar abrir smtp4dev.
+</p>
+
+<h3 id="5-2-modelos">5.2 Modelos</h3>
+
+<p>
+Los modelos son las clases C# que representan las tablas de la BD.
+</p>
+
+<h4 id="company-cs"><code>Company.cs</code></h4>
+<pre><code class="lang-csharp">public class Company {
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string? LogoFileName { get; set; }      // null si no tiene logo
+    public CompanyStatus Status { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? ContactPhone { get; set; }
+    public string? Address { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public ICollection&lt;User&gt; Users { get; set; }   // navegación — lista de usuarios
+}
+
+public enum CompanyStatus { Active, Prospect, Inactive, Churned }
+</code></pre>
+
+<h4 id="user-cs"><code>User.cs</code></h4>
+<pre><code class="lang-csharp">public class User {
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public int CompanyId { get; set; }
+    public Company Company { get; set; }           // navegación a la empresa
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+</code></pre>
+
+<h4 id="applicationuser-cs"><code>ApplicationUser.cs</code></h4>
+<p>
+Hereda de <code>IdentityUser</code> (que ya tiene Id, UserName, Email, PasswordHash, etc.):
+</p>
+<pre><code class="lang-csharp">public class ApplicationUser : IdentityUser {
+    public int? UserId { get; set; }              // null para SuperAdmin
+    public User? User { get; set; }               // navegación
+    public DateTime CreatedAt { get; set; }
+    public string? TotpSecret { get; set; }       // clave TOTP en Base32
+    public bool TotpEnabled { get; set; }
+    public string? TotpBackupCodes { get; set; }  // JSON: ["hash1","hash2",...]
+}
+</code></pre>
+
+<h4 id="refreshtoken-cs"><code>RefreshToken.cs</code></h4>
+<pre><code class="lang-csharp">public class RefreshToken {
+    public int Id { get; set; }
+    public string Token { get; set; }
+    public string UserId { get; set; }
+    public ApplicationUser User { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? RevokedAt { get; set; }
+    public string? ReplacedByToken { get; set; }
+    public bool IsActive =&gt; RevokedAt == null &amp;&amp; ExpiresAt &gt; DateTime.UtcNow;
+}
+</code></pre>
+
+<h4 id="emailotpcode-cs"><code>EmailOtpCode.cs</code></h4>
+<pre><code class="lang-csharp">public class EmailOtpCode {
+    public int Id { get; set; }
+    public string UserId { get; set; }
+    public ApplicationUser User { get; set; }
+    public string CodeHash { get; set; }          // SHA256 del código
+    public DateTime ExpiresAt { get; set; }       // 30 segundos
+    public bool IsUsed { get; set; }
+    public int Attempts { get; set; }             // máximo 3
+    public DateTime CreatedAt { get; set; }
+}
+</code></pre>
+
+<h3 id="5-3-dtos-data-transfer-objects">5.3 DTOs (Data Transfer Objects)</h3>
+
+<p>
+Los DTOs son clases simples que definen la forma de los datos en los requests y responses de la API. Separan el modelo de BD de lo que se expone al exterior.
+</p>
+
+<h4 id="authdtos-cs"><code>AuthDtos.cs</code></h4>
+
+<p>
+<strong>LoginDto</strong> — lo que envía el frontend al hacer login:
+</p>
+<pre><code class="lang-csharp">{ Email: string, Password: string }
+</code></pre>
+
+<p>
+<strong>LoginResponseDto</strong> — lo que devuelve el endpoint de login:
+</p>
+<pre><code class="lang-csharp">{
+    RequiresMfa: bool,          // true si necesita 2FA
+    MfaEmail: string?,          // email al que se mandó el OTP
+    MfaType: string?,           // "email" o "totp"
+    OtpExpiresAt: DateTime?,    // cuándo expira el OTP (para el timer del frontend)
+    // Tokens van en cookies HttpOnly, NO en el body → [JsonIgnore]
+    // Identidad (cuando RequiresMfa = false):
+    Email: string?,
+    Role: string?,
+    TotpEnabled: bool
+}
+</code></pre>
+
+<p>
+<strong>TokenResponseDto</strong> — respuesta interna que incluye los tokens (usada en MFA verify, TOTP confirm, refresh):
+</p>
+<pre><code class="lang-csharp">{
+    AccessToken: string,        // [JsonIgnore] → va a cookie
+    RefreshToken: string,       // [JsonIgnore] → va a cookie
+    ExpiresAt: DateTime,
+    UserEmail: string,
+    Role: string,
+    TotpEnabled: bool,
+    BackupCodes: List&lt;string&gt;?  // solo cuando se confirma TOTP por primera vez
+}
+</code></pre>
+
+<p>
+<strong>IdentityDto</strong> — devuelto en GET /auth/me:
+</p>
+<pre><code class="lang-csharp">{ Email: string, Role: string, TotpEnabled: bool, UserId: string? }
+</code></pre>
+
+<p>
+<strong>MfaVerifyDto</strong> — para verificar 2FA:
+</p>
+<pre><code class="lang-csharp">{ Email: string, Code: string }  // Code: 6 dígitos TOTP/OTP o 9 chars backup (xxxx-xxxx)
+</code></pre>
+
+<p>
+<strong>TotpSetupResponseDto</strong> — resultado de iniciar setup TOTP:
+</p>
+<pre><code class="lang-csharp">{ QrUri: string, Secret: string }  // QrUri para generar QR, Secret para entrada manual
+</code></pre>
+
+<h4 id="companydtos-cs"><code>CompanyDtos.cs</code></h4>
+
+<p>
+<strong>CreateCompanyDto / UpdateCompanyDto</strong>:
+</p>
+<pre><code class="lang-csharp">{ Name, Description, Status?, ContactEmail?, ContactPhone?, Address?, Logo?: IFormFile }
+</code></pre>
+
+<p>
+<strong>CompanyResponseDto</strong> — lo que devuelve la API:
+</p>
+<pre><code class="lang-csharp">{ Id, Name, Description, LogoUrl, Status, ContactEmail, ContactPhone, Address, CreatedAt, UpdatedAt, UsersCount }
+</code></pre>
+
+<p>
+<strong>PagedResponseDto<T></strong> — wrapper para respuestas paginadas:
+</p>
+<pre><code class="lang-csharp">{ Data: IEnumerable&lt;T&gt;, TotalItems: int, TotalPages: int, CurrentPage: int, PageSize: int }
+</code></pre>
+
+<h4 id="userdtos-cs"><code>UserDtos.cs</code></h4>
+
+<p>
+<strong>CreateUserDto</strong>: <code>{ Name, Email, CompanyId, Password }</code>
+<strong>UpdateUserDto</strong>: <code>{ Name, Email, CompanyId }</code> (sin contraseña — hay endpoint separado para cambiarla)
+<strong>UserResponseDto</strong>: <code>{ Id, Name, Email, CompanyId, CompanyName, CreatedAt, UpdatedAt }</code>
+</p>
+
+<h3 id="5-4-servicios">5.4 Servicios</h3>
+
+<p>
+Los servicios contienen toda la lógica de negocio. Los controladores son finos — reciben el request, llaman al servicio, devuelven el resultado.
+</p>
+
+<h4 id="authservice-cs"><code>AuthService.cs</code></h4>
+
+<p>
+El servicio más complejo. Maneja todo el flujo de autenticación.
+</p>
+
+<p>
+<strong><code>LoginAsync(LoginDto dto)</code></strong>:
+</p>
+<ol><li>Busca el usuario por email en Identity (<code>FindByEmailAsync</code>)</li><li>Comprueba si está bloqueado (<code>IsLockedOutAsync</code>) → 423</li><li>Verifica contraseña (<code>CheckPasswordAsync</code>) → 401 si falla, incrementa <code>AccessFailedCount</code></li><li>Si la contraseña es correcta, resetea el contador de fallos</li><li>Determina el tipo de MFA necesario según el rol:</li></ol>
+<p>
+   - SuperAdmin con TOTP: devuelve <code>requiresMfa=true, mfaType="totp"</code>
+   - SuperAdmin sin TOTP: emite tokens directamente (para que pueda ir a configurar TOTP)
+   - Cliente: genera OTP de 6 dígitos, lo hashea con SHA256, lo guarda en <code>EmailOtpCodes</code>, lo envía por email, devuelve <code>requiresMfa=true, mfaType="email"</code>
+</p>
+
+<p>
+<strong>Generación del OTP</strong>:
+</p>
+<pre><code class="lang-csharp">var bytes = new byte[4];
+RandomNumberGenerator.Fill(bytes);  // 4 bytes aleatorios criptográficamente seguros
+var code = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
+// "D6" garantiza 6 dígitos con ceros a la izquierda (ej: "004521")
+</code></pre>
+
+<p>
+<strong><code>MfaVerifyAsync(MfaVerifyDto dto)</code></strong>:
+</p>
+
+<p>
+Para SuperAdmin (TOTP o backup code):
+</p>
+<ol><li>Si el código tiene 8 caracteres sin guión (o 9 con): es un código de respaldo</li></ol>
+<p>
+   - Hashea el código normalizado (sin guión) con SHA256
+   - Busca el hash en el JSON de <code>TotpBackupCodes</code>
+   - Si coincide, elimina ese hash de la lista (uso único) y guarda
+</p>
+<ol><li>Si tiene 6 dígitos: es un código TOTP normal</li></ol>
+<p>
+   - Verifica con <code>Totp.VerifyTotp(DateTime.UtcNow, code, out _, VerificationWindow.RfcSpecifiedNetworkDelay)</code>
+   - <code>RfcSpecifiedNetworkDelay</code> permite ±1 ventana de 30 segundos para compensar relojes
+</p>
+
+<p>
+Para Cliente (Email OTP):
+</p>
+<ol><li>Busca el OTP más reciente no usado y no expirado para ese usuario</li><li>Si <code>Attempts >= 3</code>: marca como usado, devuelve 401</li><li>Hashea el código recibido, compara con el hash almacenado</li><li>Si no coincide: incrementa <code>Attempts</code>, devuelve 401 con intentos restantes</li><li>Si coincide: marca como usado</li></ol>
+
+<p>
+En ambos casos, si la verificación es correcta:
+</p>
+<ul><li>Genera access token (JWT 15 min)</li><li>Crea refresh token (32 bytes aleatorios en Base64, 24h)</li><li>Devuelve <code>TokenResponseDto</code></li></ul>
+
+<p>
+<strong><code>GenerateAccessToken(ApplicationUser user, string role, out DateTime expiresAt)</code></strong>:
+</p>
+<pre><code class="lang-csharp">var claims = new List&lt;Claim&gt; {
+    new(JwtRegisteredClaimNames.Sub, user.Id),      // ID del usuario
+    new(JwtRegisteredClaimNames.Email, user.Email), // Email
+    new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // ID único del token
+    new("role", role),                               // Rol del usuario
+    new("securityStamp", user.SecurityStamp)         // Para invalidación
+};
+
+// Para SuperAdmin: añade totpEnabled
+// Para Cliente: añade userId (ID en tabla Users)
+</code></pre>
+
+<p>
+El token se firma con HMAC-SHA256 usando la <code>Jwt:SecretKey</code>. Expira en 15 minutos.
+</p>
+
+<p>
+<strong><code>RefreshAsync(string refreshToken)</code></strong>:
+</p>
+<ol><li>Busca el refresh token en BD con el usuario incluido (<code>Include(r => r.User)</code>)</li><li>Verifica que <code>IsActive</code> (no revocado y no expirado)</li><li>Genera nuevos access y refresh tokens</li><li>Revoca el token antiguo: <code>stored.RevokedAt = DateTime.UtcNow</code>, <code>stored.ReplacedByToken = newToken</code></li><li>Guarda en BD y devuelve los nuevos tokens</li></ol>
+
+<p>
+<strong><code>TotpConfirmAsync(string userId, string code)</code></strong>:
+</p>
+<ol><li>Verifica el código TOTP contra la semilla guardada</li><li>Genera 8 códigos de respaldo: <code>4 bytes aleatorios → hex → "xxxx-xxxx"</code></li><li>Hashea cada código (sin guión) con SHA256</li><li>Guarda los hashes como JSON en <code>TotpBackupCodes</code></li><li>Activa <code>TotpEnabled = true</code></li><li>Devuelve los códigos en texto plano (solo esta vez) en la respuesta</li></ol>
+
+<p>
+<strong><code>ResetPasswordAsync(ResetPasswordDto dto)</code></strong>:
+</p>
+<ol><li>Verifica el token con <code>_userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword)</code></li><li>Identity internamente actualiza el hash de contraseña Y el <code>SecurityStamp</code></li><li>Como el <code>SecurityStamp</code> cambia, todos los JWT en circulación con el stamp antiguo son invalidados inmediatamente en el <code>OnTokenValidated</code></li><li>Revoca todos los refresh tokens activos del usuario</li></ol>
+
+<h4 id="companyservice-cs"><code>CompanyService.cs</code></h4>
+
+<p>
+<strong><code>CreateAsync(CreateCompanyDto dto, IFormFile? logo)</code></strong>:
+</p>
+<ol><li>Sanitiza el nombre (HtmlDecode + Trim)</li><li>Verifica unicidad del nombre</li><li>Si hay email: verifica que no está en uso por otra empresa ni por ningún usuario</li><li>Si hay logo: valida y guarda el archivo</li><li>Crea la empresa en BD</li></ol>
+
+<p>
+<strong>Validación del logo</strong> (<code>SaveLogoAsync</code>):
+</p>
+<ol><li>Tamaño máximo: 5 MB</li><li>Extensiones permitidas: <code>.jpg</code>, <code>.jpeg</code>, <code>.png</code>, <code>.gif</code>, <code>.webp</code></li><li>Content-type permitido (validación superficial)</li><li><strong>Magic bytes</strong> — los primeros bytes del archivo identifican el tipo real independientemente de la extensión:</li></ol>
+<p>
+   - JPEG: <code>FF D8 FF</code>
+   - PNG: <code>89 50 4E 47</code>
+   - GIF: <code>47 49 46 38</code>
+   - WebP: bytes 8-11 son <code>57 45 42 50</code>
+</p>
+<ol><li>Si pasa todas las validaciones, se guarda con nombre UUID en <code>wwwroot/uploads/</code></li></ol>
+
+<p>
+Los magic bytes son críticos: sin ellos, un atacante podría renombrar un archivo <code>.php</code> como <code>.jpg</code> y subirlo. Con magic bytes, el servidor verifica el contenido real del archivo.
+</p>
+
+<p>
+<strong><code>UpdateAsync</code></strong>: igual que crear pero excluye la propia empresa en la validación de nombre único.
+</p>
+
+<p>
+<strong><code>DeleteAsync</code></strong>: elimina el archivo de logo de disco antes de borrar el registro.
+</p>
+
+<h4 id="userservice-cs"><code>UserService.cs</code></h4>
+
+<p>
+<strong><code>CreateAsync(CreateUserDto dto)</code></strong>:
+</p>
+<ol><li>Verifica que la empresa existe</li><li>Normaliza el email (Trim + ToLowerInvariant)</li><li>Verifica unicidad del email contra Users Y Companies</li><li><strong>Abre una transacción</strong></li><li>Crea el <code>User</code> en la tabla <code>Users</code></li><li>Crea el <code>ApplicationUser</code> en <code>AspNetUsers</code> con el mismo email, <code>UserId = user.Id</code> recién generado</li><li>Asigna el rol "Cliente" al <code>ApplicationUser</code></li><li><strong>Commit de la transacción</strong></li></ol>
+
+<p>
+El uso de transacción garantiza que si falla cualquier paso (ej: el email ya está en Identity aunque pasó la validación por race condition), todo se revierte. No puede existir un <code>User</code> sin su <code>ApplicationUser</code> correspondiente.
+</p>
+
+<p>
+<strong><code>UpdateAsync(int id, UpdateUserDto dto)</code></strong>:
+</p>
+<ol><li>Si el email cambia: verifica unicidad contra Users (excluyendo el actual) y Companies</li><li><strong>Abre una transacción</strong></li><li>Actualiza el <code>User</code> en BD</li><li>Si el email cambió: busca el <code>ApplicationUser</code> por el email antiguo y llama a <code>SetEmailAsync</code> + <code>SetUserNameAsync</code></li><li><strong>Commit</strong></li></ol>
+
+<p>
+<code>SetEmailAsync</code> de Identity actualiza <code>Email</code>, <code>NormalizedEmail</code> y <code>SecurityStamp</code>. <code>SetUserNameAsync</code> actualiza <code>UserName</code> y <code>NormalizedUserName</code>.
+</p>
+
+<h4 id="emailservice-cs"><code>EmailService.cs</code></h4>
+
+<p>
+Envuelve MailKit. Construye un <code>MimeMessage</code> y lo envía via SMTP. En desarrollo usa smtp4dev en <code>localhost:2525</code> con <code>SecureSocketOptions.None</code> (sin TLS, porque smtp4dev es local y no lo necesita). En producción se cambiaría a <code>SecureSocketOptions.Auto</code> con un servidor SMTP real.
+</p>
+
+<h4 id="cleanuphostedservice-cs"><code>CleanupHostedService.cs</code></h4>
+
+<p>
+Servicio background que implementa <code>BackgroundService</code>. Se registra como <code>Singleton</code> y arranca automáticamente con la app.
+</p>
+
+<p>
+Cada hora:
+</p>
+<ol><li>Borra todos los <code>EmailOtpCodes</code> con <code>ExpiresAt < now</code></li><li>Borra todos los <code>RefreshTokens</code> con <code>ExpiresAt < now</code></li><li>Registra cuántos borró en cada operación</li></ol>
+
+<p>
+Usa <code>ExecuteDeleteAsync()</code> de EF Core que genera un <code>DELETE FROM</code> directo sin cargar los registros en memoria.
+</p>
+
+<h3 id="5-5-controladores">5.5 Controladores</h3>
+
+<p>
+Los controladores son la interfaz HTTP de la API. Reciben requests, delegan en servicios y devuelven responses.
+</p>
+
+<p>
+<strong>Convención global</strong>: todas las excepciones no controladas pasan por el <code>UseExceptionHandler</code> de Program.cs, que las convierte en:
+</p>
+<ul><li><code>ArgumentException</code> → 400 Bad Request</li><li><code>KeyNotFoundException</code> → 404 Not Found</li><li><code>AccountLockedException</code> → 423 Locked</li><li><code>UnauthorizedAccessException</code> → 401 Unauthorized</li><li>Cualquier otra → 500 Internal Server Error</li></ul>
+
+<p>
+Esto significa que los servicios pueden lanzar excepciones semánticas y los controladores no necesitan try/catch.
+</p>
+
+<h4 id="authcontroller-cs"><code>AuthController.cs</code></h4>
+
+<p>
+<code>[EnableRateLimiting("auth")]</code> en la clase — todos los endpoints limitan a 5 req/min por IP.
+</p>
+
+<table><thead><tr><th>Endpoint</th><th>Método</th><th>Auth</th><th>Descripción</th></tr></thead><tbody><tr><td><code>POST /api/auth/login</code></td><td>Público</td><td>No</td><td>Verificar credenciales. Devuelve requiresMfa o tokens directamente</td></tr>
+<p>
+<tr><td><code>GET /api/auth/me</code></td><td><code>[Authorize]</code></td><td>Sí</td><td>Devuelve la identidad del usuario autenticado. <code>[DisableRateLimiting]</code></td></tr>
+<tr><td><code>POST /api/auth/mfa-verify</code></td><td>Público</td><td>No</td><td>Verificar código 2FA (email OTP o TOTP). Emite tokens en cookies</td></tr>
+<tr><td><code>POST /api/auth/refresh</code></td><td>Público</td><td>No</td><td>Renovar access token usando refresh token de cookie</td></tr>
+<tr><td><code>POST /api/auth/logout</code></td><td><code>[Authorize]</code></td><td>Sí</td><td>Revocar refresh token y borrar cookies</td></tr>
+<tr><td><code>POST /api/auth/resend-otp</code></td><td>Público</td><td>No</td><td>Reenviar OTP por email</td></tr>
+<tr><td><code>POST /api/auth/forgot-password</code></td><td>Público</td><td>No</td><td>Enviar email de recuperación</td></tr>
+<tr><td><code>POST /api/auth/reset-password</code></td><td>Público</td><td>No</td><td>Cambiar contraseña con token del email</td></tr>
+<tr><td><code>GET /api/auth/totp/status</code></td><td><code>[Authorize(Roles="SuperAdmin")]</code></td><td>Sí</td><td>Estado actual del TOTP</td></tr>
+<tr><td><code>GET /api/auth/totp/setup</code></td><td><code>[Authorize(Roles="SuperAdmin")]</code></td><td>Sí</td><td>Generar QR y semilla TOTP</td></tr>
+<tr><td><code>POST /api/auth/totp/confirm</code></td><td><code>[Authorize(Roles="SuperAdmin")]</code></td><td>Sí</td><td>Confirmar setup con primer código</td></tr>
+<tr><td><code>POST /api/auth/totp/disable</code></td><td><code>[Authorize(Roles="SuperAdmin")]</code></td><td>Sí</td><td>Desactivar TOTP</td></tr></tbody></table>
+</p>
+
+<p>
+<strong>SetAccessTokenCookie y SetRefreshTokenCookie</strong>: helpers privados que añaden los tokens como cookies con:
+</p>
+<pre><code class="lang-text">HttpOnly = true      → JavaScript no puede leerlas
+Secure = isProduction → Solo HTTPS en producción
+SameSite = Strict    → Solo se envían en requests same-site (protege contra CSRF)
+</code></pre>
+
+<h4 id="companiescontroller-cs"><code>CompaniesController.cs</code></h4>
+
+<p>
+Todos los endpoints requieren <code>[Authorize(Roles = "SuperAdmin")]</code>.
+</p>
+
+<table><thead><tr><th>Endpoint</th><th>Método</th><th>Descripción</th></tr></thead><tbody><tr><td><code>GET /api/companies</code></td><td>Público para auth</td><td>Lista paginada. Query: page, pageSize, name, status</td></tr>
+<p>
+<tr><td><code>GET /api/companies/{id}</code></td><td>SuperAdmin</td><td>Detalle de una empresa</td></tr>
+<tr><td><code>POST /api/companies</code></td><td>SuperAdmin</td><td>Crear empresa. <code>multipart/form-data</code> para logo</td></tr>
+<tr><td><code>PUT /api/companies/{id}</code></td><td>SuperAdmin</td><td>Actualizar empresa</td></tr>
+<tr><td><code>DELETE /api/companies/{id}</code></td><td>SuperAdmin</td><td>Eliminar empresa (cascade a usuarios)</td></tr></tbody></table>
+</p>
+
+<p>
+<strong>Paginación</strong>: pageSize se clampea a 100 como máximo. Los parámetros llegan como query strings.
+</p>
+
+<h4 id="userscontroller-cs"><code>UsersController.cs</code></h4>
+
+<table><thead><tr><th>Endpoint</th><th>Método</th><th>Auth</th><th>Descripción</th></tr></thead><tbody><tr><td><code>GET /api/users</code></td><td>SuperAdmin</td><td>Lista paginada. Query: page, pageSize, name, companyId</td></tr>
+<p>
+<tr><td><code>GET /api/users/{id}</code></td><td>SuperAdmin</td><td>Detalle de un usuario</td></tr>
+<tr><td><code>POST /api/users</code></td><td>SuperAdmin</td><td>Crear usuario + cuenta Identity</td></tr>
+<tr><td><code>PUT /api/users/{id}</code></td><td>SuperAdmin</td><td>Actualizar usuario. Sincroniza email con Identity</td></tr>
+<tr><td><code>DELETE /api/users/{id}</code></td><td>SuperAdmin</td><td>Eliminar usuario + cuenta Identity</td></tr>
+<tr><td><code>GET /api/users/me</code></td><td>Cliente</td><td>El cliente ve solo su propio perfil</td></tr></tbody></table>
+</p>
+
+<hr>
+
+<h2 id="6-frontend-capa-por-capa">6. Frontend — capa por capa</h2>
+
+<h3 id="6-1-conceptos-angular-21">6.1 Conceptos Angular 21</h3>
+
+<p>
+<strong>Standalone components</strong>: En Angular 21 no hay NgModules. Cada componente se declara con <code>standalone: true</code> e importa directamente lo que necesita.
+</p>
+
+<p>
+<strong>Signals</strong>: Sistema de reactividad de Angular. Un <code>signal()</code> es un valor reactivo. Cuando cambia, Angular actualiza automáticamente solo las partes del DOM que lo usan. Es más eficiente que Zone.js (el sistema anterior).
+</p>
+
+<pre><code class="lang-typescript">count = signal(0);
+doubled = computed(() =&gt; this.count() * 2);  // se recalcula cuando count cambia
+// En template: {{ count() }} {{ doubled() }}
+</code></pre>
+
+<p>
+<strong>inject()</strong>: Forma moderna de obtener servicios. En lugar de declararlos en el constructor, se usan en la definición de la clase:
+</p>
+<pre><code class="lang-typescript">private authService = inject(AuthService);
+// Equivalente a: constructor(private authService: AuthService) {}
+</code></pre>
+
+<p>
+<strong>OnPush change detection</strong>: Por defecto Angular comprueba todos los componentes en cada evento. Con <code>OnPush</code>, solo comprueba cuando cambia una <code>@Input()</code> o un signal del componente. Mucho más eficiente.
+</p>
+
+<p>
+<strong>Control flow nativo</strong>: <code>@if</code>, <code>@for</code>, <code>@switch</code> en lugar de <code>*ngIf</code>, <code>*ngFor</code>. Más eficiente y mejor ergonomía:
+</p>
+<pre><code class="lang-html">@if (loading()) {
+  &lt;spinner /&gt;
+} @else {
+  &lt;content /&gt;
+}
+
+@for (user of users(); track user.id) {
+  &lt;user-card [user]="user" /&gt;
+}
+</code></pre>
+
+<p>
+<strong>takeUntilDestroyed</strong>: Operador RxJS que cancela automáticamente una suscripción cuando el componente se destruye, evitando memory leaks:
+</p>
+<pre><code class="lang-typescript">destroyRef = inject(DestroyRef);
+// ...
+observable$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(...)
+</code></pre>
+
+<p>
+<strong>APP_INITIALIZER</strong>: Token de Angular que ejecuta funciones antes de que la app se muestre al usuario. Se usa para hidratar el estado de autenticación desde la cookie:
+</p>
+<pre><code class="lang-typescript">{
+  provide: APP_INITIALIZER,
+  useFactory: (auth: AuthService) =&gt; () =&gt; auth.initializeAuth(),
+  deps: [AuthService],
+  multi: true
+}
+</code></pre>
+
+<h3 id="6-2-estructura-de-carpetas">6.2 Estructura de carpetas</h3>
+
+<pre><code class="lang-text">src/app/
+├── app.ts                 → Componente raíz con el layout
+├── app.routes.ts          → Definición de rutas
+├── app.config.ts          → Configuración bootstrap
+├── app.routes.constants.ts → Constantes de rutas para navegación
+│
+├── services/              → Lógica de acceso a la API
+│   ├── auth.service.ts
+│   ├── company.service.ts
+│   ├── user.service.ts
+│   ├── notification.service.ts
+│   └── theme.service.ts
+│
+├── guards/                → Protección de rutas
+│   ├── auth.guard.ts
+│   ├── admin.guard.ts
+│   └── guest.guard.ts
+│
+├── interceptors/          → Middleware HTTP
+│   └── auth.interceptor.ts
+│
+├── models/                → Interfaces TypeScript
+│   ├── company.model.ts
+│   └── user.model.ts
+│
+├── constants/             → Constantes reutilizables
+│   ├── password-rules.ts
+│   └── roles.ts
+│
+├── components/            → Componentes reutilizables
+│   ├── navbar/
+│   ├── sidebar/
+│   └── confirm-dialog/
+│
+└── pages/                 → Páginas completas
+    ├── login/
+    ├── mfa-verificar/
+    ├── recuperar-password/
+    ├── reset-password/
+    ├── configurar-totp/
+    ├── company-list/
+    ├── company-detail/
+    ├── company-form/
+    ├── user-list/
+    ├── user-detail/
+    ├── user-form/
+    ├── perfil/
+    └── not-found/
+</code></pre>
+
+<h3 id="6-3-servicios">6.3 Servicios</h3>
+
+<h4 id="authservice"><code>AuthService</code></h4>
+
+<p>
+El servicio central de la app. Mantiene el estado de autenticación en memoria.
+</p>
+
+<p>
+<strong>Estado</strong>:
+</p>
+<pre><code class="lang-typescript">private _identity = signal&lt;Identity | null&gt;(null);
+isLoggedIn = computed(() =&gt; this._identity() !== null);
+userEmail = computed(() =&gt; this._identity()?.email ?? '');
+userRole = computed(() =&gt; this._identity()?.role ?? '');
+totpEnabled = computed(() =&gt; this._identity()?.totpEnabled ?? false);
+clientId = computed(() =&gt; this._identity()?.userId ?? null);
+</code></pre>
+
+<p>
+<strong><code>initializeAuth()</code></strong>: Llamado en <code>APP_INITIALIZER</code>. Hace <code>GET /api/auth/me</code>. Si devuelve 200, hidrata <code>_identity</code>. Si devuelve 401 (no autenticado), deja <code>_identity</code> en null. Este mecanismo permite que al recargar la página, Angular sepa inmediatamente si el usuario está autenticado gracias a la cookie HttpOnly que el navegador envía automáticamente.
+</p>
+
+<p>
+<strong><code>login(dto)</code></strong>: Llama a <code>POST /api/auth/login</code>. Devuelve <code>LoginResponse</code> al componente para que decida qué pantalla mostrar.
+</p>
+
+<p>
+<strong><code>mfaVerify(email, code, returnUrl?)</code></strong>: Llama a <code>POST /api/auth/mfa-verify</code>. Si tiene éxito, actualiza <code>_identity</code> y navega al destino correcto (returnUrl o /empresas o /perfil según el rol).
+</p>
+
+<p>
+<strong><code>isSafeReturnUrl(url)</code></strong>: Validación de seguridad. Verifica que la URL de retorno es relativa (empieza por /) y no contiene <code>://</code> (evita redirecciones a dominios externos).
+</p>
+
+<h4 id="companyservice"><code>CompanyService</code></h4>
+
+<p>
+Operaciones CRUD para empresas. Convierte <code>CreateCompany</code>/<code>UpdateCompany</code> (que incluyen opcionalmente un <code>File</code>) a <code>FormData</code> para multipart upload:
+</p>
+
+<pre><code class="lang-typescript">toFormData(dto: CreateCompany | UpdateCompany): FormData {
+    const fd = new FormData();
+    fd.append('name', dto.name);
+    fd.append('description', dto.description);
+    if (dto.logo) fd.append('logo', dto.logo);
+    // ...
+    return fd;
+}
+</code></pre>
+
+<p>
+Todos los métodos devuelven <code>Observable<T></code> — el patrón RxJS estándar de Angular.
+</p>
+
+<h4 id="notificationservice"><code>NotificationService</code></h4>
+
+<p>
+Sistema de notificaciones persistentes basado en <code>localStorage</code>. Cuando se crea una empresa o un usuario, el componente llama a <code>notificationService.add()</code>. Las notificaciones se guardan en localStorage y sobreviven a recargas de página.
+</p>
+
+<pre><code class="lang-typescript">interface StoredNotif {
+    icon: string;      // nombre del icono de Material
+    iconColor: string; // color del icono
+    text: string;      // título
+    sub: string;       // subtítulo
+    date: string;      // ISO 8601
+}
+</code></pre>
+
+<p>
+<code>getUnreadCount()</code>: compara la última fecha vista (guardada en localStorage) con las fechas de las notificaciones.
+</p>
+
+<h4 id="themeservice"><code>ThemeService</code></h4>
+
+<p>
+Gestiona el tema visual. Aplica/quita la clase <code>dark-mode</code> en <code>document.body</code>. Los componentes usan <code>:host-context(body.dark-mode)</code> en su SCSS para aplicar estilos dark de forma scoped.
+</p>
+
+<pre><code class="lang-typescript">setTheme(theme: 'light' | 'dark' | 'system') {
+    body.classList.remove('dark-mode', 'light-mode');
+    if (theme === 'dark') body.classList.add('dark-mode');
+    else if (theme === 'light') body.classList.add('light-mode');
+    localStorage.setItem('theme', theme);
+}
+</code></pre>
+
+<p>
+En modo <code>'system'</code> no añade ninguna clase — deja que el CSS media query <code>prefers-color-scheme</code> del sistema operativo sea el que mande.
+</p>
+
+<h3 id="6-4-guards">6.4 Guards</h3>
+
+<p>
+Los guards son funciones que Angular ejecuta antes de activar una ruta. Si devuelven <code>false</code> o un <code>UrlTree</code>, la navegación se cancela o redirige.
+</p>
+
+<h4 id="authguard"><code>authGuard</code></h4>
+<pre><code class="lang-typescript">() =&gt; {
+    const auth = inject(AuthService);
+    const router = inject(Router);
+    if (auth.isLoggedIn()) return true;
+    return router.createUrlTree([ROUTES.LOGIN], {
+        queryParams: { returnUrl: router.url }
+    });
+}
+</code></pre>
+<p>
+Protege rutas que requieren autenticación. Si no autenticado, redirige a /login con la URL actual como <code>returnUrl</code> para volver tras hacer login.
+</p>
+
+<h4 id="adminguard"><code>adminGuard</code></h4>
+<pre><code class="lang-typescript">() =&gt; {
+    const auth = inject(AuthService);
+    if (auth.userRole() !== 'SuperAdmin') return router.createUrlTree([ROUTES.PERFIL]);
+    if (!auth.totpEnabled()) return router.createUrlTree([ROUTES.CONFIGURAR_TOTP]);
+    return true;
+}
+</code></pre>
+<p>
+Protege rutas de administración. Si el usuario es Cliente, va a /perfil. Si es SuperAdmin pero no tiene TOTP, va a /configurar-totp. Así se fuerza al SuperAdmin a configurar el 2FA antes de poder usar la app.
+</p>
+
+<h4 id="guestguard"><code>guestGuard</code></h4>
+<pre><code class="lang-typescript">() =&gt; {
+    const auth = inject(AuthService);
+    if (!auth.isLoggedIn()) return true;
+    return router.createUrlTree([
+        auth.userRole() === 'SuperAdmin' ? ROUTES.COMPANIES : ROUTES.PERFIL
+    ]);
+}
+</code></pre>
+<p>
+Para páginas de auth (login, MFA, etc.). Si ya estás autenticado, no tiene sentido ver el login.
+</p>
+
+<h3 id="6-5-interceptor-http">6.5 Interceptor HTTP</h3>
+
+<p>
+<code>authInterceptor</code> es una función que envuelve cada petición HTTP. Se registra en <code>app.config.ts</code>:
+</p>
+
+<pre><code class="lang-typescript">provideHttpClient(withInterceptors([authInterceptor]))
+</code></pre>
+
+<p>
+<strong>Qué hace</strong>:
+</p>
+<ol><li>Añade <code>withCredentials: true</code> a todas las peticiones → el navegador envía las cookies HttpOnly</li><li>Cuando recibe un 401, intenta renovar el token con <code>POST /api/auth/refresh</code></li><li>Si el refresh tiene éxito, reintenta la petición original con el nuevo token</li><li>Si el refresh falla (token expirado), redirige al login</li></ol>
+
+<p>
+<strong>Problema de concurrencia</strong>: Si hay 3 peticiones en paralelo y todas reciben 401, no debe hacer 3 llamadas al refresh. Usa un <code>BehaviorSubject<boolean | null></code> para serializar:
+</p>
+<ul><li>Primer 401: <code>isRefreshing = true</code>, llama al refresh, emite el resultado</li><li>Segundo y tercer 401: esperan al Subject con <code>filter(r => r !== null), take(1)</code></li></ul>
+
+<h3 id="6-6-routing">6.6 Routing</h3>
+
+<pre><code class="lang-typescript">// app.routes.ts
+[
+    { path: 'login',               component: LoginComponent,     canActivate: [guestGuard] },
+    { path: 'mfa-verificar',       component: MfaVerificarComponent, canActivate: [guestGuard] },
+    { path: 'recuperar-password',  component: RecuperarPasswordComponent, canActivate: [guestGuard] },
+    { path: 'reset-password',      component: ResetPasswordComponent, canActivate: [guestGuard] },
+    { path: 'empresas',            component: CompanyListComponent, canActivate: [authGuard, adminGuard] },
+    { path: 'empresas/:id',        component: CompanyDetailComponent, canActivate: [authGuard, adminGuard] },
+    { path: 'empresas/nueva',      component: CompanyFormComponent, canActivate: [authGuard, adminGuard] },
+    { path: 'empresas/:id/editar', component: CompanyFormComponent, canActivate: [authGuard, adminGuard] },
+    { path: 'usuarios',            component: UserListComponent, canActivate: [authGuard, adminGuard] },
+    // ... más rutas
+    { path: 'perfil',              component: PerfilComponent, canActivate: [authGuard] },
+    { path: 'configurar-totp',     component: ConfigurarTotpComponent, canActivate: [authGuard] },
+    { path: '**',                  component: NotFoundComponent }
+]
+</code></pre>
+
+<p>
+Todos los componentes se cargan con lazy loading: <code>loadComponent: () => import('./...').then(m => m.ComponentClass)</code>. Esto significa que el código de cada componente solo se descarga cuando el usuario navega a esa ruta, reduciendo el bundle inicial.
+</p>
+
+<p>
+<strong><code>onSameUrlNavigation: 'reload'</code></strong>: Navegar a la misma URL recarga el componente. Útil después de crear/editar una entidad para refrescar los datos.
+</p>
+
+<h3 id="6-7-componente-raiz-app">6.7 Componente raíz (App)</h3>
+
+<p>
+<code>app.ts</code> es el layout principal. Determina qué shell mostrar:
+</p>
+
+<pre><code class="lang-typescript">isFullscreen = computed(() =&gt; {
+    const fullscreenRoutes = ['/login', '/mfa-verificar', '/recuperar-password', '/reset-password', '/configurar-totp'];
+    return fullscreenRoutes.some(r =&gt; this.router.url.startsWith(r));
+});
+isSuperAdmin = computed(() =&gt; this.authService.userRole() === 'SuperAdmin');
+</code></pre>
+
+<ul><li><strong>Fullscreen</strong> (páginas de auth): solo el contenido, sin navbar ni sidebar</li><li><strong>SuperAdmin</strong>: sidebar de navegación (Empresas, Usuarios) + navbar con notificaciones</li><li><strong>Cliente</strong>: navbar simplificada con logout + avatar</li></ul>
+
+<h3 id="6-8-paginas-principales">6.8 Páginas principales</h3>
+
+<h4 id="login">Login</h4>
+
+<p>
+Diseño de dos paneles: izquierda con branding animado, derecha con el formulario. En móvil el panel de branding desaparece.
+</p>
+
+<p>
+Flujo:
+</p>
+<ol><li>Usuario introduce email y contraseña</li><li><code>authService.login()</code> → si <code>requiresMfa: false</code>: ya está dentro → navega</li><li>Si <code>requiresMfa: true</code>: guarda <code>mfaType</code> y navega a <code>/mfa-verificar?email=X&mfaType=Y</code></li><li>Si <code>mfaType = "email"</code>: guarda <code>otpExpiresAt</code> en <code>sessionStorage</code> para sincronizar el timer</li></ol>
+
+<p>
+Manejo de errores especiales:
+</p>
+<ul><li>423: cuenta bloqueada → mensaje específico</li><li>429: rate limit → mensaje de "demasiados intentos"</li></ul>
+
+<h4 id="mfa-verificar">MFA Verificar</h4>
+
+<p>
+Maneja dos flujos con la misma pantalla:
+</p>
+
+<p>
+<strong>Email OTP</strong>:
+</p>
+<ul><li>Input de 6 dígitos con auto-avance (al escribir un dígito, el foco pasa al siguiente)</li><li>Soporte de pegado: si pegas "123456", se distribuye en los 6 campos</li><li>Timer countdown sincronizado con <code>otpExpiresAt</code> de sessionStorage</li><li>Botón "Reenviar" con cooldown de 30 segundos</li><li>Al expirar el timer: muestra "código expirado" y botón para volver al login</li></ul>
+
+<p>
+<strong>TOTP (Google Authenticator)</strong>:
+</p>
+<ul><li>Mismos 6 campos</li><li>Sin timer (los códigos se regeneran solos cada 30 segundos en la app)</li><li>Botón "¿Perdiste el acceso? Usa un código de respaldo" que muestra un input de texto para <code>xxxx-xxxx</code></li></ul>
+
+<h4 id="configurar-totp">Configurar TOTP</h4>
+
+<p>
+Tiene 5 estados:
+</p>
+
+<ol><li><strong>Loading</strong>: spinner mientras comprueba <code>GET /api/auth/totp/status</code></li><li><strong>Inactivo</strong>: muestra botón "Activar autenticación en dos pasos"</li><li><strong>Setup</strong>: tras llamar a <code>GET /api/auth/totp/setup</code>:</li></ol>
+<p>
+   - Genera QR con la librería <code>qrcode</code> (npm) a partir del <code>qrUri</code>
+   - Muestra la clave secreta en texto para quienes no pueden escanear el QR
+   - Botón de copiar la clave
+   - Input de 6 dígitos para confirmar
+</p>
+<ol><li><strong>Confirmado</strong>: tras <code>POST /api/auth/totp/confirm</code>:</li></ol>
+<p>
+   - Muestra los 8 códigos de respaldo en formato <code>xxxx-xxxx</code>
+   - Botón "Copiar todos"
+   - Aviso de guardarlos en lugar seguro
+</p>
+<ol><li><strong>Activo</strong>: muestra estado activo y botón "Desactivar"</li></ol>
+
+<h4 id="company-list">Company List</h4>
+
+<p>
+La más compleja del frontend. Lista empresas con un panel lateral deslizante.
+</p>
+
+<ul><li><strong>Paginación</strong>: 5/10/25 items por página</li><li><strong>Búsqueda</strong>: debounce de 300ms para no llamar a la API en cada tecla</li><li><strong>Filtro por estado</strong>: dropdown con los 4 estados</li><li><strong>Panel lateral</strong>: al hacer clic en una fila, se abre un panel con pestañas:</li></ul>
+<p>
+  - <strong>Resumen</strong>: estadísticas (usuarios, actividad reciente, años activa)
+  - <strong>Usuarios</strong>: lista de hasta 8 usuarios de esa empresa
+  - <strong>Info</strong>: datos de contacto
+  - <strong>Configuración</strong>: botones de editar/eliminar
+</p>
+
+<p>
+<strong>Métodos de utilidad</strong>:
+</p>
+<ul><li><code>generateDomain(name)</code>: infiere el dominio probable (ej: "Acme Corp" → "acmecorp.com")</li><li><code>yearsActive(createdAt)</code>: calcula años activa</li><li><code>daysSinceUpdate(updatedAt)</code>: días desde última actualización</li><li><code>initials(name)</code>: primeras letras del nombre para el avatar</li></ul>
+
+<h4 id="company-form">Company Form</h4>
+
+<p>
+Formulario reactivo con <code>fb.nonNullable.group</code>. En modo edición (<code>/empresas/:id/editar</code>), carga los datos actuales con <code>patchValue()</code>.
+</p>
+
+<p>
+El logo usa un input de tipo <code>file</code> personalizado — al seleccionar un archivo, se previsualiza con <code>URL.createObjectURL()</code>.
+</p>
+
+<p>
+Validaciones: name (2-200), description (10-2000), contactEmail (formato email), contactPhone (max 30), address (max 300).
+</p>
+
+<hr>
+
+<h2 id="7-seguridad-completa">7. Seguridad completa</h2>
+
+<h3 id="7-1-capas-de-seguridad">7.1 Capas de seguridad</h3>
+
+<p>
+La seguridad está en capas. Un atacante tiene que superar todas para causar daño:
+</p>
+
+<pre><code class="lang-text">Capa 1: HTTPS + HSTS (transporte)
+Capa 2: CORS (origen del request)
+Capa 3: Rate Limiting (frecuencia de requests)
+Capa 4: Autenticación (¿quién eres?)
+Capa 5: Autorización (¿qué puedes hacer?)
+Capa 6: Validación de entrada (¿qué datos envías?)
+Capa 7: Validación de archivos (magic bytes)
+Capa 8: Sanitización de outputs
+</code></pre>
+
+<h3 id="7-2-autenticacion-con-jwt-en-cookie-httponly">7.2 Autenticación con JWT en cookie HttpOnly</h3>
+
+<p>
+<strong>Problema</strong>: Si el JWT va en localStorage, un script malicioso inyectado (XSS) puede robarlo.
+</p>
+
+<p>
+<strong>Solución</strong>: JWT en cookie HttpOnly. El navegador lo envía automáticamente pero JavaScript no puede leerlo.
+</p>
+
+<p>
+<strong>Configuración de las cookies</strong>:
+</p>
+<pre><code class="lang-csharp">new CookieOptions {
+    HttpOnly = true,    // JavaScript no puede acceder
+    Secure = true,      // Solo HTTPS (en producción)
+    SameSite = SameSiteMode.Strict,  // Solo same-site
+    Expires = DateTimeOffset.UtcNow.AddMinutes(15)
+}
+</code></pre>
+
+<p>
+<code>SameSite = Strict</code> significa que la cookie solo se envía en requests que originan desde el mismo sitio. Esto protege contra CSRF (Cross-Site Request Forgery): si alguien en otro dominio intenta hacer una petición a nuestra API, el navegador no adjuntará la cookie.
+</p>
+
+<h3 id="7-3-security-stamp-invalidacion-inmediata-de-sesiones">7.3 Security Stamp — invalidación inmediata de sesiones</h3>
+
+<p>
+<strong>Problema</strong>: El JWT dura 15 minutos. Si alguien cambia su contraseña tras un robo de sesión, el atacante podría seguir usando el JWT durante esos 15 minutos.
+</p>
+
+<p>
+<strong>Solución</strong>: El <code>SecurityStamp</code> de Identity es un GUID que cambia automáticamente al cambiar la contraseña. Se incluye como claim en el JWT y se verifica en cada request:
+</p>
+
+<pre><code class="lang-csharp">options.Events.OnTokenValidated = async ctx =&gt; {
+    var tokenStamp = ctx.Principal?.FindFirst("securityStamp")?.Value;
+    var user = await userManager.FindByIdAsync(userId);
+    if (tokenStamp != user.SecurityStamp)
+        ctx.Fail("Sesión invalidada");  // → 401
+};
+</code></pre>
+
+<p>
+Esto convierte el acceso a la BD en cada request (aparente punto negativo) en una garantía de seguridad total.
+</p>
+
+<h3 id="7-4-refresh-token-rotacion-y-revocacion">7.4 Refresh Token — rotación y revocación</h3>
+
+<p>
+<strong>Por qué refresh tokens</strong>: El access token (JWT) dura 15 minutos para limitar el daño si es interceptado. Pero obligar al usuario a hacer login cada 15 minutos sería horrible UX. Los refresh tokens (24h) permiten renovar el access token silenciosamente.
+</p>
+
+<p>
+<strong>Rotación</strong>: Cada vez que se usa un refresh token, se revoca y se genera uno nuevo. Si un atacante roba un refresh token pero el usuario legítimo lo usa primero, el atacante queda bloqueado. Si el atacante lo usa primero, el usuario legítimo recibirá un 401 al intentar refrescar y sabrá que hay una sesión comprometida.
+</p>
+
+<p>
+<strong>El token</strong>: 32 bytes aleatorios de <code>RandomNumberGenerator.Fill()</code> codificados en Base64. Esto da <code>2^256</code> posibilidades — imposible de forzar bruta.
+</p>
+
+<p>
+<strong>Al cambiar contraseña</strong>: Se revocan todos los refresh tokens activos además de invalidar el security stamp.
+</p>
+
+<h3 id="7-5-totp-autenticacion-en-dos-factores-para-superadmin">7.5 TOTP (Autenticación en dos factores para SuperAdmin)</h3>
+
+<p>
+<strong>Cómo funciona</strong>:
+</p>
+<ol><li>Setup: el servidor genera 20 bytes aleatorios (<code>KeyGeneration.GenerateRandomKey(20)</code>), los convierte a Base32 y construye un URI <code>otpauth://totp/ClientManager:email?secret=X&...</code></li><li>El usuario escanea el QR con Google Authenticator</li><li>Ahora ambos (servidor y app) pueden generar el mismo código: <code>HOTP(secret, floor(time/30))</code></li><li>La ventana de validación <code>RfcSpecifiedNetworkDelay</code> permite ±1 período (±30 segundos) para compensar diferencias de reloj</li></ol>
+
+<p>
+<strong>Backup codes</strong>: Al confirmar TOTP, se generan 8 códigos de formato <code>xxxx-xxxx</code> (4 bytes aleatorios como hex). Se almacenan hasheados con SHA256. Si el usuario pierde el teléfono, puede usar uno de estos códigos (que se consume al usarse).
+</p>
+
+<h3 id="7-6-email-otp-para-clientes">7.6 Email OTP para clientes</h3>
+
+<p>
+<strong>Flujo</strong>:
+</p>
+<ol><li>El servidor genera 4 bytes con <code>RandomNumberGenerator.Fill()</code> y los convierte a un número de 6 dígitos</li><li>Hashea el código con SHA256 y guarda el hash en BD</li><li>Envía el código en texto plano por email</li><li>Al verificar: hashea el código recibido y lo compara con el hash almacenado</li></ol>
+
+<p>
+<strong>Protecciones</strong>:
+</p>
+<ul><li>Código expira en 30 segundos</li><li>Máximo 3 intentos antes de invalidar</li><li>OTPs anteriores se invalidan al generar uno nuevo</li><li>El código nunca se guarda en texto plano en la BD</li></ul>
+
+<p>
+<strong>Anti-enumeración</strong>: <code>/api/auth/forgot-password</code> siempre devuelve 200 con "Si el email existe, recibirás...". Si devolviera 404 para emails no registrados, un atacante podría saber qué emails están registrados.
+</p>
+
+<h3 id="7-7-rate-limiting">7.7 Rate Limiting</h3>
+
+<p>
+5 peticiones por minuto por IP en todos los endpoints de <code>/api/auth/*</code>. Excepto <code>/auth/me</code> que está exento.
+</p>
+
+<p>
+Esto hace que:
+</p>
+<ul><li>Brute force de contraseñas: tomaría años</li><li>Brute force de OTPs (1.000.000 combinaciones): incluso a 5/min tomaría siglos</li><li>DDoS: limitado aunque no eliminado (se necesitaría un WAF para eso)</li></ul>
+
+<h3 id="7-8-lockout-de-cuentas">7.8 Lockout de cuentas</h3>
+
+<p>
+Tras 5 intentos fallidos de login, la cuenta se bloquea 1 minuto (<code>LockoutTimeSpan</code>). El contador se resetea al hacer login correcto. Esto añade una capa adicional contra brute force incluso si alguien consigue burlar el rate limiting.
+</p>
+
+<h3 id="7-9-cors">7.9 CORS</h3>
+
+<p>
+Solo <code>http://localhost:4200</code> puede hacer peticiones cross-origin a la API (en desarrollo). En producción se configura el dominio real.
+</p>
+
+<p>
+<code>AllowCredentials()</code> es obligatorio para que las cookies se envíen en requests cross-origin.
+</p>
+
+<h3 id="7-10-validacion-de-archivos-con-magic-bytes">7.10 Validación de archivos con magic bytes</h3>
+
+<pre><code class="lang-csharp">private static readonly Dictionary&lt;string, byte[][]&gt; MagicBytes = new() {
+    { ".jpg",  [new byte[] { 0xFF, 0xD8, 0xFF }] },
+    { ".png",  [new byte[] { 0x89, 0x50, 0x4E, 0x47 }] },
+    { ".gif",  [new byte[] { 0x47, 0x49, 0x46, 0x38 }] },
+    { ".webp", [...] }
+};
+</code></pre>
+
+<p>
+Se leen los primeros bytes del archivo subido y se comparan con las signatures conocidas. Un archivo <code>.php</code> renombrado como <code>.jpg</code> tendría los magic bytes de PHP, no de JPEG, y sería rechazado.
+</p>
+
+<h3 id="7-11-unicidad-global-de-emails">7.11 Unicidad global de emails</h3>
+
+<p>
+Los emails son únicos en toda la aplicación: no puede existir el mismo email en <code>Users</code> (contactos) y en <code>Companies.ContactEmail</code>. Esto se valida en los servicios antes de crear/actualizar, con consultas a ambas tablas.
+</p>
+
+<h3 id="7-12-secretos-nunca-en-el-repositorio">7.12 Secretos — nunca en el repositorio</h3>
+
+<p>
+La JWT key, contraseña de BD y contraseña del SuperAdmin se almacenan en:
+</p>
+<ul><li><strong>Desarrollo</strong>: User Secrets de .NET (<code>~/.microsoft/usersecrets/{id}/secrets.json</code>)</li><li><strong>IIS</strong>: variables de entorno en <code>web.config</code></li></ul>
+
+<p>
+<code>appsettings.json</code> está en el repositorio pero no contiene valores sensibles.
+</p>
+
+<hr>
+
+<h2 id="8-flujos-completos-de-usuario">8. Flujos completos de usuario</h2>
+
+<h3 id="8-1-login-superadmin-con-totp">8.1 Login SuperAdmin con TOTP</h3>
+
+<pre><code class="lang-text">1. Usuario → POST /api/auth/login { email, password }
+2. API: verifica credenciales → RequiresMfa=true, MfaType="totp"
+3. Frontend: navega a /mfa-verificar?mfaType=totp&amp;email=X
+4. Usuario → introduce código de Google Authenticator
+5. Frontend → POST /api/auth/mfa-verify { email, code }
+6. API: verifica TOTP → genera tokens → SetCookie(accessToken) + SetCookie(refreshToken)
+7. Frontend: actualiza _identity signal → navega a /empresas
+</code></pre>
+
+<p>
+Si el SuperAdmin no tiene TOTP configurado:
+</p>
+<pre><code class="lang-text">2. API: RequiresMfa=false → emite tokens directamente
+7. adminGuard: totpEnabled=false → redirige a /configurar-totp
+</code></pre>
+
+<h3 id="8-2-login-cliente-con-email-otp">8.2 Login Cliente con Email OTP</h3>
+
+<pre><code class="lang-text">1. Usuario → POST /api/auth/login { email, password }
+2. API: genera OTP → lo hashea → guarda en BD → envía email → RequiresMfa=true, MfaType="email"
+3. Frontend: guarda otpExpiresAt en sessionStorage → navega a /mfa-verificar?mfaType=email
+4. Frontend: muestra timer countdown sincronizado con otpExpiresAt
+5. Usuario → introduce código del email
+6. Frontend → POST /api/auth/mfa-verify { email, code }
+7. API: hashea code recibido → compara con hash en BD → ok → genera tokens → SetCookie
+8. Frontend: actualiza _identity → navega a /perfil
+</code></pre>
+
+<h3 id="8-3-renovacion-silenciosa-de-token">8.3 Renovación silenciosa de token</h3>
+
+<pre><code class="lang-text">1. Usuario hace cualquier acción que genera un request HTTP
+2. Si el accessToken (15 min) ha expirado: API devuelve 401
+3. authInterceptor detecta 401 → llama a POST /api/auth/refresh
+4. API: verifica refreshToken cookie → genera nuevos access y refresh tokens
+5. Navegador recibe nuevas cookies → authInterceptor reintenta la petición original
+6. El usuario no nota nada — la acción se completa normalmente
+</code></pre>
+
+<h3 id="8-4-cambio-de-contrase-a-reset">8.4 Cambio de contraseña (reset)</h3>
+
+<pre><code class="lang-text">1. Usuario → POST /api/auth/forgot-password { email }
+2. API: genera token de reset → construye URL → envía email
+3. Email contiene: http://localhost:4200/reset-password?email=X&amp;token=Y
+4. Usuario hace clic → /reset-password se carga → lee email y token de URL
+5. Componente: hace router.navigate para limpiar URL (token desaparece del historial)
+6. Usuario introduce nueva contraseña
+7. Frontend → POST /api/auth/reset-password { email, token, newPassword }
+8. API: Identity.ResetPasswordAsync() → actualiza hash + SecurityStamp
+9. Todos los JWT con el stamp antiguo → 401 inmediato en OnTokenValidated
+10. Se revocan todos los refresh tokens activos
+11. Usuario debe hacer login de nuevo
+</code></pre>
+
+<h3 id="8-5-crear-una-empresa">8.5 Crear una empresa</h3>
+
+<pre><code class="lang-text">1. SuperAdmin navega a /empresas/nueva
+2. Rellena el formulario (name, description, status, contactEmail, logo)
+3. CompanyService.toFormData() convierte el DTO a FormData (necesario para subir archivo)
+4. Frontend → POST /api/companies (multipart/form-data)
+5. API: sanitiza inputs → verifica nombre único → verifica email único → valida logo (magic bytes) → guarda archivo → crea empresa en BD
+6. API devuelve CompanyResponseDto
+7. Frontend: crea notificación → navega a /empresas
+</code></pre>
+
+<h3 id="8-6-crear-un-usuario">8.6 Crear un usuario</h3>
+
+<pre><code class="lang-text">1. SuperAdmin navega a /usuarios/nuevo
+2. Rellena formulario (name, email, companyId, password)
+3. Frontend → POST /api/users { name, email, companyId, password }
+4. API: verifica empresa existe → normaliza email → verifica email único (Users + Companies)
+5. Inicia transacción:
+   a. Crea User en tabla Users
+   b. Crea ApplicationUser en AspNetUsers con el mismo email
+   c. Asigna rol "Cliente"
+   d. Commit
+6. API devuelve UserResponseDto
+7. Frontend: notificación → navega al listado
+</code></pre>
+
+<hr>
+
+<h2 id="9-tests-de-integracion">9. Tests de integración</h2>
+
+<h3 id="9-1-que-son-y-por-que">9.1 Qué son y por qué</h3>
+
+<p>
+Los tests de integración arrancan la aplicación real en memoria (sin abrir puertos de red) y hacen peticiones HTTP reales contra ella. Prueban el sistema completo: routing, autenticación, servicios, base de datos.
+</p>
+
+<p>
+A diferencia de los tests unitarios (que prueban funciones aisladas), los de integración verifican que todo funciona junto. Un test de unidad puede pasar aunque la integración falle.
+</p>
+
+<h3 id="9-2-stack-de-testing">9.2 Stack de testing</h3>
+
+<ul><li><strong>xUnit</strong>: framework de tests para .NET. Los tests son métodos marcados con <code>[Fact]</code></li><li><strong>WebApplicationFactory</strong>: de <code>Microsoft.AspNetCore.Mvc.Testing</code>. Arranca la API en memoria</li><li><strong>Respawn</strong>: resetea la BD a un estado limpio entre tests. Borra todas las filas excepto las que se indique ignorar</li><li><strong>FluentAssertions</strong>: assertions más legibles: <code>.Should().Be(HttpStatusCode.OK)</code></li><li><strong>Npgsql</strong>: acceso directo a PostgreSQL para que Respawn pueda limpiar la BD</li></ul>
+
+<h3 id="9-3-arquitectura-de-tests">9.3 Arquitectura de tests</h3>
+
+<p>
+<strong><code>CustomWebApplicationFactory</code></strong>: hereda de <code>WebApplicationFactory<Program></code>. Sobreescribe la configuración para:
+</p>
+<ul><li>Apuntar a la BD de tests (<code>clientmanager_tests</code>), nunca a la de desarrollo</li><li>Usar una JWT key de test (no los User Secrets del proyecto)</li><li>Desactivar rate limiting (en tests, las peticiones comparten IP y llegarían al límite rápido)</li></ul>
+
+<p>
+<strong><code>IntegrationTestBase</code></strong>: clase base para todos los tests. Gestiona el <code>HttpClient</code> con un <code>CookieHandler</code> personalizado que replica el comportamiento del navegador (guarda las cookies del response y las envía en el siguiente request).
+</p>
+
+<p>
+<code>IAsyncLifetime.InitializeAsync()</code> llama a <code>ResetDatabaseAsync()</code> antes de cada test, garantizando un estado limpio.
+</p>
+
+<p>
+<strong>Tests actuales</strong> (todos en <code>AuthTests.cs</code>):
+</p>
+<ol><li><code>GetCompanies_WithoutAuth_Returns401</code> — verifica que endpoints protegidos requieren auth</li><li><code>Login_WithValidCredentials_Returns200</code> — login correcto funciona</li><li><code>Login_WithWrongPassword_Returns401</code> — contraseña incorrecta es rechazada</li><li><code>GetCompanies_AfterLogin_Returns200</code> — usuario autenticado puede acceder</li><li><code>GetMe_AfterLogin_ReturnsCorrectIdentity</code> — identidad correcta en /auth/me</li><li><code>Refresh_ReturnsNewAccessToken</code> — refresh rota el token</li><li><code>Logout_RevokesSession_Returns401</code> — logout invalida la sesión</li></ol>
+
+<h3 id="9-4-ejecutar-los-tests">9.4 Ejecutar los tests</h3>
+
+<pre><code class="lang-bash">cd AplicacionAPI/ClientManager.Tests
+dotnet test --verbosity normal
+</code></pre>
+
+<p>
+Requiere PostgreSQL corriendo localmente con la BD <code>clientmanager_tests</code> accesible.
+</p>
+
+<hr>
+
+<h2 id="10-despliegue-en-iis">10. Despliegue en IIS</h2>
+
+<h3 id="10-1-que-es-iis">10.1 Qué es IIS</h3>
+
+<p>
+Internet Information Services es el servidor web de Microsoft, incluido en Windows. En producción real, IIS actuaría como proxy inverso: recibe las peticiones, las pasa al proceso .NET (o sirve los archivos estáticos de Angular directamente).
+</p>
+
+<h3 id="10-2-componentes-del-despliegue">10.2 Componentes del despliegue</h3>
+
+<p>
+<strong>ASP.NET Core Hosting Bundle</strong>: módulo que instala IIS para que pueda hospedar apps .NET. Sin él, IIS no sabe cómo ejecutar un proceso .NET. Se descarga de la página oficial de .NET.
+</p>
+
+<p>
+<strong><code>AspNetCoreModuleV2</code></strong>: el módulo en sí. Se verifica con:
+</p>
+<pre><code class="lang-powershell">Get-WebConfiguration "system.webServer/globalModules/*" | Where-Object { $_.name -like "*AspNetCore*" }
+</code></pre>
+
+<h3 id="10-3-backend-en-iis">10.3 Backend en IIS</h3>
+
+<ol><li><strong>Publicar</strong>: <code>dotnet publish -c Release -o D:\...\publish\api</code></li></ol>
+<p>
+   - Genera todos los archivos compilados listos para producción
+   - Incluye el <code>web.config</code> que IIS usa para configurar el módulo ASP.NET Core
+</p>
+
+<ol><li><strong>Crear sitio en IIS</strong>:</li></ol>
+<p>
+   - Nombre: <code>ClientManager-API</code>
+   - Ruta física: carpeta <code>publish\api</code>
+   - Puerto: 5000
+   - App Pool: <code>ClientManager-API</code> con "Sin código administrado" (IIS no gestiona .NET — lo hace el Hosting Bundle)
+</p>
+
+<ol><li><strong>Configurar variables de entorno en <code>web.config</code></strong>:</li></ol>
+<pre><code class="lang-xml">&lt;aspNetCore processPath="dotnet" arguments=".\ClientManager.API.dll" hostingModel="inprocess"&gt;
+    &lt;environmentVariables&gt;
+        &lt;environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" /&gt;
+        &lt;environmentVariable name="Jwt__SecretKey" value="..." /&gt;
+        &lt;environmentVariable name="ConnectionStrings__DefaultConnection" value="..." /&gt;
+        &lt;environmentVariable name="SuperAdmin__Password" value="..." /&gt;
+    &lt;/environmentVariables&gt;
+&lt;/aspNetCore&gt;
+</code></pre>
+
+<p>
+<code>hostingModel="inprocess"</code>: el proceso .NET corre dentro del proceso de IIS (w3wp.exe). Más eficiente que <code>outofprocess</code> donde sería un proceso separado.
+</p>
+
+<p>
+Los <code>:</code> de los nombres de configuración se convierten en <code>__</code> en variables de entorno — así es como .NET los interpreta.
+</p>
+
+<h3 id="10-4-frontend-en-iis">10.4 Frontend en IIS</h3>
+
+<ol><li><strong>Compilar</strong>: <code>npm run build -- --configuration production</code></li></ol>
+<p>
+   - Genera archivos estáticos en <code>dist/ClientManagerWeb/browser/</code>
+   - El <code>environment.prod.ts</code> usa <code>apiUrl: '/api'</code> (relativo) si frontend y backend van en el mismo dominio, o <code>http://localhost:5000/api</code> si van en puertos distintos
+</p>
+
+<ol><li><strong>Crear sitio en IIS</strong>:</li></ol>
+<p>
+   - Nombre: <code>ClientManager-Web</code>
+   - Ruta física: <code>dist/ClientManagerWeb/browser</code>
+   - Puerto: 4200
+</p>
+
+<p>
+<strong>IMPORTANTE — URL Rewrite para Angular Router</strong>: Angular usa routing del lado del cliente. Si el usuario va directamente a <code>http://localhost:4200/empresas</code>, IIS buscará un archivo <code>empresas/index.html</code> que no existe. Se necesita una regla que redirija todas las peticiones a <code>index.html</code>:
+</p>
+
+<pre><code class="lang-xml">&lt;rewrite&gt;
+    &lt;rules&gt;
+        &lt;rule name="Angular" stopProcessing="true"&gt;
+            &lt;match url=".*" /&gt;
+            &lt;conditions logicalGrouping="MatchAll"&gt;
+                &lt;add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" /&gt;
+                &lt;add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" /&gt;
+            &lt;/conditions&gt;
+            &lt;action type="Rewrite" url="/index.html" /&gt;
+        &lt;/rule&gt;
+    &lt;/rules&gt;
+&lt;/rewrite&gt;
+</code></pre>
+
+<p>
+Esto requiere el módulo <strong>URL Rewrite</strong> de IIS (descarga separada).
+</p>
+
+<h3 id="10-5-smtp4dev-en-produccion-local">10.5 smtp4dev en producción local</h3>
+
+<p>
+smtp4dev es el servidor SMTP de desarrollo. En el despliegue local:
+</p>
+
+<p>
+<strong>Tarea programada de Windows</strong>: configurada para arrancar <code>start-smtp4dev.bat</code> al iniciar sesión. El bat ejecuta:
+</p>
+<pre><code class="lang-batch">smtp4dev --urls "http://localhost:5010" --smtpport 2525
+</code></pre>
+
+<ul><li>Puerto 5010: interfaz web para ver los emails interceptados</li><li>Puerto 2525: SMTP que usa la API para enviar</li></ul>
+
+<p>
+En un despliegue real de producción, smtp4dev se reemplazaría por un servicio SMTP real (SendGrid, AWS SES, etc.) y se cambiaría <code>SecureSocketOptions.None</code> por <code>Auto</code>.
+</p>
+
+<h3 id="10-6-iis-arranca-automaticamente">10.6 IIS arranca automáticamente</h3>
+
+<p>
+IIS es un servicio de Windows que arranca con el sistema. No es necesario abrir el Administrador de IIS para que los sitios funcionen. El Administrador es solo la herramienta de configuración.
+</p>
+
+<p>
+Al reiniciar el PC:
+</p>
+<ol><li>Windows arranca IIS automáticamente</li><li>La tarea programada arranca smtp4dev al iniciar sesión</li><li>PostgreSQL arranca como servicio de Windows (configurado al instalarlo)</li><li>La app está disponible sin intervención manual</li></ol>
+
+<h3 id="10-7-actualizar-tras-cambios">10.7 Actualizar tras cambios</h3>
+
+<p>
+<strong>Backend</strong>:
+</p>
+<pre><code class="lang-bash">dotnet publish -c Release -o D:\...\publish\api
+# IIS detecta el cambio automáticamente (file watcher interno)
+# O reiniciar el sitio en IIS si hay problemas
+</code></pre>
+
+<p>
+<strong>Frontend</strong>:
+</p>
+<pre><code class="lang-bash">npm run build -- --configuration production
+# Los nuevos archivos en dist/ son servidos inmediatamente
+</code></pre>
+
+<hr>
+
+<h2 id="11-ci-cd">11. CI/CD</h2>
+
+<h3 id="11-1-github-actions">11.1 GitHub Actions</h3>
+
+<p>
+El pipeline está en <code>.github/workflows/ci.yml</code>. Se activa en:
+</p>
+<ul><li>Push a <code>master</code></li><li>Pull Request hacia <code>master</code></li></ul>
+
+<p>
+<strong>Job Backend</strong> (ubuntu-latest):
+</p>
+<ol><li>Checkout del código</li><li>Instala .NET 10 SDK</li><li><code>dotnet restore</code> — descarga dependencias NuGet</li><li><code>dotnet build --configuration Release</code> — compila para producción</li><li><code>dotnet format --verify-no-changes</code> — verifica que el formato es correcto</li></ol>
+
+<p>
+<strong>Job Frontend</strong> (ubuntu-latest):
+</p>
+<ol><li>Checkout del código</li><li>Instala Node 22</li><li><code>npm ci</code> — instalación limpia de dependencias</li><li><code>npm run build -- --configuration production</code> — build de producción</li></ol>
+
+<p>
+<strong>Qué no hace</strong> (gaps conocidos):
+</p>
+<ul><li>No ejecuta los tests (faltaría <code>dotnet test</code> y una BD de PostgreSQL en el CI)</li><li>No despliega en ningún servidor</li><li>No sube artefactos</li></ul>
+
+<h3 id="11-2-estrategia-de-ramas">11.2 Estrategia de ramas</h3>
+
+<ul><li><code>master</code>: rama principal, código en producción</li><li><code>develop</code>: integración de features</li><li><code>sandbox</code>: experimentos y pruebas</li><li><code>feature/*</code>: ramas de características</li></ul>
+
+<p>
+El flujo: feature → develop → sandbox (pruebas) → master.
+</p>
+
+<hr>
+
+<h2 id="apendice-comandos-utiles">APÉNDICE: Comandos útiles</h2>
+
+<pre><code class="lang-bash"># Desarrollo
+dotnet run                                    # Arranca el backend
+npm start                                     # Arranca el frontend
+
+# Migraciones
+dotnet ef migrations add NombreMigracion     # Crea una nueva migración
+dotnet ef database update                     # Aplica migraciones pendientes
+dotnet ef migrations remove                   # Elimina la última migración
+
+# Tests
+dotnet test --verbosity normal               # Ejecuta los tests
+
+# Publicar
+dotnet publish -c Release -o ./publish/api   # Publica el backend
+npm run build -- --configuration production  # Compila el frontend
+
+# IIS
+iisreset                                      # Reinicia IIS
+</code></pre>
+
+<h2 id="apendice-variables-de-configuracion">APÉNDICE: Variables de configuración</h2>
+
+<table><thead><tr><th>Variable</th><th>Dónde se configura</th><th>Descripción</th></tr></thead><tbody><tr><td><code>Jwt:SecretKey</code></td><td>User Secrets / web.config</td><td>Clave de firma JWT (mín. 32 caracteres)</td></tr>
+<p>
+<tr><td><code>Jwt:Issuer</code></td><td>appsettings.json</td><td>Identificador del emisor del JWT</td></tr>
+<tr><td><code>Jwt:Audience</code></td><td>appsettings.json</td><td>Identificador del receptor del JWT</td></tr>
+<tr><td><code>Jwt:ExpiryInMinutes</code></td><td>appsettings.json</td><td>Duración del access token (15 min)</td></tr>
+<tr><td><code>ConnectionStrings:DefaultConnection</code></td><td>User Secrets / web.config</td><td>Cadena de conexión a PostgreSQL</td></tr>
+<tr><td><code>SuperAdmin:Email</code></td><td>appsettings.json</td><td>Email del administrador</td></tr>
+<tr><td><code>SuperAdmin:Password</code></td><td>User Secrets / web.config</td><td>Contraseña del administrador</td></tr>
+<tr><td><code>Email:Host</code></td><td>appsettings.json</td><td>Servidor SMTP (localhost en dev)</td></tr>
+<tr><td><code>Email:Port</code></td><td>appsettings.json</td><td>Puerto SMTP (2525 para smtp4dev)</td></tr>
+<tr><td><code>Cors:AllowedOrigins</code></td><td>appsettings.json</td><td>Orígenes permitidos para CORS</td></tr>
+<tr><td><code>Frontend:BaseUrl</code></td><td>appsettings.json</td><td>URL del frontend (para links en emails)</td></tr></tbody></table>
+</p>
+
+  </div>
+</main>
+</div>
+</body>
+</html>
