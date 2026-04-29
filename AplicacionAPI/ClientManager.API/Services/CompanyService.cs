@@ -54,17 +54,17 @@ public class CompanyService : ICompanyService
         {
             Data = data.Select(c => new CompanyResponseDto
             {
-                Id           = c.Id,
-                Name         = c.Name,
-                Description  = c.Description,
-                LogoUrl      = BuildLogoUrl(c.LogoFileName),
-                Status       = c.Status,
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                LogoUrl = BuildLogoUrl(c.LogoFileName),
+                Status = c.Status,
                 ContactEmail = c.ContactEmail,
                 ContactPhone = c.ContactPhone,
-                Address      = c.Address,
-                CreatedAt    = c.CreatedAt,
-                UpdatedAt    = c.UpdatedAt,
-                UsersCount   = c.UsersCount
+                Address = c.Address,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt,
+                UsersCount = c.UsersCount
             }),
             TotalItems = totalItems,
             TotalPages = totalPages,
@@ -84,17 +84,17 @@ public class CompanyService : ICompanyService
 
         return new CompanyResponseDto
         {
-            Id           = data.Id,
-            Name         = data.Name,
-            Description  = data.Description,
-            LogoUrl      = BuildLogoUrl(data.LogoFileName),
-            Status       = data.Status,
+            Id = data.Id,
+            Name = data.Name,
+            Description = data.Description,
+            LogoUrl = BuildLogoUrl(data.LogoFileName),
+            Status = data.Status,
             ContactEmail = data.ContactEmail,
             ContactPhone = data.ContactPhone,
-            Address      = data.Address,
-            CreatedAt    = data.CreatedAt,
-            UpdatedAt    = data.UpdatedAt,
-            UsersCount   = data.UsersCount
+            Address = data.Address,
+            CreatedAt = data.CreatedAt,
+            UpdatedAt = data.UpdatedAt,
+            UsersCount = data.UsersCount
         };
     }
 
@@ -115,14 +115,14 @@ public class CompanyService : ICompanyService
 
         var company = new Company
         {
-            Name         = sanitizedName,
-            Description  = SanitizeInput(dto.Description),
-            Status       = dto.Status,
+            Name = sanitizedName,
+            Description = SanitizeInput(dto.Description),
+            Status = dto.Status,
             ContactEmail = dto.ContactEmail is null ? null : SanitizeInput(dto.ContactEmail),
             ContactPhone = dto.ContactPhone is null ? null : SanitizeInput(dto.ContactPhone),
-            Address      = dto.Address      is null ? null : SanitizeInput(dto.Address),
-            CreatedAt    = DateTime.UtcNow,
-            UpdatedAt    = DateTime.UtcNow
+            Address = dto.Address is null ? null : SanitizeInput(dto.Address),
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         if (logo is not null && logo.Length > 0)
@@ -156,13 +156,13 @@ public class CompanyService : ICompanyService
                 throw new ArgumentException("Este correo electrónico ya está en uso.");
         }
 
-        company.Name         = sanitizedName;
-        company.Description  = SanitizeInput(dto.Description);
-        company.Status       = dto.Status;
+        company.Name = sanitizedName;
+        company.Description = SanitizeInput(dto.Description);
+        company.Status = dto.Status;
         company.ContactEmail = dto.ContactEmail is null ? null : SanitizeInput(dto.ContactEmail);
         company.ContactPhone = dto.ContactPhone is null ? null : SanitizeInput(dto.ContactPhone);
-        company.Address      = dto.Address      is null ? null : SanitizeInput(dto.Address);
-        company.UpdatedAt    = DateTime.UtcNow;
+        company.Address = dto.Address is null ? null : SanitizeInput(dto.Address);
+        company.UpdatedAt = DateTime.UtcNow;
 
         if (logo is not null && logo.Length > 0)
         {

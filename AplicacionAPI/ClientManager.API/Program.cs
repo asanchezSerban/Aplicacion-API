@@ -249,13 +249,13 @@ if (app.Environment.IsDevelopment())
     {
         if (count is < 1 or > 200) return Results.BadRequest("count debe estar entre 1 y 200.");
 
-        string[] prefixes  = ["Tech", "Global", "Smart", "Next", "Alpha", "Blue", "Prime", "Nova", "Core", "Apex", "Bright", "Swift", "Open", "Meta", "Vega", "Flux", "Zero", "Orbit", "Pulse", "Agile"];
-        string[] suffixes  = ["Solutions", "Systems", "Ventures", "Group", "Labs", "Works", "Tech", "Digital", "Hub", "Net", "Soft", "Data", "Cloud", "AI", "Partners", "Studio", "Forge", "Dynamics", "Corp", "Industries"];
+        string[] prefixes = ["Tech", "Global", "Smart", "Next", "Alpha", "Blue", "Prime", "Nova", "Core", "Apex", "Bright", "Swift", "Open", "Meta", "Vega", "Flux", "Zero", "Orbit", "Pulse", "Agile"];
+        string[] suffixes = ["Solutions", "Systems", "Ventures", "Group", "Labs", "Works", "Tech", "Digital", "Hub", "Net", "Soft", "Data", "Cloud", "AI", "Partners", "Studio", "Forge", "Dynamics", "Corp", "Industries"];
         string[] locations = ["Barcelona", "Madrid", "Valencia", "Sevilla", "Bilbao", "Zaragoza", "Málaga", "Alicante", "Murcia", "Valladolid", "Lisboa", "Porto", "Berlin", "München", "Hamburg", "Lyon", "Paris", "Toulouse", "Milano", "Roma"];
-        string[] sectors   = ["tecnología", "consultoría", "logística", "e-commerce", "fintech", "salud digital", "edtech", "manufactura", "retail", "marketing digital", "ciberseguridad", "inteligencia artificial", "automatización", "energía renovable", "biotecnología"];
+        string[] sectors = ["tecnología", "consultoría", "logística", "e-commerce", "fintech", "salud digital", "edtech", "manufactura", "retail", "marketing digital", "ciberseguridad", "inteligencia artificial", "automatización", "energía renovable", "biotecnología"];
 
-        var rng       = new Random();
-        var now       = DateTime.UtcNow;
+        var rng = new Random();
+        var now = DateTime.UtcNow;
         var companies = new List<ClientManager.API.Models.Company>(count);
 
         var usedNames = new HashSet<string>(
@@ -275,17 +275,17 @@ if (app.Environment.IsDevelopment())
 
             usedNames.Add(name);
 
-            var city   = locations[rng.Next(locations.Length)];
+            var city = locations[rng.Next(locations.Length)];
             var sector = sectors[rng.Next(sectors.Length)];
-            var years  = rng.Next(1, 25);
+            var years = rng.Next(1, 25);
             var employees = rng.Next(2, 500);
 
             companies.Add(new ClientManager.API.Models.Company
             {
-                Name        = name,
+                Name = name,
                 Description = $"Empresa especializada en {sector} con sede en {city}. Fundada hace {years} año{(years == 1 ? "" : "s")}, cuenta con un equipo de {employees} profesionales dedicados a ofrecer soluciones innovadoras para sus clientes.",
-                CreatedAt   = now.AddDays(-rng.Next(0, 365 * years)),
-                UpdatedAt   = now
+                CreatedAt = now.AddDays(-rng.Next(0, 365 * years)),
+                UpdatedAt = now
             });
         }
 
@@ -311,19 +311,19 @@ if (app.Environment.IsDevelopment())
         if (companyIds.Count == 0) return Results.BadRequest("No hay empresas. Crea empresas primero.");
 
         string[] firstNames = ["Alejandro", "María", "Carlos", "Laura", "Javier", "Ana", "Pablo", "Sofía", "Miguel", "Elena", "Sergio", "Lucía", "David", "Carmen", "Andrés", "Isabel", "Roberto", "Natalia", "Fernando", "Marta", "Jorge", "Cristina", "Álvaro", "Raquel", "Diego", "Pilar", "Adrián", "Sandra", "Rubén", "Patricia", "James", "Emma", "Liam", "Olivia", "Noah", "Ava", "William", "Sophia", "Benjamin", "Isabella", "Lucas", "Mia", "Henry", "Charlotte", "Alexander", "Amelia", "Sebastian", "Harper", "Jack", "Evelyn"];
-        string[] lastNames  = ["García", "Martínez", "López", "Sánchez", "González", "Rodríguez", "Fernández", "Pérez", "Gómez", "Álvarez", "Díaz", "Moreno", "Muñoz", "Jiménez", "Ruiz", "Hernández", "Torres", "Navarro", "Domínguez", "Ramos", "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Moore", "Taylor", "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson", "Young", "Walker", "Hall"];
-        string[] domains    = ["gmail.com", "outlook.com", "empresa.es", "corp.com", "work.io", "business.net", "mail.com", "company.org", "pro.es", "digital.com"];
+        string[] lastNames = ["García", "Martínez", "López", "Sánchez", "González", "Rodríguez", "Fernández", "Pérez", "Gómez", "Álvarez", "Díaz", "Moreno", "Muñoz", "Jiménez", "Ruiz", "Hernández", "Torres", "Navarro", "Domínguez", "Ramos", "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Moore", "Taylor", "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson", "Young", "Walker", "Hall"];
+        string[] domains = ["gmail.com", "outlook.com", "empresa.es", "corp.com", "work.io", "business.net", "mail.com", "company.org", "pro.es", "digital.com"];
 
-        var rng      = new Random();
-        var now      = DateTime.UtcNow;
-        var users    = new List<ClientManager.API.Models.User>(count);
+        var rng = new Random();
+        var now = DateTime.UtcNow;
+        var users = new List<ClientManager.API.Models.User>(count);
         var usedEmails = new HashSet<string>(db.CompanyUsers.Select(u => u.Email).ToList());
 
         for (var i = 0; i < count; i++)
         {
             var first = firstNames[rng.Next(firstNames.Length)];
-            var last  = lastNames[rng.Next(lastNames.Length)];
-            var name  = $"{first} {last}";
+            var last = lastNames[rng.Next(lastNames.Length)];
+            var name = $"{first} {last}";
 
             string email;
             var attempts = 0;
@@ -335,7 +335,7 @@ if (app.Environment.IsDevelopment())
                 var slug = $"{Slugify(first)}.{Slugify(last.Replace(" ", ""))}";
                 var suffix = attempts > 0 ? $"{rng.Next(10, 999)}" : "";
                 var domain = domains[rng.Next(domains.Length)];
-                email      = $"{slug}{suffix}@{domain}";
+                email = $"{slug}{suffix}@{domain}";
                 attempts++;
             } while (usedEmails.Contains(email) && attempts < 50);
 
@@ -343,8 +343,8 @@ if (app.Environment.IsDevelopment())
 
             users.Add(new ClientManager.API.Models.User
             {
-                Name      = name,
-                Email     = email,
+                Name = name,
+                Email = email,
                 CompanyId = companyIds[rng.Next(companyIds.Count)],
                 CreatedAt = now.AddDays(-rng.Next(0, 730)),
                 UpdatedAt = now
@@ -370,11 +370,11 @@ if (app.Environment.IsDevelopment())
 
             var appUser = new ClientManager.API.Models.ApplicationUser
             {
-                UserName       = user.Email,
-                Email          = user.Email,
+                UserName = user.Email,
+                Email = user.Email,
                 EmailConfirmed = true,
-                UserId         = user.Id,
-                CreatedAt      = user.CreatedAt
+                UserId = user.Id,
+                CreatedAt = user.CreatedAt
             };
 
             var result = await userManager.CreateAsync(appUser, defaultPassword);
