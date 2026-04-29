@@ -30,5 +30,6 @@ export const routes: Routes = [
   // Configurar TOTP — cualquier usuario autenticado
   { path: 'configurar-totp', loadComponent: () => import('./pages/configurar-totp/configurar-totp').then(m => m.ConfigurarTotpComponent), canActivate: [authGuard] },
 
-  { path: '**', loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFoundComponent) },
+  { path: 'not-found', loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFoundComponent) },
+  { path: '**', redirectTo: 'not-found' },
 ];

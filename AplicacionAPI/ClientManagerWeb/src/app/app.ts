@@ -15,7 +15,7 @@ interface AppNotif extends StoredNotif {
 }
 
 const FULLSCREEN_ROUTES = [
-  '/login', '/mfa-verificar', '/recuperar-password', '/reset-password', '/configurar-totp'
+  '/login', '/mfa-verificar', '/recuperar-password', '/reset-password', '/configurar-totp', '/not-found'
 ];
 
 @Component({
