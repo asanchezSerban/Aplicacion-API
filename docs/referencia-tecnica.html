@@ -5,23 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ClientManager — Referencia Técnica Completa</title>
 <style>
-:root {
-  --primary: #4f46e5;
-  --primary-dark: #3730a3;
-  --accent: #06b6d4;
-  --bg: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-code: #0f172a;
-  --text: #1e293b;
-  --text-muted: #64748b;
-  --border: #e2e8f0;
-}
+:root { --primary: #4f46e5; --bg: #ffffff; --bg-secondary: #f8fafc; --bg-code: #0f172a; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg); line-height: 1.75; font-size: 16px; }
-
+body { font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text); background: var(--bg); line-height: 1.75; font-size: 16px; }
 .layout { display: flex; min-height: 100vh; }
-
 aside { width: 260px; min-width: 260px; background: var(--bg-secondary); border-right: 1px solid var(--border); padding: 1.5rem 1.25rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; font-size: 0.82rem; }
 .logo { display: flex; align-items: center; gap: 0.6rem; padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
 .logo-badge { width: 34px; height: 34px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
@@ -33,9 +21,7 @@ aside ul li a { display: block; padding: 0.3rem 0.6rem; border-radius: 5px; colo
 aside ul li a:hover { background: var(--border); color: var(--primary); }
 aside ul.sub { margin-left: 0.75rem; }
 aside ul.sub li a { font-size: 0.78rem; padding: 0.22rem 0.5rem; }
-
 main { flex: 1; min-width: 0; }
-
 .cover { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 100%); color: white; padding: 4rem 4.5rem; position: relative; overflow: hidden; }
 .cover::after { content: ''; position: absolute; top: -50%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(79,70,229,0.25) 0%, transparent 65%); pointer-events: none; }
 .cover-chip { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 1.25rem; }
@@ -45,30 +31,22 @@ main { flex: 1; min-width: 0; }
 .cover-stat { display: flex; flex-direction: column; gap: 0.15rem; }
 .cover-stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); }
 .cover-stat-value { font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.95); }
-
 .content { padding: 3rem 4.5rem; max-width: 900px; }
-
 h1 { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; margin: 3rem 0 1rem; color: var(--text); padding-bottom: 0.65rem; border-bottom: 3px solid var(--primary); }
 h2 { font-size: 1.35rem; font-weight: 700; margin: 2.5rem 0 0.65rem; color: var(--text); padding: 0.65rem 1rem; background: var(--bg-secondary); border-left: 4px solid var(--primary); border-radius: 0 8px 8px 0; }
 h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.5rem; color: var(--text); }
 h4 { font-size: 0.82rem; font-weight: 700; margin: 1.5rem 0 0.4rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
 p { margin: 0.75rem 0; }
 strong { font-weight: 700; }
-
 ul, ol { margin: 0.65rem 0 0.65rem 1.5rem; }
 li { margin: 0.3rem 0; }
-
 blockquote { background: #eff6ff; border-left: 4px solid var(--primary); padding: 0.85rem 1.25rem; margin: 1.25rem 0; border-radius: 0 8px 8px 0; color: #1e40af; }
-
 hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
-
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
-
-code { background: #f1f5f9; color: #be123c; padding: 0.12em 0.4em; border-radius: 4px; font-size: 0.85em; font-family: 'Cascadia Code', 'Consolas', 'Fira Code', monospace; }
-pre { background: var(--bg-code); border-radius: 10px; padding: 1.5rem; margin: 1.25rem 0; overflow-x: auto; border: 1px solid rgba(255,255,255,0.05); }
+code { background: #f1f5f9; color: #be123c; padding: 0.12em 0.4em; border-radius: 4px; font-size: 0.85em; font-family: 'Cascadia Code', 'Consolas', monospace; }
+pre { background: var(--bg-code); border-radius: 10px; padding: 1.5rem; margin: 1.25rem 0; overflow-x: auto; }
 pre code { background: transparent; color: #cbd5e1; padding: 0; font-size: 0.82rem; line-height: 1.65; }
-
 table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.875rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
 thead { background: var(--primary); }
 th { padding: 0.65rem 1rem; text-align: left; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: white; }
@@ -76,21 +54,8 @@ td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); }
 tr:last-child td { border-bottom: none; }
 tbody tr:nth-child(even) { background: var(--bg-secondary); }
 tbody tr:hover { background: #eff6ff; }
-
-@media print {
-  aside { display: none; }
-  .content { padding: 1.5rem; max-width: 100%; }
-  .cover { padding: 2rem; }
-  pre { white-space: pre-wrap; word-break: break-all; }
-  h2 { break-before: page; }
-  a { color: var(--text); }
-}
-@media (max-width: 900px) {
-  aside { display: none; }
-  .content { padding: 2rem; }
-  .cover { padding: 2rem; }
-  .cover h1 { font-size: 1.75rem !important; }
-}
+@media print { aside { display: none; } .content { padding: 1.5rem; max-width: 100%; } .cover { padding: 2rem; } pre { white-space: pre-wrap; } h2 { break-before: page; } }
+@media (max-width: 900px) { aside { display: none; } .content { padding: 2rem; } .cover { padding: 2rem; } }
 </style>
 </head>
 <body>
@@ -98,10 +63,7 @@ tbody tr:hover { background: #eff6ff; }
 <aside>
   <div class="logo">
     <div class="logo-badge">CM</div>
-    <div>
-      <div class="logo-text">ClientManager</div>
-      <div class="logo-sub">Referencia Técnica</div>
-    </div>
+    <div><div class="logo-text">ClientManager</div><div class="logo-sub">Referencia Técnica</div></div>
   </div>
   <h5>Secciones</h5>
   <ul>
@@ -166,7 +128,7 @@ tbody tr:hover { background: #eff6ff; }
 ClientManager es una aplicación web de gestión de empresas y sus usuarios de contacto. Tiene dos tipos de usuarios:
 </p>
 
-<ul><li><strong>SuperAdmin</strong>: administrador único con acceso total. Gestiona empresas, crea usuarios, ve estadísticas.</li><li><strong>Usuario de empresa</strong>: empleado o contacto de una empresa. Solo puede ver su propio perfil. Internamente el sistema lo identifica con el rol <code>Cliente</code>.</li></ul>
+<ul><li><strong>SuperAdmin</strong>: administrador único con acceso total. Gestiona empresas, crea usuarios, ve estadísticas.</li><li><strong>Usuario</strong>: empleado o contacto de una empresa. Solo puede ver su propio perfil. Internamente el sistema lo identifica con el rol <code>Cliente</code>.</li></ul>
 
 <p>
 La app es una <strong>SPA (Single Page Application)</strong> con un backend API REST separado. El frontend en Angular se comunica con el backend en .NET a través de HTTP. La autenticación usa JWT almacenado en cookies HttpOnly, lo que significa que el token nunca es accesible desde JavaScript.
