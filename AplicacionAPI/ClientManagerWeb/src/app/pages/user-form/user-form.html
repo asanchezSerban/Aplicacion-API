@@ -34,8 +34,7 @@
             <label class="field-label" for="email">Email <span class="required">*</span></label>
             <input id="email" class="field-input" type="email"
                    formControlName="email" placeholder="usuario@empresa.com"
-                   [class.field-input--error]="email.invalid && email.touched"
-                   [attr.readonly]="isEditMode ? true : null">
+                   [class.field-input--error]="email.invalid && email.touched">
             @if (email.hasError('required') && email.touched) {
               <span class="field-error">El email es obligatorio</span>
             }
