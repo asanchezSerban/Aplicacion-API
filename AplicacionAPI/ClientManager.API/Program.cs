@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
@@ -75,6 +76,21 @@ builder.Services.AddAuthentication(options =>
             if (!string.IsNullOrEmpty(cookie))
                 ctx.Token = cookie;
             return Task.CompletedTask;
+        },
+        OnTokenValidated = async ctx =>
+        {
+            var userManager = ctx.HttpContext.RequestServices
+                .GetRequiredService<UserManager<ApplicationUser>>();
+
+            var userId = ctx.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (userId is null) { ctx.Fail("Token inválido."); return; }
+
+            var user = await userManager.FindByIdAsync(userId);
+            if (user is null) { ctx.Fail("Usuario no encontrado."); return; }
+
+            var tokenStamp = ctx.Principal?.FindFirst("securityStamp")?.Value;
+            if (tokenStamp != user.SecurityStamp)
+                ctx.Fail("Sesión invalidada. Inicia sesión de nuevo.");
         }
     };
 });

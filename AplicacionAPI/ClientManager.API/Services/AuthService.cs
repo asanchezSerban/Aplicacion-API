@@ -516,7 +516,8 @@ public class AuthService : IAuthService
             new(JwtRegisteredClaimNames.Sub,   user.Id),
             new(JwtRegisteredClaimNames.Email, user.Email!),
             new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
-            new("role",            role)
+            new("role",            role),
+            new("securityStamp",   user.SecurityStamp ?? string.Empty)
         };
 
         if (role == "SuperAdmin")
