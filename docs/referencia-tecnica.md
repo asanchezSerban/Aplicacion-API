@@ -25,7 +25,7 @@
 ClientManager es una aplicación web de gestión de empresas y sus usuarios de contacto. Tiene dos tipos de usuarios:
 
 - **SuperAdmin**: administrador único con acceso total. Gestiona empresas, crea usuarios, ve estadísticas.
-- **Cliente**: usuario de contacto de una empresa. Solo puede ver su propio perfil.
+- **Usuario de empresa**: empleado o contacto de una empresa. Solo puede ver su propio perfil. Internamente el sistema lo identifica con el rol `Cliente`.
 
 La app es una **SPA (Single Page Application)** con un backend API REST separado. El frontend en Angular se comunica con el backend en .NET a través de HTTP. La autenticación usa JWT almacenado en cookies HttpOnly, lo que significa que el token nunca es accesible desde JavaScript.
 

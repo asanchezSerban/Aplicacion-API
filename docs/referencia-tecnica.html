@@ -22,7 +22,6 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var
 
 .layout { display: flex; min-height: 100vh; }
 
-/* SIDEBAR */
 aside { width: 260px; min-width: 260px; background: var(--bg-secondary); border-right: 1px solid var(--border); padding: 1.5rem 1.25rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; font-size: 0.82rem; }
 .logo { display: flex; align-items: center; gap: 0.6rem; padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
 .logo-badge { width: 34px; height: 34px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
@@ -35,10 +34,8 @@ aside ul li a:hover { background: var(--border); color: var(--primary); }
 aside ul.sub { margin-left: 0.75rem; }
 aside ul.sub li a { font-size: 0.78rem; padding: 0.22rem 0.5rem; }
 
-/* MAIN */
 main { flex: 1; min-width: 0; }
 
-/* COVER */
 .cover { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 100%); color: white; padding: 4rem 4.5rem; position: relative; overflow: hidden; }
 .cover::after { content: ''; position: absolute; top: -50%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(79,70,229,0.25) 0%, transparent 65%); pointer-events: none; }
 .cover-chip { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 1.25rem; }
@@ -49,13 +46,12 @@ main { flex: 1; min-width: 0; }
 .cover-stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); }
 .cover-stat-value { font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.95); }
 
-/* CONTENT */
 .content { padding: 3rem 4.5rem; max-width: 900px; }
 
 h1 { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; margin: 3rem 0 1rem; color: var(--text); padding-bottom: 0.65rem; border-bottom: 3px solid var(--primary); }
 h2 { font-size: 1.35rem; font-weight: 700; margin: 2.5rem 0 0.65rem; color: var(--text); padding: 0.65rem 1rem; background: var(--bg-secondary); border-left: 4px solid var(--primary); border-radius: 0 8px 8px 0; }
 h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.5rem; color: var(--text); }
-h4 { font-size: 0.95rem; font-weight: 700; margin: 1.5rem 0 0.4rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.82rem; }
+h4 { font-size: 0.82rem; font-weight: 700; margin: 1.5rem 0 0.4rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
 p { margin: 0.75rem 0; }
 strong { font-weight: 700; }
 
@@ -170,7 +166,7 @@ tbody tr:hover { background: #eff6ff; }
 ClientManager es una aplicación web de gestión de empresas y sus usuarios de contacto. Tiene dos tipos de usuarios:
 </p>
 
-<ul><li><strong>SuperAdmin</strong>: administrador único con acceso total. Gestiona empresas, crea usuarios, ve estadísticas.</li><li><strong>Cliente</strong>: usuario de contacto de una empresa. Solo puede ver su propio perfil.</li></ul>
+<ul><li><strong>SuperAdmin</strong>: administrador único con acceso total. Gestiona empresas, crea usuarios, ve estadísticas.</li><li><strong>Usuario de empresa</strong>: empleado o contacto de una empresa. Solo puede ver su propio perfil. Internamente el sistema lo identifica con el rol <code>Cliente</code>.</li></ul>
 
 <p>
 La app es una <strong>SPA (Single Page Application)</strong> con un backend API REST separado. El frontend en Angular se comunica con el backend en .NET a través de HTTP. La autenticación usa JWT almacenado en cookies HttpOnly, lo que significa que el token nunca es accesible desde JavaScript.
