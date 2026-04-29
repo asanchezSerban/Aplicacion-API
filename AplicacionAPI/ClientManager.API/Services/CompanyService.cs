@@ -105,6 +105,15 @@ public class CompanyService : ICompanyService
         if (await _db.Companies.AnyAsync(c => c.Name.ToLower() == sanitizedName.ToLower(), ct))
             throw new ArgumentException($"Ya existe una empresa con el nombre '{sanitizedName}'.");
 
+        if (dto.ContactEmail is not null)
+        {
+            var email = dto.ContactEmail.Trim().ToLowerInvariant();
+            if (await _db.Companies.AnyAsync(c => c.ContactEmail != null && c.ContactEmail.ToLower() == email, ct))
+                throw new ArgumentException("Este correo ya está en uso por otra empresa.");
+            if (await _db.CompanyUsers.AnyAsync(u => u.Email == email, ct))
+                throw new ArgumentException("Este correo ya está en uso por un usuario.");
+        }
+
         var company = new Company
         {
             Name         = sanitizedName,
@@ -139,6 +148,15 @@ public class CompanyService : ICompanyService
 
         if (await _db.Companies.AnyAsync(c => c.Name.ToLower() == sanitizedName.ToLower() && c.Id != id, ct))
             throw new ArgumentException($"Ya existe una empresa con el nombre '{sanitizedName}'.");
+
+        if (dto.ContactEmail is not null)
+        {
+            var email = dto.ContactEmail.Trim().ToLowerInvariant();
+            if (await _db.Companies.AnyAsync(c => c.ContactEmail != null && c.ContactEmail.ToLower() == email && c.Id != id, ct))
+                throw new ArgumentException("Este correo ya está en uso por otra empresa.");
+            if (await _db.CompanyUsers.AnyAsync(u => u.Email == email, ct))
+                throw new ArgumentException("Este correo ya está en uso por un usuario.");
+        }
 
         company.Name         = sanitizedName;
         company.Description  = SanitizeInput(dto.Description);

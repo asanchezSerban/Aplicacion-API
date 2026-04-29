@@ -65,7 +65,9 @@ public class UserService : IUserService
         var email = dto.Email.Trim().ToLowerInvariant();
 
         if (await _db.CompanyUsers.AnyAsync(u => u.Email == email, ct))
-            throw new ArgumentException("Este correo electrónico ya está en uso");
+            throw new ArgumentException("Este correo electrónico ya está en uso por otro usuario.");
+        if (await _db.Companies.AnyAsync(c => c.ContactEmail != null && c.ContactEmail.ToLower() == email, ct))
+            throw new ArgumentException("Este correo electrónico ya está en uso por una empresa.");
 
         // Abrir transacción: si no se llama CommitAsync, el await using la revierte
         // automáticamente al salir del bloque, sin importar la causa del fallo.
@@ -135,6 +137,14 @@ public class UserService : IUserService
 
         var oldEmail = user.Email;
         var newEmail = dto.Email.Trim().ToLowerInvariant();
+
+        if (oldEmail != newEmail)
+        {
+            if (await _db.CompanyUsers.AnyAsync(u => u.Email == newEmail && u.Id != id, ct))
+                throw new ArgumentException("Este correo electrónico ya está en uso por otro usuario.");
+            if (await _db.Companies.AnyAsync(c => c.ContactEmail != null && c.ContactEmail.ToLower() == newEmail, ct))
+                throw new ArgumentException("Este correo electrónico ya está en uso por una empresa.");
+        }
 
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
