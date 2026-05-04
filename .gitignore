@@ -42,3 +42,7 @@ DocumentacionBackend_archivos/
 
 # Uploads generados por la app (archivos de usuario, no código)
 AplicacionAPI/ClientManager.API/wwwroot/uploads/
+
+# Carpetas de publicación/despliegue (artefactos compilados)
+publish/
+AplicacionAPI/ClientManager.API/PracticasAdrianGestorDeEmpresaspublishapi/

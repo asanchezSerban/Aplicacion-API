@@ -13,7 +13,7 @@
 - Login → JWT en cookie HttpOnly (`accessToken`)
 - SuperAdmin: TOTP (Google Authenticator) tras login
 - Clientes: Email OTP tras login
-- `APP_INITIALIZER` hidrata identidad desde `/auth/me` al arrancar
+- `provideAppInitializer` hidrata identidad desde `/auth/me` al arrancar
 
 ## Modelos principales
 

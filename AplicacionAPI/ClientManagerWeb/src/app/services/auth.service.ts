@@ -26,10 +26,6 @@ export interface TotpSetupResponse {
   secret: string;
 }
 
-export interface TotpConfirmResponse {
-  backupCodes: string[];
-}
-
 export interface TotpStatus {
   enabled: boolean;
 }
@@ -167,12 +163,11 @@ export class AuthService {
     );
   }
 
-  async totpConfirm(code: string): Promise<TotpConfirmResponse> {
-    const res = await firstValueFrom(
-      this.http.post<Identity & TotpConfirmResponse>(`${this.apiUrl}/totp/confirm`, { code }, { withCredentials: true })
+  async totpConfirm(code: string): Promise<void> {
+    const identity = await firstValueFrom(
+      this.http.post<Identity>(`${this.apiUrl}/totp/confirm`, { code }, { withCredentials: true })
     );
-    this._identity.set(res);
-    return { backupCodes: res.backupCodes ?? [] };
+    this._identity.set(identity);
   }
 
   async totpDisable(): Promise<void> {

