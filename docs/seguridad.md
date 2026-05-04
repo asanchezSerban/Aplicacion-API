@@ -24,32 +24,45 @@
 ```
 Usuario
   │
-  ├─ CAPA 1: Red / HTTP
-  │    └─ CORS estricto (solo localhost:4200 en dev)
-  │    └─ SameSite=Strict en cookies
-  │    └─ Límite de tamaño de petición (10 MB)
+  ├─ CAPA 1: Transporte (HTTPS + HSTS)
+  │    └─ HTTPS obligatorio en producción
+  │    └─ HSTS activo: el navegador fuerza HTTPS durante 30 días
+  │    └─ Límite de tamaño de petición (10 MB en Kestrel)
   │
-  ├─ CAPA 2: Rate Limiting
-  │    └─ 5 req/min por IP en /api/auth/*
+  ├─ CAPA 2: Origen (CORS)
+  │    └─ Solo se acepta el origen configurado en Cors:AllowedOrigins
+  │    └─ SameSite=Strict en cookies: no viajan en peticiones cross-site
   │
-  ├─ CAPA 3: Autenticación
-  │    ├─ JWT firmado con HMAC-SHA256
-  │    ├─ Token viaja en cookie HttpOnly (no accesible desde JS)
-  │    └─ Validación de issuer, audience, lifetime, firma
+  ├─ CAPA 3: Frecuencia (Rate Limiting)
+  │    └─ 5 req/min por IP en /api/auth/* (Fixed Window)
+  │    └─ 429 Too Many Requests al superarlo
   │
-  ├─ CAPA 4: MFA
-  │    ├─ SuperAdmin → TOTP (Google Authenticator)
-  │    └─ Cliente    → OTP de 6 dígitos por email (TTL: 60 s)
+  ├─ CAPA 4: Autenticación (¿quién eres?)
+  │    ├─ JWT firmado con HMAC-SHA256, 15 min, en cookie HttpOnly
+  │    ├─ Validación de issuer, audience, lifetime, firma y ClockSkew=0
+  │    ├─ SecurityStamp revalidado en cada request (invalidación inmediata)
+  │    └─ Refresh token rotativo (32 bytes CSPRNG, 24 h, revocado al usar)
   │
-  ├─ CAPA 5: Autorización
+  ├─ CAPA 5: MFA (segundo factor obligatorio)
+  │    ├─ SuperAdmin → TOTP (Google Authenticator, RFC 6238, 160 bits)
+  │    └─ Cliente    → OTP de 6 dígitos por email (TTL: 30 s, máx. 3 intentos)
+  │
+  ├─ CAPA 6: Autorización (¿qué puedes hacer?)
   │    ├─ [Authorize(Roles = "SuperAdmin")] en controladores CRUD
-  │    └─ Guards Angular (adminGuard, authGuard, guestGuard)
+  │    └─ Guards Angular: authGuard, adminGuard (TOTP obligatorio), guestGuard
   │
-  └─ CAPA 6: Protección de datos
+  ├─ CAPA 7: Validación de entrada y archivos
+  │    ├─ DTOs con DataAnnotations ([Required], [StringLength], [EmailAddress])
+  │    ├─ Subida de logos: extensión + MIME type + magic bytes (12 primeros bytes)
+  │    ├─ Tamaño máximo de logo: 5 MB
+  │    └─ Nombre de archivo generado con Guid.NewGuid() (evita path traversal)
+  │
+  └─ CAPA 8: Protección de datos y sanitización de outputs
        ├─ OTPs almacenados como hash SHA-256 (nunca en claro)
-       ├─ Refresh tokens como GUID opaco en BD
-       ├─ Contraseñas hasheadas por ASP.NET Identity (PBKDF2)
-       └─ Secrets en User Secrets de .NET (nunca en appsettings.json)
+       ├─ Contraseñas hasheadas con PBKDF2 + sal por usuario (ASP.NET Identity)
+       ├─ Secrets en User Secrets de .NET (nunca en appsettings.json)
+       ├─ Angular escapa por defecto con {{ }} — sin [innerHTML] ni bypassSecurityTrust
+       └─ Identidad en memoria (signal) — cero tokens en localStorage
 ```
 
 ---
