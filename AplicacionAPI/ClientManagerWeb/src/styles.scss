@@ -48,6 +48,14 @@ input[type="password"]::-ms-clear {
   display: none;
 }
 
+// El contenedor admin-content tiene overflow-y: auto por defecto (app.ts).
+// En los listados de empresas y usuarios el contenido cabe y la barra estorba;
+// en el resto de páginas la dejamos automática.
+.admin-content:has(app-company-list),
+.admin-content:has(app-user-list) {
+  overflow-y: hidden !important;
+}
+
 // Global dialog styles
 .mat-mdc-dialog-surface {
   border-radius: 16px !important;
