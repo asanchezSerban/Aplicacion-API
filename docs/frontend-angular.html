@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClientManager — Documentación Frontend Angular</title>
+<style>
+:root { --primary: #4f46e5; --bg: #ffffff; --bg-secondary: #f8fafc; --bg-code: #0f172a; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; --green: #059669; --orange: #d97706; --red: #dc2626; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text); background: var(--bg); line-height: 1.75; font-size: 16px; }
+.layout { display: flex; min-height: 100vh; }
+aside { width: 270px; min-width: 270px; background: var(--bg-secondary); border-right: 1px solid var(--border); padding: 1.5rem 1.25rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; font-size: 0.82rem; }
+.logo { display: flex; align-items: center; gap: 0.6rem; padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
+.logo-badge { width: 34px; height: 34px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; }
+.logo-text { font-weight: 700; color: var(--text); line-height: 1.3; }
+.logo-sub { font-size: 0.7rem; color: var(--text-muted); }
+aside h5 { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700; margin: 1.25rem 0 0.4rem; }
+aside ul { list-style: none; }
+aside ul li a { display: block; padding: 0.3rem 0.6rem; border-radius: 5px; color: var(--text-muted); text-decoration: none; transition: all 0.12s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+aside ul li a:hover { background: var(--border); color: var(--primary); }
+aside ul.sub { margin-left: 0.75rem; }
+aside ul.sub li a { font-size: 0.78rem; padding: 0.22rem 0.5rem; }
+main { flex: 1; min-width: 0; }
+.cover { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 100%); color: white; padding: 4rem 4.5rem; position: relative; overflow: hidden; }
+.cover::after { content: ''; position: absolute; top: -50%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(79,70,229,0.25) 0%, transparent 65%); pointer-events: none; }
+.cover-chip { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 1.25rem; }
+.cover h1 { font-size: 2.5rem !important; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; color: white !important; border: none !important; margin: 0 0 1rem !important; padding: 0 !important; }
+.cover p { color: rgba(255,255,255,0.65); font-size: 1rem; max-width: 600px; margin: 0 0 2rem !important; }
+.cover-stats { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+.cover-stat { display: flex; flex-direction: column; gap: 0.15rem; }
+.cover-stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); }
+.cover-stat-value { font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.95); }
+.content { padding: 3rem 4.5rem; max-width: 920px; }
+h1 { font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em; margin: 3rem 0 1rem; color: var(--text); padding-bottom: 0.65rem; border-bottom: 3px solid var(--primary); }
+h2 { font-size: 1.35rem; font-weight: 700; margin: 2.5rem 0 0.65rem; color: var(--text); padding: 0.65rem 1rem; background: var(--bg-secondary); border-left: 4px solid var(--primary); border-radius: 0 8px 8px 0; }
+h3 { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 0.5rem; color: var(--text); }
+h4 { font-size: 0.82rem; font-weight: 700; margin: 1.5rem 0 0.4rem; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
+p { margin: 0.75rem 0; }
+strong { font-weight: 700; }
+ul, ol { margin: 0.65rem 0 0.65rem 1.5rem; }
+li { margin: 0.3rem 0; }
+blockquote { background: #eff6ff; border-left: 4px solid var(--primary); padding: 0.85rem 1.25rem; margin: 1.25rem 0; border-radius: 0 8px 8px 0; color: #1e40af; }
+blockquote.warn { background: #fffbeb; border-left-color: var(--orange); color: #92400e; }
+blockquote.ok { background: #f0fdf4; border-left-color: var(--green); color: #166534; }
+hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { background: #f1f5f9; color: #be123c; padding: 0.12em 0.4em; border-radius: 4px; font-size: 0.85em; font-family: 'Cascadia Code', 'Consolas', monospace; }
+pre { background: var(--bg-code); border-radius: 10px; padding: 1.5rem; margin: 1.25rem 0; overflow-x: auto; }
+pre code { background: transparent; color: #cbd5e1; padding: 0; font-size: 0.82rem; line-height: 1.65; }
+table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.875rem; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+thead { background: var(--primary); }
+th { padding: 0.65rem 1rem; text-align: left; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: white; }
+td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tbody tr:nth-child(even) { background: var(--bg-secondary); }
+tbody tr:hover { background: #eff6ff; }
+.badge { display: inline-block; padding: 0.15em 0.55em; border-radius: 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.badge-blue { background: #eff6ff; color: #1e40af; }
+.badge-green { background: #f0fdf4; color: #166534; }
+.badge-orange { background: #fffbeb; color: #92400e; }
+.badge-purple { background: #f5f3ff; color: #5b21b6; }
+.badge-red { background: #fef2f2; color: #991b1b; }
+.file-tree { background: var(--bg-code); color: #94a3b8; border-radius: 10px; padding: 1.25rem 1.5rem; margin: 1.25rem 0; font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 0.82rem; line-height: 1.8; }
+.file-tree .dir { color: #7dd3fc; }
+.file-tree .file { color: #cbd5e1; }
+.file-tree .comment { color: #475569; }
+.flow { background: var(--bg-code); color: #cbd5e1; border-radius: 10px; padding: 1.25rem 1.5rem; margin: 1.25rem 0; font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 0.82rem; line-height: 1.8; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.25rem 0; }
+.card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; }
+.card h4 { margin-top: 0; }
+@media print { aside { display: none; } .content { padding: 1.5rem; max-width: 100%; } .cover { padding: 2rem; } pre { white-space: pre-wrap; } h2 { break-before: page; } }
+@media (max-width: 900px) { aside { display: none; } .content { padding: 2rem; } .cover { padding: 2rem; } .two-col { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── SIDEBAR ── -->
+<aside>
+  <div class="logo">
+    <div class="logo-badge">CM</div>
+    <div><div class="logo-text">ClientManager</div><div class="logo-sub">Frontend Angular</div></div>
+  </div>
+  <h5>Contenido</h5>
+  <ul>
+    <li><a href="#1-vision">1. Visión general</a></li>
+    <li><a href="#2-stack">2. Stack y librerías</a></li>
+    <li><a href="#3-estructura">3. Estructura de carpetas</a></li>
+    <li><a href="#4-arranque">4. Cómo arranca la app</a></li>
+    <ul class="sub">
+      <li><a href="#41-maints">4.1 main.ts</a></li>
+      <li><a href="#42-appconfigts">4.2 app.config.ts</a></li>
+      <li><a href="#43-app-initializer">4.3 APP_INITIALIZER</a></li>
+    </ul>
+    <li><a href="#5-rutas">5. Sistema de rutas</a></li>
+    <ul class="sub">
+      <li><a href="#51-approutests">5.1 app.routes.ts</a></li>
+      <li><a href="#52-lazy-loading">5.2 Lazy loading</a></li>
+      <li><a href="#53-constantes">5.3 Constantes de rutas</a></li>
+    </ul>
+    <li><a href="#6-estado">6. Gestión de estado</a></li>
+    <ul class="sub">
+      <li><a href="#61-signals">6.1 Signals y computed</a></li>
+      <li><a href="#62-authservice-store">6.2 AuthService como store</a></li>
+    </ul>
+    <li><a href="#7-interceptor">7. Interceptor HTTP</a></li>
+    <li><a href="#8-guards">8. Guards de rutas</a></li>
+    <ul class="sub">
+      <li><a href="#81-authguard">8.1 authGuard</a></li>
+      <li><a href="#82-adminguard">8.2 adminGuard</a></li>
+      <li><a href="#83-guestguard">8.3 guestGuard</a></li>
+    </ul>
+    <li><a href="#9-servicios">9. Servicios</a></li>
+    <ul class="sub">
+      <li><a href="#91-authservice">9.1 AuthService</a></li>
+      <li><a href="#92-companyservice">9.2 CompanyService</a></li>
+      <li><a href="#93-userservice">9.3 UserService</a></li>
+      <li><a href="#94-notificationservice">9.4 NotificationService</a></li>
+      <li><a href="#95-themeservice">9.5 ThemeService</a></li>
+    </ul>
+    <li><a href="#10-layout">10. Layout principal</a></li>
+    <ul class="sub">
+      <li><a href="#101-appts">10.1 App (raíz)</a></li>
+      <li><a href="#102-sidebar">10.2 Sidebar</a></li>
+      <li><a href="#103-navbar">10.3 Navbar</a></li>
+      <li><a href="#104-confirmdialog">10.4 ConfirmDialog</a></li>
+    </ul>
+    <li><a href="#11-paginas-auth">11. Páginas de autenticación</a></li>
+    <ul class="sub">
+      <li><a href="#111-login">11.1 Login</a></li>
+      <li><a href="#112-mfa">11.2 MFA Verificar</a></li>
+      <li><a href="#113-totp">11.3 Configurar TOTP</a></li>
+      <li><a href="#114-recuperar">11.4 Recuperar contraseña</a></li>
+      <li><a href="#115-reset">11.5 Reset contraseña</a></li>
+    </ul>
+    <li><a href="#12-paginas-admin">12. Páginas de administración</a></li>
+    <ul class="sub">
+      <li><a href="#121-company-list">12.1 Company List</a></li>
+      <li><a href="#122-company-form">12.2 Company Form</a></li>
+      <li><a href="#123-company-detail">12.3 Company Detail</a></li>
+      <li><a href="#124-user-list">12.4 User List</a></li>
+      <li><a href="#125-user-form">12.5 User Form</a></li>
+      <li><a href="#126-user-detail">12.6 User Detail</a></li>
+    </ul>
+    <li><a href="#13-paginas-cliente">13. Páginas de cliente</a></li>
+    <li><a href="#14-modelos">14. Modelos y constantes</a></li>
+    <li><a href="#15-estilos">15. Estilos globales</a></li>
+    <li><a href="#16-patrones">16. Patrones Angular 21</a></li>
+    <li><a href="#17-flujos">17. Flujos completos</a></li>
+  </ul>
+</aside>
+
+<!-- ── MAIN ── -->
+<main>
+<div class="cover">
+  <div class="cover-chip">Documentación Interna</div>
+  <h1>Frontend Angular 21<br>ClientManager</h1>
+  <p>Guía completa del frontend: cómo funciona Angular en este proyecto, qué hace cada archivo, cómo se conectan los componentes, qué librerías se usan y por qué.</p>
+  <div class="cover-stats">
+    <div class="cover-stat"><span class="cover-stat-label">Framework</span><span class="cover-stat-value">Angular 21</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">UI Library</span><span class="cover-stat-value">Angular Material</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Estado</span><span class="cover-stat-value">Signals + RxJS</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Páginas</span><span class="cover-stat-value">13 componentes</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Lenguaje</span><span class="cover-stat-value">TypeScript strict</span></div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ─────────────────────────── 1 ─────────────────────────── -->
+<h1 id="1-vision">1. Visión general</h1>
+
+<p>El frontend de ClientManager es una <strong>SPA (Single Page Application)</strong> construida con Angular 21. Esto significa que es una sola página HTML que el navegador carga una vez, y a partir de ahí Angular controla toda la navegación sin recargas del servidor.</p>
+
+<p>Funciona así:</p>
+<ol>
+  <li>El navegador descarga el HTML inicial más los ficheros JavaScript y CSS compilados.</li>
+  <li>Angular arranca y toma el control. A partir de aquí, al navegar entre páginas, Angular simplemente muestra u oculta componentes — <strong>no se hace ninguna petición HTML al servidor</strong>.</li>
+  <li>Los datos (empresas, usuarios, etc.) se obtienen de la API .NET mediante llamadas HTTP en segundo plano.</li>
+</ol>
+
+<blockquote>
+  El frontend vive en <code>AplicacionAPI/ClientManagerWeb/</code> y se compila con <code>npm run build</code>. El resultado es una carpeta de ficheros estáticos (HTML, JS, CSS) que se sirven desde IIS.
+</blockquote>
+
+<h3>Dos modos de uso según el rol</h3>
+<div class="two-col">
+  <div class="card">
+    <h4>SuperAdmin</h4>
+    <p>Ve el panel completo con sidebar, listados de empresas y usuarios, formularios de creación/edición, y el panel de detalle. Necesita tener TOTP activo para acceder.</p>
+  </div>
+  <div class="card">
+    <h4>Cliente (Usuario)</h4>
+    <p>Solo ve su página de perfil (<code>/perfil</code>). No tiene acceso a ninguna otra ruta. Si intenta acceder a <code>/empresas</code>, el guard lo redirige a <code>/perfil</code>.</p>
+  </div>
+</div>
+
+
+<!-- ─────────────────────────── 2 ─────────────────────────── -->
+<h1 id="2-stack">2. Stack y librerías</h1>
+
+<p>Estas son todas las tecnologías que usa el frontend y para qué sirve cada una:</p>
+
+<table>
+  <thead><tr><th>Librería / Tecnología</th><th>Versión</th><th>Para qué se usa</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Angular</strong></td><td>21.2</td><td>El framework principal. Gestiona componentes, rutas, formularios, inyección de dependencias y el ciclo de vida de la app.</td></tr>
+    <tr><td><strong>Angular Material</strong></td><td>21.2</td><td>Librería de componentes UI de Google: botones (<code>mat-button</code>), inputs (<code>mat-form-field</code>), iconos (<code>mat-icon</code>), spinners, diálogos, snackbars, paginador.</td></tr>
+    <tr><td><strong>Angular CDK</strong></td><td>21.2</td><td>Kit de desarrollo de componentes. Se usa para el overlay del diálogo de confirmación.</td></tr>
+    <tr><td><strong>RxJS</strong></td><td>7.8</td><td>Librería de programación reactiva. Se usa para el interceptor de refresh automático (BehaviorSubject), debounce en buscadores, y subscripciones HTTP.</td></tr>
+    <tr><td><strong>TypeScript</strong></td><td>5.9 (strict)</td><td>Lenguaje tipado que compila a JavaScript. <code>strict: true</code> activa todas las comprobaciones estrictas de tipos.</td></tr>
+    <tr><td><strong>zone.js</strong></td><td>0.16</td><td>Librería que Angular usa internamente para detectar cambios (cuándo actualizar la pantalla). Está presente pero el código usa OnPush + Signals para minimizar su impacto.</td></tr>
+    <tr><td><strong>qrcode</strong></td><td>1.5.4</td><td>Genera el código QR para la configuración de TOTP. Solo se usa en la página <code>configurar-totp</code>.</td></tr>
+    <tr><td><strong>SCSS</strong></td><td>—</td><td>Preprocesador CSS. Permite variables, anidado y mixins. Cada componente tiene su propio fichero <code>.scss</code> encapsulado.</td></tr>
+    <tr><td><strong>Prettier</strong></td><td>3.8</td><td>Formateador automático de código. Se ejecuta para mantener el estilo consistente.</td></tr>
+  </tbody>
+</table>
+
+<h3>Fuentes y estilos externos</h3>
+<p>Se cargan desde Google Fonts en <code>index.html</code>:</p>
+<ul>
+  <li><strong>Inter</strong> — fuente principal de la interfaz (textos, labels, botones)</li>
+  <li><strong>Roboto</strong> — fuente de Angular Material</li>
+  <li><strong>Material Icons</strong> — iconos de Google (<code>&lt;mat-icon&gt;home&lt;/mat-icon&gt;</code> → muestra el icono "home")</li>
+</ul>
+
+
+<!-- ─────────────────────────── 3 ─────────────────────────── -->
+<h1 id="3-estructura">3. Estructura de carpetas</h1>
+
+<p>Cada carpeta tiene un propósito concreto. Esta es la estructura completa de <code>src/app/</code>:</p>
+
+<div class="file-tree">
+<span class="dir">src/</span><br>
+├── <span class="file">index.html</span>             <span class="comment">← HTML inicial con splash screen de carga</span><br>
+├── <span class="file">main.ts</span>                <span class="comment">← punto de entrada, arranca Angular</span><br>
+├── <span class="file">styles.scss</span>            <span class="comment">← estilos globales (Material, snackbars, scroll)</span><br>
+│<br>
+├── <span class="dir">environments/</span><br>
+│   ├── <span class="file">environment.ts</span>      <span class="comment">← dev: apiUrl http://localhost:5000/api</span><br>
+│   └── <span class="file">environment.prod.ts</span> <span class="comment">← prod: apiUrl /api (relativo, mismo servidor)</span><br>
+│<br>
+└── <span class="dir">app/</span><br>
+    ├── <span class="file">app.ts</span>              <span class="comment">← componente raíz: shell, navbar, sidebar, notificaciones</span><br>
+    ├── <span class="file">app.config.ts</span>       <span class="comment">← configuración global: rutas, HTTP, interceptor, provideAppInitializer</span><br>
+    ├── <span class="file">app.routes.ts</span>       <span class="comment">← definición de rutas y guards</span><br>
+    ├── <span class="file">app.routes.constants.ts</span> <span class="comment">← constantes de rutas tipadas (/empresas, /usuarios...)</span><br>
+    │<br>
+    ├── <span class="dir">constants/</span><br>
+    │   ├── <span class="file">roles.ts</span>        <span class="comment">← ROLES.SUPER_ADMIN, ROLES.CLIENTE</span><br>
+    │   └── <span class="file">password-rules.ts</span> <span class="comment">← reglas de validación de contraseña (array de tests)</span><br>
+    │<br>
+    ├── <span class="dir">models/</span><br>
+    │   ├── <span class="file">company.model.ts</span> <span class="comment">← interfaces: Company, CreateCompany, UpdateCompany, PagedResponse</span><br>
+    │   └── <span class="file">user.model.ts</span>    <span class="comment">← interfaces: User, CreateUser, UpdateUser</span><br>
+    │<br>
+    ├── <span class="dir">guards/</span><br>
+    │   ├── <span class="file">auth.guard.ts</span>   <span class="comment">← bloquea rutas privadas si no estás autenticado</span><br>
+    │   ├── <span class="file">admin.guard.ts</span>  <span class="comment">← bloquea rutas admin si no eres SuperAdmin o no tienes TOTP</span><br>
+    │   └── <span class="file">guest.guard.ts</span>  <span class="comment">← redirige al home si ya estás logueado (para /login, /mfa...)</span><br>
+    │<br>
+    ├── <span class="dir">interceptors/</span><br>
+    │   └── <span class="file">auth.interceptor.ts</span> <span class="comment">← añade cookies a peticiones + refresh automático al 401</span><br>
+    │<br>
+    ├── <span class="dir">services/</span><br>
+    │   ├── <span class="file">auth.service.ts</span>         <span class="comment">← login, logout, refresh, TOTP, estado de identidad</span><br>
+    │   ├── <span class="file">company.service.ts</span>      <span class="comment">← CRUD de empresas contra la API</span><br>
+    │   ├── <span class="file">user.service.ts</span>         <span class="comment">← CRUD de usuarios contra la API</span><br>
+    │   ├── <span class="file">notification.service.ts</span> <span class="comment">← notificaciones en la campana (localStorage)</span><br>
+    │   └── <span class="file">theme.service.ts</span>        <span class="comment">← dark mode / light mode</span><br>
+    │<br>
+    ├── <span class="dir">components/</span>            <span class="comment">← componentes reutilizables (no son páginas)</span><br>
+    │   ├── <span class="dir">navbar/</span>            <span class="comment">← barra superior del cliente (logo + logout)</span><br>
+    │   ├── <span class="dir">sidebar/</span>           <span class="comment">← menú lateral del admin (Empresas, Usuarios, Configuración)</span><br>
+    │   └── <span class="dir">confirm-dialog/</span>    <span class="comment">← diálogo de confirmación de borrado</span><br>
+    │<br>
+    └── <span class="dir">pages/</span>                 <span class="comment">← cada carpeta = una página</span><br>
+        ├── <span class="dir">login/</span>             <span class="comment">← formulario de login</span><br>
+        ├── <span class="dir">mfa-verificar/</span>     <span class="comment">← verificación OTP/TOTP tras login</span><br>
+        ├── <span class="dir">configurar-totp/</span>   <span class="comment">← configurar Google Authenticator</span><br>
+        ├── <span class="dir">recuperar-password/</span> <span class="comment">← pedir email de recuperación</span><br>
+        ├── <span class="dir">reset-password/</span>    <span class="comment">← nueva contraseña con token por email</span><br>
+        ├── <span class="dir">company-list/</span>      <span class="comment">← listado de empresas con panel de detalle</span><br>
+        ├── <span class="dir">company-form/</span>      <span class="comment">← formulario crear/editar empresa</span><br>
+        ├── <span class="dir">company-detail/</span>    <span class="comment">← página completa de detalle de empresa</span><br>
+        ├── <span class="dir">user-list/</span>         <span class="comment">← listado de usuarios</span><br>
+        ├── <span class="dir">user-form/</span>         <span class="comment">← formulario crear/editar usuario</span><br>
+        ├── <span class="dir">user-detail/</span>       <span class="comment">← página completa de detalle de usuario</span><br>
+        ├── <span class="dir">perfil/</span>            <span class="comment">← perfil del usuario Cliente</span><br>
+        └── <span class="dir">not-found/</span>         <span class="comment">← página 404</span>
+</div>
+
+
+<!-- ─────────────────────────── 4 ─────────────────────────── -->
+<h1 id="4-arranque">4. Cómo arranca la app</h1>
+
+<p>El proceso de arranque sigue este orden exacto:</p>
+
+<div class="flow">
+1. El navegador carga index.html<br>
+   └─ Muestra el splash screen (logo + spinner CSS puro, sin Angular)<br>
+<br>
+2. El navegador descarga main.js (el bundle de Angular compilado)<br>
+<br>
+3. main.ts ejecuta bootstrapApplication(App, appConfig)<br>
+   └─ Carga la configuración global (appConfig)<br>
+   └─ Registra todos los providers: rutas, HTTP, animaciones, interceptor<br>
+<br>
+4. provideAppInitializer ejecuta auth.initializeAuth() ANTES del primer render<br>
+   └─ Llama a GET /api/auth/me con la cookie de sesión<br>
+   └─ Si hay sesión activa: guarda email + rol + totpEnabled en memoria<br>
+   └─ Si no hay sesión: _identity = null<br>
+<br>
+5. Angular renderiza el componente raíz App<br>
+   └─ El splash desaparece (Angular reemplaza &lt;app-root&gt;)<br>
+   └─ El router determina qué página mostrar según la URL actual<br>
+   └─ Los guards ya tienen el estado de identidad correcto (gracias al paso 4)
+</div>
+
+<h2 id="41-maints">4.1 main.ts</h2>
+
+<p>Fichero más simple del proyecto. Solo tiene una responsabilidad: <strong>arrancar Angular</strong>.</p>
+
+<pre><code>import 'zone.js';                          // zona de detección de cambios
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { App } from './app/app';
+
+bootstrapApplication(App, appConfig)
+  .catch((err) => console.error(err));    // si Angular falla al arrancar, loguea el error</code></pre>
+
+<ul>
+  <li><code>import 'zone.js'</code> — debe ser la primera línea. Zone.js "envuelve" los eventos del navegador (clicks, timeouts, peticiones HTTP) para que Angular sepa cuándo tiene que actualizar la pantalla.</li>
+  <li><code>bootstrapApplication(App, appConfig)</code> — le dice a Angular: "el componente raíz es <code>App</code>, con esta configuración".</li>
+</ul>
+
+<h2 id="42-appconfigts">4.2 app.config.ts</h2>
+
+<p>Aquí se registra todo lo que la app necesita globalmente. Es el equivalente al antiguo <code>AppModule</code> pero en formato moderno (standalone).</p>
+
+<pre><code>export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),          // captura errores no manejados del navegador
+    provideZoneChangeDetection({ eventCoalescing: true }), // optimización de zone.js
+    provideRouter(routes, withRouterConfig({        // activa el sistema de rutas
+      onSameUrlNavigation: 'reload'                 // navegar a la misma URL recarga el componente
+    })),
+    provideHttpClient(withInterceptors([authInterceptor])), // HTTP con el interceptor de auth
+    provideAppInitializer(() => inject(AuthService).initializeAuth()) // se ejecuta ANTES del primer render
+  ]
+};</code></pre>
+
+<h4>Por qué es importante cada línea</h4>
+<ul>
+  <li><strong>provideRouter</strong> — sin esto, Angular no sabe qué componente mostrar para cada URL.</li>
+  <li><strong>onSameUrlNavigation: 'reload'</strong> — si navegas dos veces a <code>/empresas</code>, el componente se recarga (comportamiento de un link normal). Sin esto, la segunda navegación no haría nada.</li>
+  <li><strong>provideHttpClient(withInterceptors([authInterceptor]))</strong> — registra el cliente HTTP y le añade el interceptor. Todas las peticiones HTTP de la app pasarán por ese interceptor.</li>
+  <li><strong>provideAppInitializer()</strong> — sustituto moderno de <code>APP_INITIALIZER</code> (deprecado en Angular 19+). Ejecuta la función antes del primer render. Más conciso: una sola línea en lugar del bloque <code>provide/useFactory/multi</code>.</li>
+</ul>
+
+<h2 id="43-app-initializer">4.3 provideAppInitializer — hidratación de la identidad</h2>
+
+<p><code>provideAppInitializer()</code> es la forma moderna (Angular 19+) de ejecutar código asíncrono <strong>antes de que se renderice cualquier componente</strong>. Angular espera a que la función termine antes de mostrar nada. Sustituye al anterior <code>APP_INITIALIZER</code> que requería un bloque más verboso con <code>provide/useFactory/multi</code>.</p>
+
+<p>En este proyecto se usa para resolver el siguiente problema:</p>
+
+<blockquote class="warn">
+  <strong>Problema sin provideAppInitializer:</strong> el usuario recarga la página. Angular arranca, los guards comprueban si está logueado (no, porque aún no se ha cargado nada), lo redirigen al login. Medio segundo después llega la respuesta de <code>/auth/me</code> y resulta que sí estaba logueado. El usuario ve un parpadeo horrible login → panel.
+</blockquote>
+
+<blockquote class="ok">
+  <strong>Solución con provideAppInitializer:</strong> Angular arranca, espera a que <code>/auth/me</code> responda, guarda la identidad en memoria, y solo entonces renderiza. Los guards ya tienen el estado correcto desde el primer instante. Cero parpadeo.
+</blockquote>
+
+<pre><code>// En AuthService:
+async initializeAuth(): Promise<void> {
+  try {
+    const identity = await firstValueFrom(
+      this.http.get<Identity>('/api/auth/me', { withCredentials: true })
+    );
+    this._identity.set(identity);   // guarda email, rol, totpEnabled en memoria
+  } catch {
+    this._identity.set(null);       // no hay sesión, o el token expiró
+  }
+}</code></pre>
+
+
+<!-- ─────────────────────────── 5 ─────────────────────────── -->
+<h1 id="5-rutas">5. Sistema de rutas</h1>
+
+<p>Las rutas determinan qué componente se muestra para cada URL. Angular usa el router para esto: cuando el usuario navega a <code>/empresas</code>, el router busca qué componente corresponde y lo monta en el <code>&lt;router-outlet&gt;</code>.</p>
+
+<h2 id="51-approutests">5.1 app.routes.ts — mapa de rutas</h2>
+
+<table>
+  <thead><tr><th>URL</th><th>Componente</th><th>Guards</th><th>Quién puede acceder</th></tr></thead>
+  <tbody>
+    <tr><td><code>/</code></td><td>— (redirect)</td><td>—</td><td>Redirige a <code>/empresas</code></td></tr>
+    <tr><td><code>/empresas</code></td><td>CompanyListComponent</td><td>authGuard + adminGuard</td><td>Solo SuperAdmin con TOTP</td></tr>
+    <tr><td><code>/empresas/nueva</code></td><td>CompanyFormComponent</td><td>authGuard + adminGuard</td><td>Solo SuperAdmin con TOTP</td></tr>
+    <tr><td><code>/empresas/:id/editar</code></td><td>CompanyFormComponent</td><td>authGuard + adminGuard</td><td>Solo SuperAdmin con TOTP</td></tr>
+    <tr><td><code>/empresas/:id</code></td><td>CompanyDetailComponent</td><td>authGuard + adminGuard</td><td>Solo SuperAdmin con TOTP</td></tr>
+    <tr><td><code>/usuarios</code></td><td>UserListComponent</td><td>authGuard + adminGuard</td><td>Solo SuperAdmin con TOTP</td></tr>
+    <tr><td><code>/usuarios/nuevo</code></td><td>UserFormComponent</td><td>authGuard + adminGuard</td><td>Solo SuperAdmin con TOTP</td></tr>
+    <tr><td><code>/usuarios/:id/editar</code></td><td>UserFormComponent</td><td>authGuard + adminGuard</td><td>Solo SuperAdmin con TOTP</td></tr>
+    <tr><td><code>/usuarios/:id</code></td><td>UserDetailComponent</td><td>authGuard + adminGuard</td><td>Solo SuperAdmin con TOTP</td></tr>
+    <tr><td><code>/login</code></td><td>LoginComponent</td><td>guestGuard</td><td>Solo NO autenticados</td></tr>
+    <tr><td><code>/mfa-verificar</code></td><td>MfaVerificarComponent</td><td>guestGuard</td><td>Solo NO autenticados</td></tr>
+    <tr><td><code>/recuperar-password</code></td><td>RecuperarPasswordComponent</td><td>guestGuard</td><td>Solo NO autenticados</td></tr>
+    <tr><td><code>/reset-password</code></td><td>ResetPasswordComponent</td><td>guestGuard</td><td>Solo NO autenticados</td></tr>
+    <tr><td><code>/perfil</code></td><td>PerfilComponent</td><td>authGuard</td><td>Cualquier usuario autenticado</td></tr>
+    <tr><td><code>/configurar-totp</code></td><td>ConfigurarTotpComponent</td><td>authGuard</td><td>Cualquier usuario autenticado</td></tr>
+    <tr><td><code>/not-found</code></td><td>NotFoundComponent</td><td>—</td><td>Todos</td></tr>
+    <tr><td><code>/**</code></td><td>— (redirect)</td><td>—</td><td>Cualquier URL desconocida → <code>/not-found</code></td></tr>
+  </tbody>
+</table>
+
+<h2 id="52-lazy-loading">5.2 Lazy loading — carga diferida</h2>
+
+<p>Todas las páginas se cargan con <strong>lazy loading</strong>. Esto significa que el JavaScript de cada página <strong>no se descarga hasta que el usuario navega a ella</strong>.</p>
+
+<pre><code>// En lugar de importar directamente (eagerly):
+// import { CompanyListComponent } from './pages/company-list/company-list';
+
+// Se usa loadComponent (lazy):
+{
+  path: 'empresas',
+  loadComponent: () =>
+    import('./pages/company-list/company-list').then(m => m.CompanyListComponent),
+  canActivate: [authGuard, adminGuard]
+}</code></pre>
+
+<p>Ventaja: el bundle inicial es mucho más pequeño. Un usuario que solo va al login no descarga el código del listado de empresas.</p>
+
+<h2 id="53-constantes">5.3 Constantes de rutas tipadas</h2>
+
+<p>Las rutas no se escriben como strings sueltos en el código. Están centralizadas en <code>app.routes.constants.ts</code>:</p>
+
+<pre><code>export const ROUTES = {
+  COMPANIES: '/empresas',
+  COMPANY_NEW: '/empresas/nueva',
+  companyDetail: (id: number) => `/empresas/${id}`,   // función para rutas con parámetro
+  companyEdit:   (id: number) => `/empresas/${id}/editar`,
+  USERS:    '/usuarios',
+  USER_NEW: '/usuarios/nuevo',
+  userDetail: (id: number) => `/usuarios/${id}`,
+  userEdit:   (id: number) => `/usuarios/${id}/editar`,
+  LOGIN:              '/login',
+  MFA_VERIFY:         '/mfa-verificar',
+  RECUPERAR_PASSWORD: '/recuperar-password',
+  RESET_PASSWORD:     '/reset-password',
+  PERFIL:             '/perfil',
+  CONFIGURAR_TOTP:    '/configurar-totp',
+};</code></pre>
+
+<p>Ventaja: si alguna vez cambias una ruta, solo tocas este fichero. No hay strings <code>'/empresas'</code> esparcidos por el código.</p>
+
+
+<!-- ─────────────────────────── 6 ─────────────────────────── -->
+<h1 id="6-estado">6. Gestión de estado con Signals</h1>
+
+<h2 id="61-signals">6.1 ¿Qué es un Signal?</h2>
+
+<p>Un <strong>Signal</strong> es una variable reactiva de Angular. Cuando su valor cambia, todos los componentes que la usan se actualizan automáticamente en la pantalla.</p>
+
+<pre><code>// Crear un signal
+const contador = signal(0);
+
+// Leer su valor (nota los paréntesis — se llama como función)
+console.log(contador());    // 0
+
+// Modificar su valor
+contador.set(5);            // ahora vale 5
+contador.update(v => v + 1); // incrementar: ahora vale 6
+
+// computed: signal derivado de otro signal (solo lectura)
+const doble = computed(() => contador() * 2);
+console.log(doble());       // 12 — se recalcula solo cuando contador cambia</code></pre>
+
+<p>La diferencia con una variable normal es que Angular "sabe" qué componentes usan cada signal. Cuando el signal cambia, solo esos componentes se re-renderizan — no toda la app.</p>
+
+<h2 id="62-authservice-store">6.2 AuthService como store de identidad</h2>
+
+<p>La identidad del usuario logueado vive en <code>AuthService</code> como un signal privado. Es el único lugar de toda la app donde se guarda quién está logueado.</p>
+
+<pre><code>@Injectable({ providedIn: 'root' })
+export class AuthService {
+  // Signal privado — solo AuthService puede modificarlo
+  private readonly _identity = signal&lt;Identity | null&gt;(null);
+
+  // Signals derivados (computed) — solo lectura desde fuera
+  readonly isLoggedIn  = computed(() => this._identity() !== null);
+  readonly userEmail   = computed(() => this._identity()?.email   ?? null);
+  readonly userRole    = computed(() => this._identity()?.role    ?? null);
+  readonly totpEnabled = computed(() => this._identity()?.totpEnabled ?? false);
+  readonly clientId    = computed(() => this._identity()?.userId  ?? null);
+}</code></pre>
+
+<p>Cualquier componente puede inyectar <code>AuthService</code> y usar estos signals directamente en la plantilla:</p>
+
+<pre><code>// En cualquier componente:
+readonly auth = inject(AuthService);
+
+// En la plantilla:
+@if (auth.isLoggedIn()) {
+  &lt;span&gt;Hola, {{ auth.userEmail() }}&lt;/span&gt;
+}</code></pre>
+
+<blockquote>
+  <strong>Importante:</strong> la identidad vive solo en memoria del navegador, no en localStorage ni sessionStorage. Esto es más seguro — si hubiera un XSS, el atacante no puede leer el token ni el rol leyendo el almacenamiento. Al recargar la página, el provideAppInitializer vuelve a llamar a <code>/auth/me</code> para rehidratar.
+</blockquote>
+
+
+<!-- ─────────────────────────── 7 ─────────────────────────── -->
+<h1 id="7-interceptor">7. Interceptor HTTP — auth.interceptor.ts</h1>
+
+<p>Un <strong>interceptor</strong> es un middleware de Angular para las peticiones HTTP. Se coloca en el medio entre tu código y el servidor: intercepta cada petición antes de enviarla y cada respuesta antes de que llegue al componente.</p>
+
+<p>El interceptor de este proyecto hace <strong>dos cosas</strong>:</p>
+
+<h3>1. Añadir credenciales a todas las peticiones</h3>
+<p>Las cookies de sesión (<code>accessToken</code> y <code>refreshToken</code>) son HttpOnly — JavaScript no puede leerlas directamente. Pero el navegador las envía automáticamente si le dices que incluya credenciales:</p>
+
+<pre><code>const reqWithCreds = req.clone({ withCredentials: true });
+return next(reqWithCreds);   // envía la petición con las cookies adjuntas</code></pre>
+
+<h3>2. Refresh automático cuando el token expira (401)</h3>
+<p>El access token dura 15 minutos. Cuando expira, el servidor devuelve 401. El interceptor lo captura, renueva el token silenciosamente, y reintenta la petición original — <strong>sin que el usuario se entere</strong>.</p>
+
+<p>El problema es que pueden llegar varios 401 simultáneos (varias peticiones fallando a la vez). Si todas intentan hacer el refresh, se generan tokens duplicados. La solución es un <strong>candado global</strong>:</p>
+
+<pre><code>let isRefreshing = false;
+const refreshResult$ = new BehaviorSubject&lt;boolean | null&gt;(null);
+
+// Si ya está refrescando, esperar al resultado
+if (isRefreshing) {
+  return refreshResult$.pipe(
+    filter(result => result !== null),  // esperar a que deje de ser null
+    take(1),
+    switchMap(success => success ? next(reqWithCreds) : throwError(() => error))
+  );
+}
+
+// Primera petición en fallar: tomar el control del refresh
+isRefreshing = true;
+refreshResult$.next(null);  // resetear el tablón
+
+return from(authService.refresh()).pipe(
+  switchMap(success => {
+    isRefreshing = false;
+    refreshResult$.next(success);  // notificar a las peticiones en espera
+    return success ? next(reqWithCreds) : throwError(() => error);
+  })
+);</code></pre>
+
+<p>El <code>BehaviorSubject</code> actúa como tablón de anuncios: la primera petición en fallar anuncia "estoy refrescando" (null), y cuando termina anuncia el resultado (true/false). Las demás peticiones esperan escuchando ese tablón.</p>
+
+<h3>Qué endpoints están en la lista blanca</h3>
+<p>Los endpoints de auth no pasan por el mecanismo de refresh (evitar recursión):</p>
+<ul>
+  <li><code>/auth/login</code> — si falla con 401, es contraseña incorrecta</li>
+  <li><code>/auth/refresh</code> — si falla, el refresh token expiró → logout</li>
+  <li><code>/auth/me</code> — si falla en el arranque, es que no hay sesión</li>
+  <li><code>/auth/mfa-verify</code>, <code>/auth/forgot-password</code>, <code>/auth/reset-password</code></li>
+</ul>
+
+
+<!-- ─────────────────────────── 8 ─────────────────────────── -->
+<h1 id="8-guards">8. Guards de rutas</h1>
+
+<p>Los guards son funciones que Angular ejecuta <strong>antes de activar una ruta</strong>. Pueden dejar pasar (<code>return true</code>), redirigir (<code>return router.createUrlTree(['/login'])</code>), o bloquear (<code>return false</code>).</p>
+
+<h2 id="81-authguard">8.1 authGuard — ¿estás logueado?</h2>
+
+<pre><code>export const authGuard: CanActivateFn = (_route, state) => {
+  const authService = inject(AuthService);
+  const router      = inject(Router);
+
+  if (authService.isLoggedIn()) return true;  // ✅ dejar pasar
+
+  // ❌ no logueado → ir al login, guardando la URL actual para volver después
+  return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};</code></pre>
+
+<p>El <code>returnUrl</code> en los query params permite que, tras hacer login, el usuario llegue a la página que intentaba visitar (en lugar del home por defecto).</p>
+
+<h2 id="82-adminguard">8.2 adminGuard — ¿eres SuperAdmin con TOTP activo?</h2>
+
+<pre><code>export const adminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router      = inject(Router);
+
+  // 1. ¿Eres SuperAdmin?
+  if (authService.userRole() !== ROLES.SUPER_ADMIN)
+    return router.createUrlTree(['/perfil']);   // ← Cliente va a su perfil
+
+  // 2. ¿Tienes TOTP configurado?
+  if (!authService.totpEnabled())
+    return router.createUrlTree(['/configurar-totp']);  // ← forzar configuración
+
+  return true;  // ✅ SuperAdmin con TOTP activo
+};</code></pre>
+
+<p>Este guard implementa la regla de negocio: <strong>el SuperAdmin no puede acceder al panel de gestión sin haber configurado TOTP</strong>. Si hace login pero no lo ha configurado, es redirigido a <code>/configurar-totp</code> automáticamente.</p>
+
+<h2 id="83-guestguard">8.3 guestGuard — ¿eres un visitante (no logueado)?</h2>
+
+<pre><code>export const guestGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router      = inject(Router);
+
+  if (!authService.isLoggedIn()) return true;  // ✅ no logueado, dejar pasar
+
+  // Ya está logueado → redirigir al home según su rol
+  const home = authService.userRole() === ROLES.SUPER_ADMIN ? '/empresas' : '/perfil';
+  return router.createUrlTree([home]);
+};</code></pre>
+
+<p>Protege las páginas públicas (login, mfa, recuperar-password). Si un usuario ya logueado intenta ir a <code>/login</code>, lo lleva directamente a su página de inicio.</p>
+
+<h3>Cómo se combinan los guards en una ruta</h3>
+<pre><code>canActivate: [authGuard, adminGuard]
+
+// Flujo:
+// 1. authGuard: ¿estás logueado?     → NO → /login
+//                                    → SÍ ↓
+// 2. adminGuard: ¿eres SuperAdmin?   → NO → /perfil
+//               ¿tienes TOTP?        → NO → /configurar-totp
+//                                    → SÍ → acceso permitido ✅</code></pre>
+
+
+<!-- ─────────────────────────── 9 ─────────────────────────── -->
+<h1 id="9-servicios">9. Servicios</h1>
+
+<p>Los servicios son clases que Angular crea <strong>una sola vez</strong> para toda la app (<code>providedIn: 'root'</code>) y que cualquier componente puede inyectar. Se usan para lógica que no pertenece a un componente concreto: llamadas HTTP, estado compartido, utilidades.</p>
+
+<h2 id="91-authservice">9.1 AuthService</h2>
+<p><strong>Fichero:</strong> <code>services/auth.service.ts</code></p>
+<p>Es el servicio más importante. Gestiona toda la autenticación y el estado de identidad del usuario.</p>
+
+<table>
+  <thead><tr><th>Método / Propiedad</th><th>Qué hace</th></tr></thead>
+  <tbody>
+    <tr><td><code>isLoggedIn</code> (computed)</td><td>true si hay identidad en memoria</td></tr>
+    <tr><td><code>userEmail</code> (computed)</td><td>email del usuario logueado</td></tr>
+    <tr><td><code>userRole</code> (computed)</td><td>"SuperAdmin" o "Cliente"</td></tr>
+    <tr><td><code>totpEnabled</code> (computed)</td><td>true si el SuperAdmin tiene TOTP activo</td></tr>
+    <tr><td><code>clientId</code> (computed)</td><td>ID del usuario Cliente (solo rol Cliente)</td></tr>
+    <tr><td><code>initializeAuth()</code></td><td>Llama a /auth/me y guarda la identidad (llamado por provideAppInitializer)</td></tr>
+    <tr><td><code>login(dto)</code></td><td>Envía credenciales a /auth/login. Si no hay MFA pendiente, guarda identidad.</td></tr>
+    <tr><td><code>mfaVerify(email, code)</code></td><td>Verifica el código OTP/TOTP, guarda identidad y redirige al home del rol</td></tr>
+    <tr><td><code>logout()</code></td><td>Llama a /auth/logout (revoca refresh token), limpia identidad en memoria, va a /login</td></tr>
+    <tr><td><code>refresh()</code></td><td>Renueva el access token via /auth/refresh. Devuelve true/false. Usado por el interceptor.</td></tr>
+    <tr><td><code>isSafeReturnUrl(url)</code></td><td>Comprueba que una URL de redirección es interna y no es una página de auth (previene open redirect)</td></tr>
+    <tr><td><code>forgotPassword(email)</code></td><td>Pide un email de recuperación a /auth/forgot-password</td></tr>
+    <tr><td><code>resetPassword(email, token, pass)</code></td><td>Cambia la contraseña con el token recibido por email</td></tr>
+    <tr><td><code>totpStatus()</code></td><td>Consulta si TOTP está activo para el usuario actual</td></tr>
+    <tr><td><code>totpSetup()</code></td><td>Inicia el setup de TOTP, devuelve QR URI y secret Base32</td></tr>
+    <tr><td><code>totpConfirm(code)</code></td><td>Confirma el setup verificando el primer código. Actualiza identidad.</td></tr>
+    <tr><td><code>totpDisable()</code></td><td>Desactiva TOTP. Actualiza identidad con totpEnabled=false.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="92-companyservice">9.2 CompanyService</h2>
+<p><strong>Fichero:</strong> <code>services/company.service.ts</code></p>
+<p>Wrapper sobre la API de empresas. Todos los métodos devuelven <code>Observable</code> (RxJS).</p>
+
+<pre><code>getAll(page, pageSize, name?, status?): Observable&lt;PagedResponse&lt;Company&gt;&gt;
+getById(id): Observable&lt;Company&gt;
+create(dto: CreateCompany): Observable&lt;Company&gt;     // envía FormData (con posible logo)
+update(id, dto: UpdateCompany): Observable&lt;Company&gt;  // envía FormData
+delete(id): Observable&lt;void&gt;</code></pre>
+
+<p>Los métodos <code>create</code> y <code>update</code> convierten el DTO a <code>FormData</code> internamente (necesario para poder subir el logo como archivo). El resto usa JSON normal.</p>
+
+<h2 id="93-userservice">9.3 UserService</h2>
+<p><strong>Fichero:</strong> <code>services/user.service.ts</code></p>
+<p>Wrapper sobre la API de usuarios.</p>
+
+<pre><code>getAll(page, pageSize, name?, companyId?): Observable&lt;PagedResponse&lt;User&gt;&gt;
+getById(id): Observable&lt;User&gt;
+create(dto: CreateUser): Observable&lt;User&gt;
+update(id, dto: UpdateUser): Observable&lt;User&gt;
+delete(id): Observable&lt;void&gt;
+getMe(): Observable&lt;User&gt;   // para el rol Cliente — devuelve su propio perfil</code></pre>
+
+<h2 id="94-notificationservice">9.4 NotificationService</h2>
+<p><strong>Fichero:</strong> <code>services/notification.service.ts</code></p>
+<p>Gestiona las notificaciones que aparecen en la campana del header (cuando creas/editas/eliminas empresas o usuarios).</p>
+
+<ul>
+  <li>Las notificaciones se guardan en <code>localStorage</code> bajo la clave <code>cm-notifications</code> (máximo 10).</li>
+  <li><code>add(n)</code> — añade una notificación nueva (la más reciente va primero).</li>
+  <li><code>getAll()</code> — devuelve todas las notificaciones guardadas.</li>
+  <li><code>getUnreadCount()</code> — cuenta las no leídas comparando con la última fecha de apertura del panel.</li>
+  <li><code>markAsSeen()</code> — guarda la fecha actual como "última vez visto" en <code>cm-notifications-seen</code>.</li>
+</ul>
+
+<blockquote>
+  Solo se guarda información descriptiva de la acción (icono, texto, fecha). Nunca datos sensibles.
+</blockquote>
+
+<h2 id="95-themeservice">9.5 ThemeService</h2>
+<p><strong>Fichero:</strong> <code>services/theme.service.ts</code></p>
+<p>Gestiona el modo oscuro/claro. Funciona añadiendo/quitando la clase <code>dark-mode</code> al <code>&lt;body&gt;</code>. Los componentes usan <code>:host-context(body.dark-mode)</code> en su SCSS para aplicar colores alternativos.</p>
+
+<ul>
+  <li>Tres modos: <code>'light'</code>, <code>'dark'</code>, <code>'system'</code> (sigue la preferencia del SO).</li>
+  <li>La preferencia se guarda en <code>localStorage</code> bajo la clave <code>'theme'</code>.</li>
+  <li><code>initTheme()</code> — lee la preferencia guardada y la aplica al arrancar.</li>
+</ul>
+
+
+<!-- ─────────────────────────── 10 ─────────────────────────── -->
+<h1 id="10-layout">10. Layout principal</h1>
+
+<h2 id="101-appts">10.1 App (componente raíz) — app.ts</h2>
+
+<p>Este es el componente que Angular monta primero. Funciona como el <strong>shell</strong> de la aplicación: decide qué layout mostrar según la URL y el rol del usuario.</p>
+
+<pre><code>@if (isFullscreen()) {
+  // Páginas de auth (login, mfa, reset-password...) → sin sidebar ni navbar
+  &lt;router-outlet /&gt;
+
+} @else if (isSuperAdmin()) {
+  // Panel de administración → sidebar izquierdo + header con campana + contenido
+  &lt;div class="admin-shell"&gt;
+    &lt;app-sidebar /&gt;
+    &lt;div class="admin-content"&gt;
+      &lt;header class="content-header"&gt; ... campana de notificaciones + menú usuario &lt;/header&gt;
+      &lt;router-outlet /&gt;   // ← aquí se montan las páginas
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+} @else {
+  // Cliente → solo navbar top + contenido
+  &lt;app-navbar /&gt;
+  &lt;router-outlet /&gt;
+}</code></pre>
+
+<h4>Signals en App</h4>
+<ul>
+  <li><code>isFullscreen</code> (computed) — true si la URL actual es <code>/login</code>, <code>/mfa-verificar</code>, etc.</li>
+  <li><code>isSuperAdmin</code> (computed) — true si está logueado y es SuperAdmin.</li>
+  <li><code>userInitials</code> (computed) — primeras dos letras del email para el avatar.</li>
+  <li><code>isNotifOpen</code> / <code>isUserMenuOpen</code> (signals) — estado de los dropdowns del header.</li>
+  <li><code>notifications</code> / <code>unreadCount</code> (signals) — lista y contador de notificaciones.</li>
+  <li><code>currentUrl</code> — signal creado desde el evento <code>NavigationEnd</code> del router con <code>toSignal()</code>.</li>
+</ul>
+
+<h2 id="102-sidebar">10.2 Sidebar</h2>
+<p><strong>Carpeta:</strong> <code>components/sidebar/</code></p>
+<p>Menú lateral izquierdo del panel admin. Contiene:</p>
+<ul>
+  <li>Logo + nombre de la app en la parte superior.</li>
+  <li>Sección de navegación: <strong>Empresas</strong> (icono domain) y <strong>Usuarios</strong> (icono people).</li>
+  <li>Sección de <strong>Configuración</strong> colapsable con el enlace a Configurar TOTP.</li>
+  <li>Sección inferior: botón de dark mode + ayuda + versión.</li>
+  <li>Responsive: se oculta en pantallas ≤1024px (en móvil aparece una barra de navegación horizontal en su lugar).</li>
+</ul>
+
+<h2 id="103-navbar">10.3 Navbar</h2>
+<p><strong>Carpeta:</strong> <code>components/navbar/</code></p>
+<p>Barra de navegación superior que ve el rol <strong>Cliente</strong>. Mucho más simple que el admin shell: solo muestra el logo y un botón de logout. No tiene acceso al sidebar ni a las secciones de admin.</p>
+
+<h2 id="104-confirmdialog">10.4 ConfirmDialog</h2>
+<p><strong>Carpeta:</strong> <code>components/confirm-dialog/</code></p>
+<p>Diálogo de confirmación reutilizable que aparece al eliminar empresas o usuarios. Se abre con <code>MatDialog.open(ConfirmDialogComponent, { data: { title, message } })</code> y devuelve <code>true</code> si el usuario confirma o <code>false</code> si cancela.</p>
+
+
+<!-- ─────────────────────────── 11 ─────────────────────────── -->
+<h1 id="11-paginas-auth">11. Páginas de autenticación</h1>
+
+<p>Estas páginas no tienen sidebar ni navbar. Usan un layout de dos columnas: panel izquierdo con branding (degradado oscuro) y panel derecho con el formulario.</p>
+
+<h2 id="111-login">11.1 Login</h2>
+<p><strong>Fichero:</strong> <code>pages/login/login.ts</code></p>
+<p>Formulario de inicio de sesión con email y contraseña. La contraseña tiene un botón para mostrarla/ocultarla.</p>
+
+<h4>Flujo al pulsar "Iniciar sesión"</h4>
+<ol>
+  <li>Llama a <code>authService.login({ email, password })</code>.</li>
+  <li>Si la respuesta tiene <code>requiresMfa: true</code> → navega a <code>/mfa-verificar</code> pasando el email, tipo de MFA (<code>'email'</code> o <code>'totp'</code>) y un posible <code>returnUrl</code> como query params.</li>
+  <li>Si <code>requiresMfa: false</code> → el servidor ya emitió cookies. Navega a <code>/configurar-totp</code> (si el SuperAdmin no tiene TOTP activo) o al home del rol.</li>
+</ol>
+
+<p>El <code>sessionStorage</code> guarda <code>mfa_otp_expires_at</code> (timestamp de expiración del OTP) para que la siguiente página pueda mostrar el timer de cuenta atrás.</p>
+
+<p>Manejo de errores por código HTTP:
+<ul>
+  <li><code>423</code> — cuenta bloqueada por demasiados intentos.</li>
+  <li><code>429</code> — demasiadas peticiones (rate limiting).</li>
+  <li>Cualquier otro → "Credenciales incorrectas".</li>
+</ul>
+</p>
+
+<h2 id="112-mfa">11.2 MFA Verificar</h2>
+<p><strong>Fichero:</strong> <code>pages/mfa-verificar/mfa-verificar.ts</code></p>
+<p>Página de verificación del segundo factor. Recibe el tipo de MFA desde los query params de la URL.</p>
+
+<h4>Para Email OTP:</h4>
+<ul>
+  <li>Muestra 6 cajas de dígito separadas con autoavance (al escribir un dígito, el foco salta a la siguiente caja).</li>
+  <li>Soporte de pegado: si pegas "123456", rellena todas las cajas automáticamente.</li>
+  <li>Navegación con teclado: ArrowLeft/Right para moverse entre cajas, Backspace para borrar y retroceder.</li>
+  <li>Timer de cuenta atrás de 30 segundos (lee el timestamp del sessionStorage).</li>
+  <li>Cuando el timer llega a 0, muestra botón "Volver al login" (el código ha expirado).</li>
+</ul>
+
+<h4>Para TOTP:</h4>
+<ul>
+  <li>Mismas 6 cajas pero sin timer (los códigos TOTP se regeneran cada 30s automáticamente en la app del móvil).</li>
+  <li>Botón "¿Perdiste el acceso? Usa un código de respaldo" que cambia el modo a un input de texto para el código de 8 caracteres (<code>xxxx-xxxx</code>).</li>
+</ul>
+
+<h2 id="113-totp">11.3 Configurar TOTP</h2>
+<p><strong>Fichero:</strong> <code>pages/configurar-totp/configurar-totp.ts</code></p>
+<p>Página de configuración del segundo factor para el SuperAdmin. Tiene tres estados:</p>
+
+<ol>
+  <li><strong>TOTP inactivo</strong> — muestra un botón "Activar autenticación en dos pasos".</li>
+  <li><strong>Setup en curso</strong> — muestra el QR (generado con la librería <code>qrcode</code>), el secreto Base32 para entrada manual, y las 6 cajas para verificar el primer código.</li>
+  <li><strong>TOTP activo</strong> — muestra que está protegido y un botón para desactivarlo.</li>
+</ol>
+
+<p>El QR se genera en el propio navegador a partir del <code>qrUri</code> recibido del servidor: <code>QRCode.toDataURL(data.qrUri)</code> devuelve un <code>data:image/png;base64,...</code> que se asigna al <code>src</code> de un <code>&lt;img&gt;</code>.</p>
+
+<h2 id="114-recuperar">11.4 Recuperar contraseña</h2>
+<p><strong>Fichero:</strong> <code>pages/recuperar-password/recuperar-password.ts</code></p>
+<p>Formulario con solo un campo (email). Llama a <code>/auth/forgot-password</code>. Siempre muestra el mismo mensaje de éxito independientemente de si el email existe o no (anti-enumeración).</p>
+
+<h2 id="115-reset">11.5 Reset contraseña</h2>
+<p><strong>Fichero:</strong> <code>pages/reset-password/reset-password.ts</code></p>
+<p>Formulario para crear una nueva contraseña. Lee el email y el token de los query params de la URL (que llegaron por email). Muestra las reglas de contraseña en tiempo real usando los <code>PASSWORD_RULES</code> de las constantes.</p>
+
+
+<!-- ─────────────────────────── 12 ─────────────────────────── -->
+<h1 id="12-paginas-admin">12. Páginas de administración</h1>
+
+<p>Estas páginas solo son accesibles para el SuperAdmin con TOTP activo (protegidas por <code>authGuard + adminGuard</code>).</p>
+
+<h2 id="121-company-list">12.1 Company List</h2>
+<p><strong>Carpeta:</strong> <code>pages/company-list/</code> (3 ficheros: .ts, .html, .scss)</p>
+<p>Es la página principal del admin. Muestra la tabla de empresas con un panel de detalle lateral que se abre al hacer clic en una fila.</p>
+
+<h4>Funcionalidades</h4>
+<ul>
+  <li><strong>Búsqueda</strong> con debounce de 300ms — espera a que el usuario deje de escribir antes de llamar a la API.</li>
+  <li><strong>Filtro por estado</strong> (Activa, Prospecto, Inactiva, Perdida) con un dropdown.</li>
+  <li><strong>Paginación</strong> con el componente <code>mat-paginator</code> de Material (10 filas por página).</li>
+  <li><strong>Panel de detalle lateral</strong> (<code>detail-panel</code>) con tres pestañas: Resumen, Usuarios, Configuración. Se abre con animación al seleccionar una fila.</li>
+  <li><strong>Menú kebab</strong> (···) en cada fila para editar o eliminar.</li>
+  <li><strong>Skeleton loading</strong> — mientras carga, muestra filas con animación shimmer en lugar de spinner.</li>
+  <li><strong>Botón "Nueva empresa"</strong> en el header.</li>
+</ul>
+
+<h4>Signals en este componente</h4>
+<pre><code>companies      = signal&lt;Company[]&gt;([]);      // lista actual de empresas
+totalItems     = signal(0);                  // total para la paginación
+loading        = signal(true);               // muestra skeleton
+selectedId     = signal&lt;number | null&gt;(null); // empresa seleccionada en el panel
+isFilterOpen   = signal(false);              // dropdown de filtros
+statusFilter   = signal&lt;string | null&gt;(null); // filtro de estado activo
+appliedNameFilter = signal('');              // búsqueda aplicada actualmente</code></pre>
+
+<h4>Suscripciones RxJS</h4>
+<pre><code>// Búsqueda con debounce
+this.nameSearch$
+  .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+  .subscribe(name => { this.appliedNameFilter.set(name); this.loadPage(1); });</code></pre>
+
+<h2 id="122-company-form">12.2 Company Form</h2>
+<p><strong>Carpeta:</strong> <code>pages/company-form/</code></p>
+<p>Formulario reutilizable para crear y editar empresas. Sabe si está en modo "crear" o "editar" leyendo si la URL tiene un <code>:id</code> (<code>route.snapshot.paramMap.get('id')</code>). En modo editar, carga los datos actuales de la empresa para prellenar el formulario.</p>
+
+<p>Soporta subida de logo: input de tipo file filtrado a imágenes. Muestra preview del logo actual en modo editar.</p>
+
+<h2 id="123-company-detail">12.3 Company Detail</h2>
+<p><strong>Carpeta:</strong> <code>pages/company-detail/</code></p>
+<p>Página completa de detalle de empresa (para cuando se accede directamente a <code>/empresas/:id</code>, en lugar del panel lateral). Muestra toda la información, estadísticas y lista de usuarios de la empresa.</p>
+
+<h2 id="124-user-list">12.4 User List</h2>
+<p><strong>Carpeta:</strong> <code>pages/user-list/</code></p>
+<p>Tabla de todos los usuarios del sistema. Similar a Company List: búsqueda con debounce, filtro por empresa, paginación, skeleton loading y menú kebab. No tiene panel de detalle lateral (al hacer clic va a la página de detalle completa).</p>
+
+<h2 id="125-user-form">12.5 User Form</h2>
+<p><strong>Carpeta:</strong> <code>pages/user-form/</code></p>
+<p>Formulario para crear y editar usuarios. En modo crear, incluye un campo de contraseña inicial (con reglas de validación en tiempo real). En modo editar, no muestra el campo de contraseña. Tiene un selector de empresa (dropdown con búsqueda).</p>
+
+<h2 id="126-user-detail">12.6 User Detail</h2>
+<p><strong>Carpeta:</strong> <code>pages/user-detail/</code></p>
+<p>Página de detalle de un usuario. Muestra sus datos, la empresa a la que pertenece y acciones rápidas (editar, eliminar).</p>
+
+
+<!-- ─────────────────────────── 13 ─────────────────────────── -->
+<h1 id="13-paginas-cliente">13. Páginas de cliente</h1>
+
+<h3>Perfil (<code>pages/perfil/</code>)</h3>
+<p>Única página accesible para el rol Cliente. Llama a <code>userService.getMe()</code> que invoca <code>GET /api/users/me</code>. El backend devuelve solo los datos del usuario autenticado (no puede ver a otros). Muestra nombre, email y empresa.</p>
+
+<h3>Not Found (<code>pages/not-found/</code>)</h3>
+<p>Página 404 a la que redirigen las rutas desconocidas (<code>path: '**'</code> en las rutas). Diseño fullscreen con animación y botón de volver al inicio.</p>
+
+
+<!-- ─────────────────────────── 14 ─────────────────────────── -->
+<h1 id="14-modelos">14. Modelos TypeScript y constantes</h1>
+
+<h3>company.model.ts</h3>
+<pre><code>export interface Company {
+  id: number;
+  name: string;
+  description: string;
+  logoUrl?: string;          // URL absoluta construida por la API
+  status: CompanyStatus;     // 'Active' | 'Prospect' | 'Inactive' | 'Churned'
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  createdAt: string;
+  updatedAt: string;
+  usersCount: number;
+}
+
+export interface CreateCompany {
+  name: string;
+  description: string;
+  status?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  logo?: File;               // archivo de imagen (opcional)
+}
+
+export interface PagedResponse&lt;T&gt; {
+  data: T[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}</code></pre>
+
+<h3>user.model.ts</h3>
+<pre><code>export interface User {
+  id: number;
+  name: string;
+  email: string;
+  companyId: number;
+  companyName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateUser {
+  name: string;
+  email: string;
+  companyId: number;
+  password: string;
+}
+
+export interface UpdateUser {
+  name: string;
+  email: string;
+  companyId: number;
+}</code></pre>
+
+<h3>constants/roles.ts</h3>
+<pre><code>export const ROLES = {
+  SUPER_ADMIN: 'SuperAdmin',
+  CLIENTE:     'Cliente'
+} as const;
+
+// El "as const" hace que TypeScript los trate como literales de tipo,
+// no como strings genéricos. Permite usarlos en comparaciones con tipo seguro.</code></pre>
+
+<h3>constants/password-rules.ts</h3>
+<pre><code>export const PASSWORD_RULES: PasswordRule[] = [
+  { label: 'Mínimo 8 caracteres',          test: p => p.length >= 8 },
+  { label: 'Al menos una mayúscula',        test: p => /[A-Z]/.test(p) },
+  { label: 'Al menos una minúscula',        test: p => /[a-z]/.test(p) },
+  { label: 'Al menos un número',            test: p => /[0-9]/.test(p) },
+  { label: 'Al menos un carácter especial', test: p => /[^A-Za-z0-9]/.test(p) }
+];
+
+// Se usa en el componente de reset-password y user-form para mostrar
+// las reglas en tiempo real mientras el usuario escribe la contraseña.</code></pre>
+
+
+<!-- ─────────────────────────── 15 ─────────────────────────── -->
+<h1 id="15-estilos">15. Estilos globales — styles.scss</h1>
+
+<p>El fichero <code>src/styles.scss</code> contiene estilos que aplican a toda la app (no a un componente concreto).</p>
+
+<table>
+  <thead><tr><th>Regla</th><th>Para qué sirve</th></tr></thead>
+  <tbody>
+    <tr><td><code>html { @include mat.theme(...) }</code></td><td>Configura la paleta de colores de Angular Material (azul/azure como primario)</td></tr>
+    <tr><td><code>body { overflow: hidden }</code></td><td>Evita el doble scroll — el scroll lo gestiona el <code>.admin-content</code> interno</td></tr>
+    <tr><td><code>body.dark-mode { color-scheme: dark }</code></td><td>Activa el tema oscuro de Material cuando se añade la clase <code>dark-mode</code> al body</td></tr>
+    <tr><td><code>input[type="password"]::-ms-reveal</code></td><td>Oculta el ojo nativo de Edge/IE para las contraseñas (usamos el nuestro)</td></tr>
+    <tr><td><code>.mat-mdc-dialog-surface</code></td><td>Estilos del diálogo de confirmación: bordes redondeados, sombra personalizada</td></tr>
+    <tr><td><code>.cdk-overlay-backdrop</code></td><td>Fondo semitransparente con blur al abrir un diálogo</td></tr>
+    <tr><td><code>.snackbar-success / .snackbar-error</code></td><td>Estilos personalizados para los snackbars de éxito/error (azul y rojo)</td></tr>
+    <tr><td><code>.admin-content:has(app-company-list), :has(app-user-list)</code></td><td>Oculta la barra de scroll exterior en los listados (el scroll del panel de detalle se mantiene)</td></tr>
+  </tbody>
+</table>
+
+<h3>¿Cómo funciona el dark mode?</h3>
+<p>El <code>ThemeService</code> añade/quita la clase <code>dark-mode</code> del <code>&lt;body&gt;</code>. Los componentes escuchan esto con <code>:host-context(body.dark-mode)</code> en su SCSS:</p>
+
+<pre><code>/* Estilos normales (light mode) */
+.table-shell { background: #fff; border: 1px solid #E6E9F0; }
+
+/* Se aplican cuando body tiene la clase dark-mode */
+:host-context(body.dark-mode) .table-shell { background: #131826; border-color: #1E2638; }</code></pre>
+
+
+<!-- ─────────────────────────── 16 ─────────────────────────── -->
+<h1 id="16-patrones">16. Patrones Angular 21 usados en el proyecto</h1>
+
+<p>Angular 21 introduce un conjunto de patrones modernos que este proyecto usa de forma consistente. Aquí están explicados:</p>
+
+<h3>Standalone components</h3>
+<p>Antes, los componentes pertenecían a un <code>NgModule</code>. Ahora son independientes (<em>standalone</em>) y declaran sus propias importaciones:</p>
+<pre><code>@Component({
+  selector: 'app-login',
+  standalone: true,          // (implícito en Angular 17+, no hace falta escribirlo)
+  imports: [FormsModule, MatButtonModule, RouterLink],  // solo lo que necesita este componente
+  template: `...`
+})</code></pre>
+
+<h3>inject() en lugar de constructor</h3>
+<pre><code>// Antes (Angular clásico):
+constructor(private authService: AuthService, private router: Router) {}
+
+// Ahora (Angular moderno):
+private readonly authService = inject(AuthService);
+private readonly router      = inject(Router);</code></pre>
+<p>Más limpio y permite usar inyección fuera del constructor (en propiedades, funciones).</p>
+
+<h3>ChangeDetectionStrategy.OnPush</h3>
+<p>Por defecto, Angular comprueba si un componente debe re-renderizarse en cada evento del navegador. Con <code>OnPush</code>, solo lo hace cuando cambia un Input, cuando se emite un evento del componente, o cuando un Signal que usa cambia:</p>
+<pre><code>@Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  // ...
+})</code></pre>
+<p>Con OnPush + Signals, el rendering es mucho más eficiente.</p>
+
+<h3>Control flow nativo (@if, @for)</h3>
+<pre><code>&lt;!-- Antes (directivas estructurales): --&gt;
+&lt;div *ngIf="loading"&gt;Cargando...&lt;/div&gt;
+&lt;li *ngFor="let c of companies; trackBy: trackById"&gt;{{ c.name }}&lt;/li&gt;
+
+&lt;!-- Ahora (control flow nativo): --&gt;
+@if (loading()) {
+  &lt;div&gt;Cargando...&lt;/div&gt;
+}
+@for (c of companies(); track c.id) {
+  &lt;li&gt;{{ c.name }}&lt;/li&gt;
+}</code></pre>
+<p>Más legible, mejor rendimiento y no requiere importar <code>NgIf</code> ni <code>NgFor</code>.</p>
+
+<h3>takeUntilDestroyed — evitar memory leaks</h3>
+<p>Si te suscribes a un Observable en un componente y el componente se destruye sin cancelar la suscripción, hay un <em>memory leak</em> (el Observable sigue ejecutándose en memoria). La solución:</p>
+<pre><code>private readonly destroyRef = inject(DestroyRef);
+
+// La suscripción se cancela automáticamente cuando el componente se destruye:
+someObservable$.pipe(
+  takeUntilDestroyed(this.destroyRef)
+).subscribe(...);</code></pre>
+
+<h3>toSignal() — convertir Observable a Signal</h3>
+<pre><code>// Un Observable del router convertido en Signal:
+private readonly currentUrl = toSignal(
+  this.router.events.pipe(
+    filter(e => e instanceof NavigationEnd),
+    map(e => e.urlAfterRedirects)
+  ),
+  { initialValue: this.router.url }
+);
+
+// Ahora se puede usar como un signal en la plantilla:
+isFullscreen = computed(() => FULLSCREEN_ROUTES.some(p => this.currentUrl().startsWith(p)));</code></pre>
+
+<h3>Guards funcionales</h3>
+<pre><code>// Antes (clase que implementa CanActivate):
+@Injectable()
+class AuthGuard implements CanActivate {
+  canActivate(): boolean { ... }
+}
+
+// Ahora (función pura):
+export const authGuard: CanActivateFn = (route, state) => {
+  const auth = inject(AuthService);
+  return auth.isLoggedIn() ? true : router.createUrlTree(['/login']);
+};</code></pre>
+
+<h3>firstValueFrom() — Observable como Promesa</h3>
+<p>Los servicios HTTP de Angular devuelven <code>Observable</code>, pero a veces es más cómodo usar <code>async/await</code>. <code>firstValueFrom()</code> convierte un Observable en una Promesa que resuelve con el primer valor:</p>
+<pre><code>// En lugar de:
+this.http.post('/api/auth/login', dto).subscribe(result => { ... });
+
+// Se puede usar async/await:
+const result = await firstValueFrom(
+  this.http.post('/api/auth/login', dto)
+);</code></pre>
+
+
+<!-- ─────────────────────────── 17 ─────────────────────────── -->
+<h1 id="17-flujos">17. Flujos completos de usuario</h1>
+
+<h2>Flujo 1: SuperAdmin hace login con TOTP</h2>
+<div class="flow">
+1. Usuario entra a /login<br>
+   └─ guestGuard: no está logueado → dejar pasar ✅<br>
+<br>
+2. Rellena email + password → pulsa "Iniciar sesión"<br>
+   └─ LoginComponent.onSubmit()<br>
+   └─ authService.login({ email, password })<br>
+   └─ POST /api/auth/login → { requiresMfa: true, mfaType: 'totp', mfaEmail: '...' }<br>
+<br>
+3. LoginComponent navega a /mfa-verificar?email=...&mfaType=totp<br>
+<br>
+4. MfaVerificarComponent.ngOnInit()<br>
+   └─ Lee email y mfaType de los queryParams<br>
+   └─ Muestra 6 cajas de dígito<br>
+<br>
+5. Usuario introduce el código de Google Authenticator → pulsa "Verificar"<br>
+   └─ authService.mfaVerify(email, code)<br>
+   └─ POST /api/auth/mfa-verify → el servidor emite cookies accessToken + refreshToken<br>
+   └─ Respuesta: { email, role: 'SuperAdmin', totpEnabled: true }<br>
+   └─ _identity.set({ email, role, totpEnabled }) — guardado en memoria<br>
+<br>
+6. authService.mfaVerify() navega a /empresas<br>
+<br>
+7. authGuard: isLoggedIn() = true ✅<br>
+   adminGuard: userRole = 'SuperAdmin' ✅ y totpEnabled = true ✅<br>
+   → CompanyListComponent se monta en el router-outlet
+</div>
+
+<h2>Flujo 2: Token expira mientras el usuario trabaja</h2>
+<div class="flow">
+1. Usuario lleva 15+ minutos en la app<br>
+   └─ El access token (JWT) ha expirado<br>
+<br>
+2. El usuario hace cualquier acción (buscar empresa, cargar detalle...)<br>
+   └─ Angular hace GET /api/companies → el servidor devuelve 401<br>
+<br>
+3. auth.interceptor captura el 401<br>
+   └─ isRefreshing = false → tomar control<br>
+   └─ isRefreshing = true, refreshResult$.next(null)<br>
+<br>
+4. authService.refresh()<br>
+   └─ POST /api/auth/refresh (con refreshToken cookie)<br>
+   └─ El servidor devuelve nuevas cookies accessToken + refreshToken<br>
+   └─ _identity actualizada<br>
+<br>
+5. interceptor reintenta la petición original<br>
+   └─ GET /api/companies → 200 OK con los datos<br>
+   └─ El usuario NO se entera de nada — todo fue transparente<br>
+<br>
+(Si el refresh también falla: _identity = null → el interceptor propaga el error
+→ el componente recibe el error → como isLoggedIn() = false, los guards
+redirigen a /login en la próxima navegación)
+</div>
+
+<h2>Flujo 3: Cliente hace login con Email OTP</h2>
+<div class="flow">
+1. LoginComponent → POST /api/auth/login<br>
+   └─ { requiresMfa: true, mfaType: 'email', mfaEmail: '...', otpExpiresAt: '...' }<br>
+<br>
+2. Login guarda mfa_otp_expires_at en sessionStorage<br>
+3. Navega a /mfa-verificar?email=...&mfaType=email<br>
+<br>
+4. MfaVerificarComponent lee la expiración del sessionStorage<br>
+   └─ Inicia contador regresivo de 30 segundos<br>
+   └─ Si llega a 0: muestra "Código expirado" + botón "Volver al login"<br>
+<br>
+5. Cliente introduce el código de 6 dígitos del email<br>
+   └─ POST /api/auth/mfa-verify → cookies emitidas<br>
+   └─ authService._identity.set({ ..., role: 'Cliente' })<br>
+<br>
+6. authService.mfaVerify() detecta role === 'Cliente'<br>
+   └─ Navega a /perfil<br>
+<br>
+7. authGuard: isLoggedIn() = true ✅<br>
+   adminGuard NO está en la ruta /perfil → solo authGuard<br>
+   → PerfilComponent.ngOnInit() llama a userService.getMe()<br>
+   → Muestra los datos del usuario
+</div>
+
+<h2>Flujo 4: Crear una empresa</h2>
+<div class="flow">
+1. Admin pulsa "+ Nueva empresa" en /empresas<br>
+   └─ router.navigate([ROUTES.COMPANY_NEW])<br>
+<br>
+2. CompanyFormComponent.ngOnInit()<br>
+   └─ route.snapshot.paramMap.get('id') = null → modo "crear"<br>
+<br>
+3. Admin rellena nombre, descripción, estado, email de contacto<br>
+   └─ Opcionalmente sube un logo (input file → preview)<br>
+<br>
+4. Pulsa "Guardar"<br>
+   └─ companyService.create(dto)<br>
+   └─ toFormData(dto) convierte todo a FormData (necesario para el archivo)<br>
+   └─ POST /api/companies (multipart/form-data)<br>
+   └─ El backend valida extensión + MIME + magic bytes del logo<br>
+   └─ Respuesta: Company creada con id<br>
+<br>
+5. notificationService.add({ text: 'Empresa creada', ... })<br>
+   └─ Guardado en localStorage → aparece en la campana<br>
+<br>
+6. router.navigate([ROUTES.companyDetail(result.id)])<br>
+   └─ Va a /empresas/42 (por ejemplo)
+</div>
+
+<hr>
+
+<p style="text-align:center; color: var(--text-muted); font-size: 0.85rem; margin-top: 3rem;">
+  ClientManager — Documentación Frontend Angular · Generada el 04/05/2026
+</p>
+
+</div>
+</main>
+</div>
+</body>
+</html>
