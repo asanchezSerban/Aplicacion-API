@@ -46,3 +46,6 @@ AplicacionAPI/ClientManager.API/wwwroot/uploads/
 # Carpetas de publicación/despliegue (artefactos compilados)
 publish/
 AplicacionAPI/ClientManager.API/PracticasAdrianGestorDeEmpresaspublishapi/
+
+# Exportaciones comprimidas
+*.zip
