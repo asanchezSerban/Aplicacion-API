@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClientManager — Plan de implementación SignalR</title>
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-soft: #eef2ff;
+    --green: #10b981;
+    --green-soft: #d1fae5;
+    --orange: #f59e0b;
+    --orange-soft: #fef3c7;
+    --red: #ef4444;
+    --red-soft: #fee2e2;
+    --bg: #ffffff;
+    --bg-secondary: #f8fafc;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --code-bg: #0f172a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* ── Sidebar ── */
+  aside {
+    width: 260px;
+    min-width: 260px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    padding: 1.5rem 1rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    font-size: 0.8rem;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-badge {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--primary);
+    display: grid; place-items: center;
+    color: white;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-title { font-weight: 700; font-size: 0.85rem; color: var(--text); }
+  .sidebar-sub { font-size: 0.7rem; color: var(--text-muted); }
+
+  aside h5 {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin: 1.25rem 0 0.4rem;
+  }
+
+  aside ul { list-style: none; }
+  aside ul li a {
+    display: block;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: all 0.12s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  aside ul li a:hover { background: var(--border); color: var(--primary); }
+  aside ul.sub { margin-left: 0.75rem; }
+  aside ul.sub li a { font-size: 0.75rem; padding: 0.2rem 0.5rem; }
+
+  /* ── Main ── */
+  main { flex: 1; min-width: 0; }
+
+  /* ── Cover ── */
+  .cover {
+    background: linear-gradient(135deg, #0f172a 0%, #312e81 50%, #1e1b4b 100%);
+    color: white;
+    padding: 4rem 4.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -5%;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(99,102,241,0.3) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .cover-chip {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 0.2rem 0.8rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 1.25rem;
+  }
+  .cover h1 {
+    font-size: 2.4rem !important;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: white !important;
+    border: none !important;
+    margin: 0 0 1rem !important;
+    padding: 0 !important;
+  }
+  .cover p {
+    color: rgba(255,255,255,0.65);
+    font-size: 1rem;
+    max-width: 580px;
+    margin: 0 0 2rem !important;
+  }
+  .cover-stats { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+  .cover-stat { display: flex; flex-direction: column; gap: 0.15rem; }
+  .cover-stat-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.4); }
+  .cover-stat-value { font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.95); }
+
+  /* ── Content ── */
+  .content { padding: 3rem 4.5rem; max-width: 900px; }
+
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 3rem 0 1rem;
+    color: var(--text);
+    padding-bottom: 0.6rem;
+    border-bottom: 3px solid var(--primary);
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 2.5rem 0 0.65rem;
+    color: var(--text);
+    padding: 0.6rem 1rem;
+    background: var(--bg-secondary);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 8px 8px 0;
+  }
+
+  h3 { font-size: 1rem; font-weight: 700; margin: 1.75rem 0 0.5rem; color: var(--text); }
+
+  p { margin: 0.75rem 0; }
+  strong { font-weight: 700; }
+
+  ul, ol { margin: 0.65rem 0 0.65rem 1.5rem; }
+  li { margin: 0.3rem 0; }
+
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    background: #f1f5f9;
+    color: #be123c;
+    padding: 0.12em 0.4em;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+  }
+
+  pre {
+    background: var(--code-bg);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1.25rem 0;
+    overflow-x: auto;
+  }
+  pre code {
+    background: transparent;
+    color: #cbd5e1;
+    padding: 0;
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+
+  blockquote {
+    background: var(--primary-soft);
+    border-left: 4px solid var(--primary);
+    padding: 0.85rem 1.25rem;
+    margin: 1.25rem 0;
+    border-radius: 0 8px 8px 0;
+    color: #3730a3;
+    font-size: 0.9rem;
+  }
+  blockquote.warn { background: var(--orange-soft); border-left-color: var(--orange); color: #92400e; }
+  blockquote.ok   { background: var(--green-soft);  border-left-color: var(--green);  color: #065f46; }
+  blockquote.danger { background: var(--red-soft);  border-left-color: var(--red);    color: #991b1b; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+
+  /* ── File ref ── */
+  .file-ref {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #f1f5f9;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem;
+    margin: 0.5rem 0;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.78rem;
+    color: #475569;
+  }
+  .file-ref.new  { background: var(--green-soft);  border-color: #6ee7b7; color: #065f46; }
+  .file-ref.mod  { background: var(--orange-soft); border-color: #fcd34d; color: #92400e; }
+
+  /* ── Step list ── */
+  .step-list { display: flex; flex-direction: column; gap: 0.5rem; margin: 1.25rem 0; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+  }
+  .step-num {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+    font-size: 0.78rem;
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-body { display: flex; flex-direction: column; gap: 0.15rem; }
+  .step-title { font-weight: 600; font-size: 0.875rem; color: var(--text); }
+  .step-desc  { font-size: 0.8rem; color: var(--text-muted); }
+
+  /* ── Table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  thead { background: var(--primary); }
+  th {
+    padding: 0.65rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: white;
+  }
+  td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: var(--bg-secondary); }
+  tbody tr:hover { background: #eef2ff; }
+
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .badge-new { background: var(--green-soft);  color: #065f46; }
+  .badge-mod { background: var(--orange-soft); color: #92400e; }
+
+  /* ── Use cases grid ── */
+  .use-cases {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.25rem 0;
+  }
+  .use-case {
+    padding: 1rem 1.125rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-secondary);
+  }
+  .use-case-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+  .use-case h4 { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--text); }
+  .use-case p  { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+
+  /* ── Comparison ── */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.25rem 0;
+  }
+  .comparison-card {
+    padding: 1rem 1.125rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .comparison-card.old { background: #fef2f2; border-color: #fecaca; }
+  .comparison-card.new { background: #f0fdf4; border-color: #bbf7d0; }
+  .comparison-card h4 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .comparison-card.old h4 { color: var(--red); }
+  .comparison-card.new h4 { color: var(--green); }
+  .comparison-card p { font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.6; }
+
+  @media (max-width: 900px) {
+    aside { display: none; }
+    .content { padding: 2rem; }
+    .cover { padding: 2rem; }
+    .use-cases, .comparison { grid-template-columns: 1fr; }
+  }
+
+  @media print { aside { display: none; } }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── Sidebar ── -->
+<aside>
+  <div class="sidebar-logo">
+    <div class="sidebar-badge">⚡</div>
+    <div>
+      <div class="sidebar-title">ClientManager</div>
+      <div class="sidebar-sub">Plan SignalR</div>
+    </div>
+  </div>
+
+  <h5>Contenido</h5>
+  <ul>
+    <li><a href="#que-es">¿Qué es SignalR?</a></li>
+    <li><a href="#casos-uso">Casos de uso</a></li>
+    <li><a href="#dependencias">1. Dependencias</a></li>
+    <li><a href="#backend">2. Backend</a></li>
+    <ul class="sub">
+      <li><a href="#hub">2.1 Crear el Hub</a></li>
+      <li><a href="#program">2.2 Program.cs</a></li>
+      <li><a href="#cors">2.3 CORS</a></li>
+      <li><a href="#auth">2.4 Autenticación JWT</a></li>
+      <li><a href="#notification">2.5 NotificationService</a></li>
+      <li><a href="#company">2.6 CompanyService</a></li>
+      <li><a href="#user-service">2.7 UserService</a></li>
+    </ul>
+    <li><a href="#frontend">3. Frontend</a></li>
+    <ul class="sub">
+      <li><a href="#signalr-service">3.1 SignalRService</a></li>
+      <li><a href="#connect">3.2 Conectar al arrancar</a></li>
+      <li><a href="#logout">3.3 Desconectar en logout</a></li>
+      <li><a href="#companies">3.4 Lista de empresas</a></li>
+      <li><a href="#users-list">3.5 Lista de usuarios</a></li>
+    </ul>
+    <li><a href="#iis">4. IIS — WebSockets</a></li>
+    <li><a href="#tests">5. Tests</a></li>
+    <li><a href="#orden">6. Orden de implementación</a></li>
+    <li><a href="#probar">7. Cómo probar</a></li>
+    <li><a href="#problemas">8. Problemas comunes</a></li>
+    <li><a href="#resumen">9. Resumen ficheros</a></li>
+  </ul>
+</aside>
+
+<!-- ── Main ── -->
+<main>
+<div class="cover">
+  <div class="cover-chip">Plan técnico · ClientManager</div>
+  <h1>Implementación de SignalR<br>Tiempo real en ClientManager</h1>
+  <p>Plan detallado y completo para añadir comunicación en tiempo real mediante SignalR. Cada fichero, cada comando, cada librería y cada decisión de diseño.</p>
+  <div class="cover-stats">
+    <div class="cover-stat"><span class="cover-stat-label">Ficheros nuevos</span><span class="cover-stat-value">4</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Ficheros modificados</span><span class="cover-stat-value">8</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Paquetes npm</span><span class="cover-stat-value">1</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Paquetes NuGet</span><span class="cover-stat-value">0</span></div>
+    <div class="cover-stat"><span class="cover-stat-label">Pasos</span><span class="cover-stat-value">15</span></div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ── Qué es SignalR ── -->
+<h1 id="que-es">¿Qué es SignalR?</h1>
+
+<p>SignalR es una librería incluida en ASP.NET Core que permite <strong>comunicación bidireccional en tiempo real</strong> entre servidor y cliente. A diferencia del modelo HTTP clásico donde el cliente siempre inicia la comunicación, SignalR mantiene una conexión persistente que permite al servidor enviar datos al cliente cuando quiera, sin que el cliente lo pida.</p>
+
+<div class="comparison">
+  <div class="comparison-card old">
+    <h4>HTTP clásico (actual)</h4>
+    <p>Cliente pide → Servidor responde. El servidor nunca puede avisar al cliente de nada. El cliente tiene que preguntar constantemente si hay cambios.</p>
+  </div>
+  <div class="comparison-card new">
+    <h4>SignalR (tiempo real)</h4>
+    <p>Conexión persistente. El servidor puede enviar datos al cliente cuando quiera. Los clientes reciben cambios al instante sin necesidad de pedirlos.</p>
+  </div>
+</div>
+
+<blockquote>Internamente SignalR usa <strong>WebSockets</strong> si el browser los soporta, y cae automáticamente a Long Polling si no. En IIS con Windows es necesario activar la feature de WebSockets explícitamente.</blockquote>
+
+<!-- ── Casos de uso ── -->
+<h1 id="casos-uso">Casos de uso en ClientManager</h1>
+
+<p>Actualmente la app no tiene ningún caso de uso que requiera tiempo real. Estos serían los escenarios que lo justificarían:</p>
+
+<div class="use-cases">
+  <div class="use-case">
+    <div class="use-case-icon">👥</div>
+    <h4>Múltiples SuperAdmins</h4>
+    <p>Dos admins trabajando a la vez ven los cambios del otro en tiempo real sin recargar.</p>
+  </div>
+  <div class="use-case">
+    <div class="use-case-icon">🔔</div>
+    <h4>Notificaciones push</h4>
+    <p>Un cliente recibe una notificación cuando su empresa es actualizada o se le asigna algo.</p>
+  </div>
+  <div class="use-case">
+    <div class="use-case-icon">📊</div>
+    <h4>Dashboard en vivo</h4>
+    <p>Métricas y estadísticas que se actualizan solas sin intervención del usuario.</p>
+  </div>
+  <div class="use-case">
+    <div class="use-case-icon">📋</div>
+    <h4>Log de actividad</h4>
+    <p>Un registro de acciones que se actualiza en tiempo real mientras otros usuarios operan.</p>
+  </div>
+</div>
+
+<!-- ── Dependencias ── -->
+<h1 id="dependencias">1. Dependencias y librerías</h1>
+
+<h2>Backend (.NET)</h2>
+<p>SignalR ya viene incluido en ASP.NET Core — <strong>no hay que instalar ningún paquete NuGet adicional</strong>. Solo hay que registrarlo en <code>Program.cs</code>.</p>
+
+<blockquote class="warn">Solo si en el futuro hubiera múltiples instancias del servidor (escalado horizontal), habría que añadir un backplane de Redis para sincronizar los Hubs entre instancias:</blockquote>
+
+<pre><code># Solo en escenario de múltiples servidores — no necesario ahora:
+cd AplicacionAPI/ClientManager.API
+dotnet add package Microsoft.AspNetCore.SignalR.StackExchangeRedis</code></pre>
+
+<h2>Frontend (Angular)</h2>
+<p>Sí hay que instalar el cliente de SignalR para JavaScript:</p>
+
+<pre><code>cd AplicacionAPI/ClientManagerWeb
+npm install @microsoft/signalr</code></pre>
+
+<!-- ── Backend ── -->
+<h1 id="backend">2. Cambios en el Backend</h1>
+
+<h2 id="hub">2.1 Crear el Hub</h2>
+
+<p>Un <strong>Hub</strong> es la clase central de SignalR — el punto de comunicación entre servidor y clientes. Equivale a un controlador pero para conexiones persistentes en lugar de peticiones HTTP.</p>
+
+<div class="file-ref new">📄 NUEVO → AplicacionAPI/ClientManager.API/Hubs/ClientManagerHub.cs</div>
+
+<pre><code>using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+
+namespace ClientManager.API.Hubs;
+
+[Authorize]
+public class ClientManagerHub : Hub
+{
+    // Se ejecuta cuando un cliente se conecta
+    public override async Task OnConnectedAsync()
+    {
+        var role = Context.User?.FindFirst("role")?.Value;
+
+        // Meter al usuario en el grupo de su rol
+        // Así podemos enviar mensajes solo a SuperAdmins o solo a Clientes
+        if (!string.IsNullOrEmpty(role))
+            await Groups.AddToGroupAsync(Context.ConnectionId, role);
+
+        await base.OnConnectedAsync();
+    }
+
+    // Se ejecuta cuando un cliente se desconecta
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        var role = Context.User?.FindFirst("role")?.Value;
+
+        if (!string.IsNullOrEmpty(role))
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, role);
+
+        await base.OnDisconnectedAsync(exception);
+    }
+}</code></pre>
+
+<h2 id="program">2.2 Registrar SignalR en Program.cs</h2>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManager.API/Program.cs</div>
+
+<p>Añadir después de <code>builder.Services.AddAuthorization()</code>:</p>
+
+<pre><code>// ── SignalR ───────────────────────────────────────────────────────────────────
+builder.Services.AddSignalR();</code></pre>
+
+<p>Añadir después de <code>app.UseAuthentication()</code> y <code>app.UseAuthorization()</code>:</p>
+
+<pre><code>// Mapear el Hub en la ruta /hubs/clientmanager
+app.MapHub&lt;ClientManagerHub&gt;("/hubs/clientmanager");</code></pre>
+
+<h2 id="cors">2.3 CORS para SignalR</h2>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManager.API/Program.cs</div>
+
+<p>La configuración CORS actual ya tiene <code>AllowCredentials()</code> que es obligatorio para SignalR. Verificar que está así:</p>
+
+<pre><code>policy.WithOrigins(corsOrigins)
+      .AllowAnyMethod()
+      .AllowAnyHeader()
+      .AllowCredentials();  // obligatorio — sin esto SignalR no funciona con cookies</code></pre>
+
+<h2 id="auth">2.4 Autenticación JWT para el Hub</h2>
+
+<p>SignalR no envía cookies en el handshake de WebSocket de la misma forma que HTTP. Hay que configurar el middleware JWT para que también lea el token del query string en el handshake inicial del Hub.</p>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManager.API/Program.cs</div>
+
+<p>Dentro de <code>options.Events</code> en la configuración JWT, reemplazar <code>OnMessageReceived</code>:</p>
+
+<pre><code>OnMessageReceived = ctx =>
+{
+    // Para peticiones HTTP normales — leer de la cookie
+    var cookie = ctx.Request.Cookies["accessToken"];
+    if (!string.IsNullOrEmpty(cookie))
+    {
+        ctx.Token = cookie;
+        return Task.CompletedTask;
+    }
+
+    // Para SignalR — el token puede venir como query string en el handshake
+    var accessToken = ctx.Request.Query["access_token"];
+    var path = ctx.HttpContext.Request.Path;
+    if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+        ctx.Token = accessToken;
+
+    return Task.CompletedTask;
+}</code></pre>
+
+<h2 id="notification">2.5 Crear el NotificationService</h2>
+
+<p>Para no acoplar los servicios de negocio directamente al Hub, se crea una capa de abstracción — <code>INotificationService</code>. Esto también facilita el testing (se puede mockear fácilmente).</p>
+
+<div class="file-ref new">📄 NUEVO → AplicacionAPI/ClientManager.API/Services/INotificationService.cs</div>
+
+<pre><code>namespace ClientManager.API.Services;
+
+public interface INotificationService
+{
+    Task NotifyCompanyCreatedAsync(object company);
+    Task NotifyCompanyUpdatedAsync(object company);
+    Task NotifyCompanyDeletedAsync(int companyId);
+    Task NotifyUserCreatedAsync(object user);
+    Task NotifyUserDeletedAsync(int userId);
+}</code></pre>
+
+<div class="file-ref new">📄 NUEVO → AplicacionAPI/ClientManager.API/Services/NotificationService.cs</div>
+
+<pre><code>using ClientManager.API.Hubs;
+using Microsoft.AspNetCore.SignalR;
+
+namespace ClientManager.API.Services;
+
+public class NotificationService : INotificationService
+{
+    private readonly IHubContext&lt;ClientManagerHub&gt; _hub;
+
+    public NotificationService(IHubContext&lt;ClientManagerHub&gt; hub)
+    {
+        _hub = hub;
+    }
+
+    public async Task NotifyCompanyCreatedAsync(object company)
+        => await _hub.Clients.Group("SuperAdmin").SendAsync("CompanyCreated", company);
+
+    public async Task NotifyCompanyUpdatedAsync(object company)
+        => await _hub.Clients.Group("SuperAdmin").SendAsync("CompanyUpdated", company);
+
+    public async Task NotifyCompanyDeletedAsync(int companyId)
+        => await _hub.Clients.Group("SuperAdmin").SendAsync("CompanyDeleted", companyId);
+
+    public async Task NotifyUserCreatedAsync(object user)
+        => await _hub.Clients.Group("SuperAdmin").SendAsync("UserCreated", user);
+
+    public async Task NotifyUserDeletedAsync(int userId)
+        => await _hub.Clients.Group("SuperAdmin").SendAsync("UserDeleted", userId);
+}</code></pre>
+
+<p>Registrar en <code>Program.cs</code>:</p>
+
+<pre><code>builder.Services.AddScoped&lt;INotificationService, NotificationService&gt;();</code></pre>
+
+<h2 id="company">2.6 Modificar CompanyService</h2>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManager.API/Services/CompanyService.cs</div>
+
+<pre><code>// Inyectar en el constructor:
+private readonly INotificationService _notifications;
+
+// En CreateAsync() — tras SaveChangesAsync():
+await _notifications.NotifyCompanyCreatedAsync(company);
+
+// En UpdateAsync() — tras SaveChangesAsync():
+await _notifications.NotifyCompanyUpdatedAsync(company);
+
+// En DeleteAsync() — tras SaveChangesAsync():
+await _notifications.NotifyCompanyDeletedAsync(id);</code></pre>
+
+<h2 id="user-service">2.7 Modificar UserService</h2>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManager.API/Services/UserService.cs</div>
+
+<pre><code>// En CreateAsync() — tras SaveChangesAsync():
+await _notifications.NotifyUserCreatedAsync(user);
+
+// En DeleteAsync() — tras SaveChangesAsync():
+await _notifications.NotifyUserDeletedAsync(id);</code></pre>
+
+<!-- ── Frontend ── -->
+<h1 id="frontend">3. Cambios en el Frontend</h1>
+
+<h2 id="signalr-service">3.1 Crear SignalRService</h2>
+
+<div class="file-ref new">📄 NUEVO → AplicacionAPI/ClientManagerWeb/src/app/services/signalr.service.ts</div>
+
+<pre><code>import { Injectable, inject, OnDestroy } from '@angular/core';
+import * as signalR from '@microsoft/signalr';
+import { Subject } from 'rxjs';
+
+@Injectable({ providedIn: 'root' })
+export class SignalRService implements OnDestroy {
+  private connection: signalR.HubConnection | null = null;
+
+  // Subjects para cada tipo de evento del servidor
+  readonly companyCreated$ = new Subject&lt;unknown&gt;();
+  readonly companyUpdated$ = new Subject&lt;unknown&gt;();
+  readonly companyDeleted$ = new Subject&lt;number&gt;();
+  readonly userCreated$    = new Subject&lt;unknown&gt;();
+  readonly userDeleted$    = new Subject&lt;number&gt;();
+
+  async connect(): Promise&lt;void&gt; {
+    if (this.connection?.state === signalR.HubConnectionState.Connected) return;
+
+    this.connection = new signalR.HubConnectionBuilder()
+      .withUrl('http://localhost:5000/hubs/clientmanager', {
+        withCredentials: true           // enviar la cookie accessToken
+      })
+      .withAutomaticReconnect()         // reconectar automáticamente si se cae
+      .build();
+
+    // Registrar handlers para cada evento del servidor
+    this.connection.on('CompanyCreated', data => this.companyCreated$.next(data));
+    this.connection.on('CompanyUpdated', data => this.companyUpdated$.next(data));
+    this.connection.on('CompanyDeleted', id   => this.companyDeleted$.next(id));
+    this.connection.on('UserCreated',    data => this.userCreated$.next(data));
+    this.connection.on('UserDeleted',    id   => this.userDeleted$.next(id));
+
+    await this.connection.start();
+  }
+
+  async disconnect(): Promise&lt;void&gt; {
+    await this.connection?.stop();
+    this.connection = null;
+  }
+
+  ngOnDestroy(): void {
+    this.disconnect();
+  }
+}</code></pre>
+
+<h2 id="connect">3.2 Conectar al arrancar (solo SuperAdmin)</h2>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManagerWeb/src/app/app.config.ts</div>
+
+<pre><code>// En provideAppInitializer, tras hidratar la identidad:
+const role = authService.userRole();
+if (role === 'SuperAdmin') {
+  const signalr = inject(SignalRService);
+  await signalr.connect();
+}</code></pre>
+
+<h2 id="logout">3.3 Desconectar al hacer logout</h2>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManagerWeb/src/app/services/auth.service.ts</div>
+
+<pre><code>// En el método logout():
+async logout(): Promise&lt;void&gt; {
+  await this.signalrService.disconnect();   // ← añadir antes del POST
+  await firstValueFrom(this.http.post('/auth/logout', {}));
+  this._identity.set(null);
+  this.router.navigate(['/login']);
+}</code></pre>
+
+<h2 id="companies">3.4 Suscribirse en la lista de empresas</h2>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManagerWeb/src/app/pages/companies/company-list.ts</div>
+
+<pre><code>private readonly signalr    = inject(SignalRService);
+private readonly destroyRef = inject(DestroyRef);
+
+ngOnInit(): void {
+  this.signalr.companyCreated$
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(company => {
+      this.companies.update(list => [...list, company as Company]);
+    });
+
+  this.signalr.companyUpdated$
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(company => {
+      this.companies.update(list =>
+        list.map(c => c.id === (company as Company).id ? company as Company : c)
+      );
+    });
+
+  this.signalr.companyDeleted$
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(id => {
+      this.companies.update(list => list.filter(c => c.id !== id));
+    });
+}</code></pre>
+
+<h2 id="users-list">3.5 Suscribirse en la lista de usuarios</h2>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManagerWeb/src/app/pages/users/user-list.ts</div>
+
+<pre><code>this.signalr.userCreated$
+  .pipe(takeUntilDestroyed(this.destroyRef))
+  .subscribe(user => {
+    this.users.update(list => [...list, user as User]);
+  });
+
+this.signalr.userDeleted$
+  .pipe(takeUntilDestroyed(this.destroyRef))
+  .subscribe(id => {
+    this.users.update(list => list.filter(u => u.id !== id));
+  });</code></pre>
+
+<!-- ── IIS ── -->
+<h1 id="iis">4. IIS — Activar WebSockets</h1>
+
+<p>IIS no tiene WebSockets habilitados por defecto. Hay que activarlos manualmente:</p>
+
+<h3>Opción A — Panel de control</h3>
+<p>Panel de control → Programas → Activar o desactivar características de Windows:</p>
+<pre><code>Internet Information Services
+  └─► Servicios World Wide Web
+        └─► Características de desarrollo de aplicaciones
+              └─► ✓ Protocolo WebSocket  ← marcar esta casilla</code></pre>
+
+<h3>Opción B — PowerShell (administrador)</h3>
+<pre><code>Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebSockets</code></pre>
+
+<blockquote class="warn">Tras activar WebSockets es necesario reiniciar IIS: <code>iisreset</code></blockquote>
+
+<!-- ── Tests ── -->
+<h1 id="tests">5. Actualizar Tests</h1>
+
+<div class="file-ref mod">✏️ MODIFICAR → AplicacionAPI/ClientManager.Tests/Tests/CompanyTests.cs</div>
+
+<p>Al añadir <code>INotificationService</code> como dependencia en <code>CompanyService</code>, los tests existentes romperán porque no pasan ese parámetro. Hay que mockear la interfaz:</p>
+
+<pre><code>// En el setup del test:
+var notificationsMock = Substitute.For&lt;INotificationService&gt;();
+
+// Pasar el mock al instanciar CompanyService:
+var companyService = new CompanyService(db, notificationsMock, ...);</code></pre>
+
+<!-- ── Orden ── -->
+<h1 id="orden">6. Orden de implementación</h1>
+
+<div class="step-list">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">npm install @microsoft/signalr</div><div class="step-desc">Instalar el cliente SignalR para Angular</div></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Crear ClientManagerHub.cs</div><div class="step-desc">Nuevo fichero en Hubs/</div></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Registrar SignalR en Program.cs</div><div class="step-desc">AddSignalR() y MapHub()</div></div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Configurar JWT para WebSockets</div><div class="step-desc">Modificar OnMessageReceived en Program.cs</div></div></div>
+  <div class="step"><div class="step-num">5</div><div class="step-body"><div class="step-title">Crear INotificationService e implementación</div><div class="step-desc">Dos ficheros nuevos en Services/</div></div></div>
+  <div class="step"><div class="step-num">6</div><div class="step-body"><div class="step-title">Registrar NotificationService en Program.cs</div><div class="step-desc">AddScoped&lt;INotificationService, NotificationService&gt;()</div></div></div>
+  <div class="step"><div class="step-num">7</div><div class="step-body"><div class="step-title">Modificar CompanyService</div><div class="step-desc">Inyectar INotificationService y emitir eventos</div></div></div>
+  <div class="step"><div class="step-num">8</div><div class="step-body"><div class="step-title">Modificar UserService</div><div class="step-desc">Inyectar INotificationService y emitir eventos</div></div></div>
+  <div class="step"><div class="step-num">9</div><div class="step-body"><div class="step-title">Crear SignalRService en Angular</div><div class="step-desc">Nuevo fichero en services/</div></div></div>
+  <div class="step"><div class="step-num">10</div><div class="step-body"><div class="step-title">Conectar en app.config.ts</div><div class="step-desc">Tras hidratar identidad, conectar si es SuperAdmin</div></div></div>
+  <div class="step"><div class="step-num">11</div><div class="step-body"><div class="step-title">Desconectar en logout</div><div class="step-desc">Modificar auth.service.ts</div></div></div>
+  <div class="step"><div class="step-num">12</div><div class="step-body"><div class="step-title">Suscribirse en company-list y user-list</div><div class="step-desc">Escuchar eventos y actualizar signals</div></div></div>
+  <div class="step"><div class="step-num">13</div><div class="step-body"><div class="step-title">Activar WebSockets en IIS</div><div class="step-desc">Panel de control o PowerShell + iisreset</div></div></div>
+  <div class="step"><div class="step-num">14</div><div class="step-body"><div class="step-title">Actualizar mocks en tests</div><div class="step-desc">Mockear INotificationService en CompanyTests</div></div></div>
+  <div class="step"><div class="step-num">15</div><div class="step-body"><div class="step-title">Probar con dos browsers a la vez</div><div class="step-desc">Abrir dos ventanas en incógnito y verificar sincronización</div></div></div>
+</div>
+
+<!-- ── Probar ── -->
+<h1 id="probar">7. Cómo probar que funciona</h1>
+
+<ol>
+  <li>Abrir la app en <strong>dos browsers distintos</strong> (o dos ventanas en incógnito) con el SuperAdmin logueado en ambos</li>
+  <li>En uno crear, editar o borrar una empresa</li>
+  <li>En el otro la lista debería actualizarse <strong>automáticamente sin recargar</strong></li>
+  <li>También se puede verificar en las DevTools → pestaña Network → buscar una conexión WebSocket a <code>ws://localhost:5000/hubs/clientmanager</code></li>
+</ol>
+
+<!-- ── Problemas ── -->
+<h1 id="problemas">8. Problemas comunes</h1>
+
+<table>
+  <thead><tr><th>Problema</th><th>Causa</th><th>Solución</th></tr></thead>
+  <tbody>
+    <tr><td><code>WebSocket connection failed</code></td><td>IIS sin WebSockets activados</td><td>Activar la feature en Windows + iisreset</td></tr>
+    <tr><td>401 en el handshake del Hub</td><td>JWT no llega al Hub por WebSocket</td><td>Configurar OnMessageReceived para leer del query string</td></tr>
+    <tr><td>CORS error en WebSocket</td><td>AllowCredentials no configurado</td><td>Verificar política CORS en Program.cs</td></tr>
+    <tr><td>Desconexión frecuente</td><td>Timeout de IIS en conexiones largas</td><td>Configurar keepAliveInterval en el Hub</td></tr>
+    <tr><td>No llegan eventos al frontend</td><td>Hub mal mapeado</td><td>Verificar que MapHub está después de UseAuthorization</td></tr>
+    <tr><td>Tests rompen tras el cambio</td><td>INotificationService no mockeado</td><td>Añadir Substitute.For&lt;INotificationService&gt;() en setup</td></tr>
+  </tbody>
+</table>
+
+<!-- ── Resumen ── -->
+<h1 id="resumen">9. Resumen de ficheros afectados</h1>
+
+<table>
+  <thead><tr><th>Fichero</th><th>Acción</th><th>Capa</th></tr></thead>
+  <tbody>
+    <tr><td><code>Hubs/ClientManagerHub.cs</code></td><td><span class="badge badge-new">Nuevo</span></td><td>Backend</td></tr>
+    <tr><td><code>Services/INotificationService.cs</code></td><td><span class="badge badge-new">Nuevo</span></td><td>Backend</td></tr>
+    <tr><td><code>Services/NotificationService.cs</code></td><td><span class="badge badge-new">Nuevo</span></td><td>Backend</td></tr>
+    <tr><td><code>services/signalr.service.ts</code></td><td><span class="badge badge-new">Nuevo</span></td><td>Frontend</td></tr>
+    <tr><td><code>Program.cs</code></td><td><span class="badge badge-mod">Modificar</span></td><td>Backend</td></tr>
+    <tr><td><code>Services/CompanyService.cs</code></td><td><span class="badge badge-mod">Modificar</span></td><td>Backend</td></tr>
+    <tr><td><code>Services/UserService.cs</code></td><td><span class="badge badge-mod">Modificar</span></td><td>Backend</td></tr>
+    <tr><td><code>app.config.ts</code></td><td><span class="badge badge-mod">Modificar</span></td><td>Frontend</td></tr>
+    <tr><td><code>services/auth.service.ts</code></td><td><span class="badge badge-mod">Modificar</span></td><td>Frontend</td></tr>
+    <tr><td><code>pages/companies/company-list.ts</code></td><td><span class="badge badge-mod">Modificar</span></td><td>Frontend</td></tr>
+    <tr><td><code>pages/users/user-list.ts</code></td><td><span class="badge badge-mod">Modificar</span></td><td>Frontend</td></tr>
+    <tr><td><code>Tests/CompanyTests.cs</code></td><td><span class="badge badge-mod">Modificar</span></td><td>Tests</td></tr>
+    <tr><td>IIS — WebSockets feature</td><td><span class="badge badge-mod">Activar</span></td><td>Infraestructura</td></tr>
+    <tr><td><code>package.json</code></td><td><span class="badge badge-mod">Modificar</span></td><td>Frontend</td></tr>
+  </tbody>
+</table>
+
+<hr>
+<p style="text-align:center; color: var(--text-muted); font-size: 0.82rem; margin-top: 2rem;">ClientManager — Plan SignalR · Mayo 2026</p>
+
+</div>
+</main>
+</div>
+</body>
+</html>
